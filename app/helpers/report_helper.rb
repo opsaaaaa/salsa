@@ -98,8 +98,8 @@ module ReportHelper
 
     limit_sql = nil
     if params[:page]
-        query_parameters[:offset] = (params[:page] || 1).to_i
         query_parameters[:limit] = (params[:per] || 1).to_i
+        query_parameters[:offset] = (params[:page] || 0).to_i * query_parameters[:limit]
         limit_sql = 'offset :offset limit :limit'
     end
 
