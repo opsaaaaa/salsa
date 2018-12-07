@@ -8,7 +8,10 @@ var batch_token = "";
 
 
 $(function(){
-
+  if($(".active-org").length) {
+    $('.sidebar').scrollTop($(".active-org").offset().top)
+  }
+  
   $('#toggleChecked').on('click', function() {
     var isChecked = $('#salsaDocuments :checkbox:first').is(':checked');
 

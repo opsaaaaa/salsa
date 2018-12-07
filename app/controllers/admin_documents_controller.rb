@@ -28,7 +28,7 @@ class AdminDocumentsController < AdminController
 
   def versions
     get_document params[:id]
-    @document_versions = @document.versions.where(event: "update")
+    @document_versions = @document.versions.where(event: "update").page(params[:page]).per(params[:per])
   end
 
   def revert_document

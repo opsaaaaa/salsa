@@ -1,6 +1,5 @@
 <% if @documents.length > 0 %>
   <%= paginate @documents %>
-  <span class="badge"><%= @documents.total_count %> documents</span>
 
   <% other_orgs = @organizations.where.not(slug: params[:slug]).order('lft', 'rgt') %>
 
@@ -9,7 +8,7 @@
 
       <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
       <div class="form-group col-sm-4">
-        <%= label_tag :id, 'Move selected documents: ', class: "control-label" %>
+        <%= label_tag :organization_id, 'Move selected documents: ', class: "control-label" %>
         <div class="controls">
           <%= select('organization', 'id', other_orgs.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
         </div>
@@ -22,99 +21,144 @@
       <% end %>
     </div>
 
+    <% can_move_documents = (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+
     <div class="row">
-      <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
-      <a id="toggleChecked" href="#toggleChecked">
-        select all/none
-      </a>
-      <% end %>
+      <div class="col-sm-12">
+        <h2>Documents</h2>
 
-      <ul class="nav" id="salsaDocuments">
-        <% @documents.each do |document| %>
-          <li class="nav-header form-group">
-            <div class='pull-right text-right'>
-              <% if document.lms_published_at.is_a?(Time) %>
-                  <div>Published <%= time_ago_in_words document.lms_published_at %> ago</div>
+        <table class="table table-responsive striped">
+          <thead>
+            <tr>
+              <td>
+              </td>
+              <th scope="col">
+                Name
+              </th>
+              <th scope="col" nowrap>
+                Course ID
+              </th>
+              <th scope="col">
+                Dates
+              </th>
+              <th scope="col">
+                Links
+              </th>
+              <th scope="col" class="text-right">
+                Version
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          <% @documents.each do |document| %>
+            <tr id="<%= 'document_#{document.id}_wrapper' %>">
+              <% if can_move_documents %>
+                <td>
+                  <%= check_box_tag "document_ids[]", document.id, false, { id: "document_#{document.id}", 'aria-labeldedby': "document_#{document.id}_name" } %>
+                </td>
               <% end %>
 
-              <div class="info pull-right">
-                Version: <%= document.versions.count %>
-              </div>
-            </div>
+              <th scope="row" nowrap width="50%">
+                <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
+              </th>
 
-            <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
-            <%= check_box_tag "document_ids[]", document.id, false, id: "document_#{document.id}" %>
-            <% end %>
+              <td nowrap>
+                <%= document.lms_course_id %>
+              </td>
 
-            <label for="<%= "document_#{document.id}" %>"><%= document.name %></label>
-
-            <%= link_to 'edit', edit_admin_document_path(document, org_path: params[:org_path]) %>
-
-            <time datetime="<%= document.created_at %>">Created <%= time_ago_in_words document.created_at %> ago</time>
-
-            <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
-              <time datetime="<%= document.created_at %>">Updated <%= time_ago_in_words document.updated_at %> ago</time>
-            <% end %>
-          </li>
-
-          <li id="<%= "document_#{document.id}_wrapper" %>">
-            <% org = @organization if @organization %>
-            <% org = document.organization unless org %>
-
-            <% if org %>
-              <% org_base = "//#{org_slug_parts(org)[0]}#{redirect_port}" %>
-              <% if org.depth > 0 %>
-                <% org_base += "/#{org_slug_parts(org)[1]}"%>
-              <% end %>
-            <% else %>
-              <% org_base = '' %>
-            <% end %>
-
-            <% if document.lms_published_at %>
-              <% if document.lms_course_id %>
-                <div>
-                  Published to:
-                  <% if document.organization && document.organization[:lms_authentication_source] %>
-                    <a href="<%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>" target="_blank">
-                      <%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>
-                    </a>
-                  <% end %>
-
+              <td nowrap width="50%">
+                <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
                   <div>
-                    Course Edit Link: <%= link_to "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                    <time datetime="<%= document.created_at %>">Updated <%= time_ago_in_words document.updated_at %> ago</time>
                   </div>
+                <% end %>
+
+                <% if document.lms_published_at.is_a?(Time) %>
+                  <div>
+                    <time datetime="<%= document.created_at %>">Published <%= time_ago_in_words document.lms_published_at %> ago</time>
+                  </div>
+                <% end %>
+
+                <div>
+                  <time datetime="<%= document.created_at %>">Created <%= time_ago_in_words document.created_at %> ago</time>
                 </div>
-              <% end %>
-            <% elsif document.lms_course_id %>
-              <div>
-                LMS Course ID: <%= document.lms_course_id %>
-                <div class="badge alert-warning">
-                  manually set, unpublished
-                </div>
-              </div>
-            <% end %>
+              </td>
 
+              <td>
+                <% org = @organization if @organization %>
+                <% org = document.organization unless org %>
 
-          	<div>
-              <% if !document.organization&.disable_document_view %>
-                View: <%= link_to "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
-                <br>
-              <% end %>
-
-              <% if document.organization && document.organization.root_org_setting("enable_anonymous_actions") %>
-                  Edit: <%= link_to "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
-
-                  <% if document.template_id %>
-                    <br>
-                    Template: <%= link_to "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                <% if org %>
+                  <% org_base = "//#{org_slug_parts(org)[0]}#{redirect_port}" %>
+                  <% if org.depth > 0 %>
+                    <% org_base += "/#{org_slug_parts(org)[1]}"%>
                   <% end %>
-              <% end %>
+                <% else %>
+                  <% org_base = '' %>
+                <% end %>
 
-          	</div>
-          </li>
-        <% end %>
-      </ul>
+                <div class="dropdown pull-right">
+                  <button class="btn btn-default dropdown-toggle" type="button" id="document_<%= document.id %>_links_control" data-toggle="dropdown" haspopup="true" aria-expanded="false" aria-controls="document_<%= document.id %>_links">
+                    Document Links
+                    <span class="caret"></span>
+                  </button>
 
+                  <ul class="dropdown-menu dropdown-menu-right" aria-labeldedby="document_<%= document.id %>_links_control" id="document_<%= document.id %>_links">
+                    <% if document.lms_published_at %>
+                      <% if document.lms_course_id %>
+                        <% if document.organization && document.organization[:lms_authentication_source] %>
+                          <li>
+                            <a href="<%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>" target="_blank">
+                              Published to:
+                              <%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>
+                            </a>
+                          </li>
+                        <% end %>
+
+                        <li>
+                          <%= link_to "Course Edit Link: #{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                        </li>
+                      <% end %>
+                    <% elsif document.lms_course_id %>
+                      <li>
+                        LMS Course ID: <%= document.lms_course_id %>
+                        <div class="badge alert-warning">
+                          manually set, unpublished
+                        </div>
+                      </li>
+                    <% end %>
+
+
+                    <% if !document.organization&.disable_document_view %>
+                      <li>
+                        <%= link_to "View: #{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                      </li>
+                    <% end %>
+
+
+                    <% if document.organization && document.organization.root_org_setting("enable_anonymous_actions") %>
+                      <li>
+                        <%= link_to "Edit: #{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                      </li>
+                      
+                      <li>
+                        <% if document.template_id %>
+                          <%= link_to "Template: #{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                        <% end %>
+                      </li>
+                    <% end %>
+
+                  </ul>
+                </div>
+              </td>
+              <td class='text-right'>
+                <%= link_to document.versions.count, admin_document_versions_path(document, org_path: params[:org_path]) %>
+              </td>
+            </tr>
+          </tbody>
+          <% end %>
+        </table>
+      </div>
     </div><!-- .row -->
   <% end %><!-- form -->
   <% if @organization %>

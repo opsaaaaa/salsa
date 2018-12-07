@@ -213,7 +213,7 @@ class DocumentsController < ApplicationController
         if document_version && @document.versions.count == document_version.to_i
           @document.payload = request.raw_post
           @document.payload = nil if @document.payload == ''
-          @document.lms_published_at = DateTime.now
+
           if !@organization.root_org_setting("enable_workflows") || !@document.workflow_step_id || !@document.user_id
             @document.save!
             saved = true;
