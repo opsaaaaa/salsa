@@ -48,6 +48,7 @@ I want to have a defined set of workflow steps to go thrugh
     And there is a document on the first step in the workflow and assigned to the user
     And I am on the "/workflow/documents" page
     Then I should not see "Edit"
+    And When i visit the edit page i should see "you are not authorized to do that"
 
   @javascript
   Scenario: fail to complete final_step
@@ -55,3 +56,4 @@ I want to have a defined set of workflow steps to go thrugh
     And there is a document on the last step in the workflow and assigned to the current user
     And I am on the "/workflow/documents" page
     Then I should not see "Edit"
+    And When i visit the edit page i should see "you are not authorized to do that"

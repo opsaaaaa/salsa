@@ -209,8 +209,8 @@ Then("the Report zip file should have documents in it") do
 end
 
 Given("the organization enable_workflows option is enabled") do
-  @organization.root_org_setting("enable_workflows") = true
-  @organization.save
+  org = @organization.self_and_ancestors.reorder(depth: :asc)/.first.enable_workflows = true
+  org.save
 end
 
 Given("that i am logged in as a supervisor") do

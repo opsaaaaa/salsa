@@ -24,6 +24,7 @@ I want to complete a workflow step
     And there is a document on the second step in the workflow and assigned to the user
     And I am on the "/workflow/documents" page
     Then I should not see "Edit"
+    And When i visit the edit page i should see "you are not authorized to do that"
 
   @javascript
   Scenario: fail to edit final_step
@@ -31,3 +32,4 @@ I want to complete a workflow step
     And there is a document on the last step in the workflow and assigned to the user
     And I am on the "/workflow/documents" page
     Then I should not see "Edit"
+    And When i visit the edit page i should see "you are not authorized to do that"

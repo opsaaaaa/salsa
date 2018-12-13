@@ -1,5 +1,5 @@
 Feature: Download report
-as a customer
+as a auditor
 In order to view my docs
 I want to be able to download a report
 
