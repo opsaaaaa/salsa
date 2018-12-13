@@ -34,15 +34,11 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
   end
 
   def edit
-    get_document params[:id]
-    if @document.organization.root_org_setting("inherit_workflows_from_parents")
-      @workflow_steps = WorkflowStep.where(organization_id: @document.organization.organization_ids + [@document.organization_id]).order(step_type: :desc)
-    else
-      @workflow_steps = WorkflowStep.where(organization_id: @document.organization_id).order(step_type: :desc)
-    end
-    @periods = Period.where(organization_id: @document.organization&.parents&.pluck(:id).push(@document.organization&.id))
-    @users = UserAssignment.where(organization_id:@document.organization.descendants.pluck(:id) + [@document.organization.id]).map(&:user)
-    @users.push @document.user if @document.user
+    super
+
+    get_users
+
+    render layout: 'admin'
   end
 
   def update
@@ -68,12 +64,17 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
     else
       flash[:error] = @document.errors.messages
 
-      render 'edit'
+      render 'edit', layout: 'admin'
     end
   end
 
 
   private
+
+  def get_users
+    @users = UserAssignment.where(organization_id:@document.organization.descendants.pluck(:id) + [@document.organization.id]).map(&:user)
+    @users.push @document.user if @document.user
+  end
 
   def document_params
     params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :user_id, :period_id)
