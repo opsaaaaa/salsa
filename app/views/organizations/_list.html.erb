@@ -1,13 +1,52 @@
-<% organizations.each do |org| %>
-  <%- full_path = org.full_org_path -%>
-    <li class="depth-<%= org.depth %> <% if !org.slug? or (org.slug.include? '/' and (org.slug.index('/') > 0)) %>alert-danger<% end %> <% if full_path == params[:slug] %>active-org<% end %>">
-      <% unless !org.slug? or (org.slug.include? '/' and (org.slug.index('/') > 0)) %>
-        <%= link_to org[:name], organization_path( slug: full_path, org_path: params[:org_path]) %>
-      <% else %>
-        <a>
-          <span class="badge pull-right alert-danger">bad slug</span>
-          <%= "#{org[:name]} (id: #{org[:id]})" %>
-        </a>
-      <% end %>
-    </li>
-  <% end %>
+<%- base_path = '' -%>
+<%- depth = -1 -%>
+<%- previous_org = nil %>
+
+<%- puts('tree') -%>
+
+<% organizations.each_with_index do |org, index| %>
+    <% if org.depth > depth %>
+        <% if index > 0 %>
+            <ul>
+        <% end %>
+    <% else %>
+        <%= ("</li></ul>" * ( depth - org.depth )).html_safe %>
+        </li>
+    <% end %>
+
+    <%-
+
+        # clean up the base path (do it this way to avoid extra db calls)
+        if org.depth <= 0
+            base_path = ''
+        else
+            if index > 0 && org.depth > depth
+                base_path += previous_org.slug
+            elsif org.depth < depth
+                base_path = base_path.split('/')&.slice(0, org.depth)&.join('/') || ''
+            end
+        end
+        
+        full_path = base_path + org.slug
+
+        # fix path if anything is off (will do db call, should only happen if bad slugs or if user doesn't have access to this org's parent(s))
+        if full_path.count('/') != org.depth || full_path.index('/') == 0
+            full_path = org.full_org_path
+            base_path = full_path.split('/')&.slice(0, org.depth)&.join('/') || ''
+        end
+
+        is_active_org = full_path == params[:slug]
+    -%>
+
+    <li class="depth-<%= org.depth -%> <% if is_active_org %>active-org<% end %>">
+    
+    <%= link_to org[:name], organization_path( slug: full_path, org_path: params[:org_path]) %>
+
+    <%-
+        depth = org.depth
+        previous_org = org
+    -%>
+
+<% end %>
+
+<%= ("</li>" * ( depth + 1 )).html_safe %>

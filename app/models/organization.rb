@@ -1,3 +1,21 @@
+class OrganizationSlugValidator < ActiveModel::Validator
+  def validate(record)
+    if record.root?
+      if record.slug.count('/') > 0
+        record.errors[:base] << "Slug cannot contain '/' for root level orgs"
+      end
+    else
+      if record.slug.count('/') != 1
+        record.errors[:base] << "Slug must contain only one '/' for sub orgs"
+      end
+
+      if record.slug.index('/') != 0
+        record.errors[:base] << "Slug must begin with '/' for sub orgs"
+      end
+    end
+  end
+end
+
 class Organization < ApplicationRecord
   acts_as_nested_set
 
@@ -12,7 +30,10 @@ class Organization < ApplicationRecord
   default_scope { order('lft, rgt') }
   validates :slug, presence: true
   validates_uniqueness_of :slug, :scope => :parent_id
-  validates :slug, exclusion: { in: %w(status), message: "%{value} is reserved." }
+  validates_length_of :slug, within: (3..42)
+  validates_format_of :slug, with: /\A[a-z\/]([a-z0-9][-.]?)+\z/, message: 'must start with a letter and may only consist of lowercase letters, numbers and hyphens'
+  validates :slug, exclusion: { in: ['status', 'invalid', 'edit', 'new', 'admin', 'SALSA', 'salsa'], message: "%{value} is reserved." }
+  validates_with OrganizationSlugValidator
   validates :name, presence: true
 
   def self.export_types

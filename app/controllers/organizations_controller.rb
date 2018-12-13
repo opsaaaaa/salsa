@@ -46,14 +46,20 @@ class OrganizationsController < AdminController
   end
 
   def edit
+    @organization = get_organization_with_fallback params[:slug], params[:id].to_i
+
+    # legacy fix to highlight bad org values
+    # is_valid = @organization.valid?
+
     @export_types = Organization.export_types
-    get_documents params[:slug]
 
     @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
     @organization.default_account_filter = '{"account_filter":""}' unless @organization.default_account_filter
     @organization.default_account_filter = '{"account_filter":""}' if @organization.default_account_filter == ''
 
     @organization.default_account_filter = @organization.default_account_filter.to_json if @organization.default_account_filter.class == Hash
+
+    return render action: :edit
   end
 
   # commit actions
@@ -62,7 +68,7 @@ class OrganizationsController < AdminController
     @organization = Organization.new organization_params
 
     respond_to do |format|
-      if @organization.save
+      if @organization.valid? && @organization.save
         format.html { redirect_to organization_path(full_org_path(@organization), org_path: params[:org_path]), notice: 'Organization was successfully created.' }
         format.json { render :show, status: :created }
       else
@@ -74,7 +80,7 @@ class OrganizationsController < AdminController
 
   def update
     @export_types = Organization.export_types
-    @organization = find_org_by_path params[:slug]
+    @organization = get_organization_with_fallback params[:slug], params[:id].to_i
 
     if has_role('admin') && params['organization']['default_account_filter'] != nil
       if params['organization']['default_account_filter'] != ''
@@ -84,9 +90,20 @@ class OrganizationsController < AdminController
       end
     end
 
-    @organization.update organization_params
+    if @organization.update(organization_params)
+      redirect_to organization_path(slug: full_org_path(@organization), org_path: params[:org_path])
+    else
+      get_organizations
+      @export_types = Organization.export_types
 
-    redirect_to organization_path(slug: full_org_path(@organization), org_path: params[:org_path])
+    @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
+    @organization.default_account_filter = '{"account_filter":""}' unless @organization.default_account_filter
+    @organization.default_account_filter = '{"account_filter":""}' if @organization.default_account_filter == ''
+
+    @organization.default_account_filter = @organization.default_account_filter.to_json if @organization.default_account_filter.class == Hash
+
+    return render action: :edit
+    end
   end
 
   def delete
@@ -171,5 +188,23 @@ class OrganizationsController < AdminController
     elsif has_role 'organization_admin'
       params.require(:organization).permit(:name, :export_type, :enable_workflows, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :home_page_redirect, :skip_lms_publish, :enable_anonymous_actions, :track_meta_info_from_document, :force_https)
     end
+  end
+
+  def get_organization_with_fallback slug, fallback_id=nil
+    organization = find_org_by_path slug
+
+    if fallback_id != nil
+      if organization == nil
+        organization = Organization.find fallback_id
+        slug = full_org_path organization
+      else
+        raise ('Unable to find organization') unless organization[:id] == fallback_id
+      end
+    end
+
+    raise ('Unable to find organization') unless organization != nil
+    raise ('Unable to edit this organization') unless has_role('organization_admin', organization)
+
+    return organization
   end
 end
