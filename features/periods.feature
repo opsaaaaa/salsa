@@ -1,0 +1,35 @@
+Feature: CRUD Periods
+as a organization_admin
+In order to sort my organization's documents
+I want to create, edit, and view periods
+
+  Background:
+    Given there is a organization
+    And that I am logged in as a admin on the organization
+    And I am on the periods index page for the organization
+
+  Scenario: View all of the periods
+    Given there are 5 periods on the organization
+    And I am on the periods index page for the organization
+    Then I should be able to see all the periods
+
+  Scenario: Create Period
+     When I click the "New" link
+     And I fill in the period form with:
+        | name | spring 2019 |
+        | slug | spring-2019 |
+        | start_date | 2019-04-20 |
+        | duration | 90 |
+     And I click on "Create Period"
+     Then I should see "Period was successfully created."
+
+  Scenario: Update Period
+     Given there is a Period
+     And I click the "Edit" link
+     And I fill in the period form with:
+        | name | spring 2019 |
+        | slug | spring-2019 |
+        | start_date | 2019-04-20 |
+        | duration | 90 |
+     And I click on "Update Period"
+     Then I should see "Period was successfully updated."

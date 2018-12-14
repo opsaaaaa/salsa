@@ -8,17 +8,8 @@ I want to import users into the database
     Given there is a organization
     And that I am logged in as a supervisor
     And I am on the show page for the organization
-     When I click the "Add Component" link
-     And I fill in the component form with:
-        | name | Step 1 |
-        | slug | step_1 |
-        | description | this is a description |
-        | category | document |
-        | layout | <head></head> |
-        | format | html |
-     And I click on "Create Component"
-     Then I should see "Component was successfully created."
-  Scenario: import_users
-    When I click the  link
-    Then I should receive the report file
-    And the Report zip file should have documents in it
+    When I click the "Import Users" link
+    And I fill in the import_users form with:
+      | emails | user@test.com, anotheruser@test.com |
+    And I click on "Create Users"
+    Then I should see "2 Users Imported successfully."
