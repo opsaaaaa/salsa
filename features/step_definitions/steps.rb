@@ -209,7 +209,7 @@ Then("the Report zip file should have documents in it") do
 end
 
 Given("the organization enable_workflows option is enabled") do
-  org = @organization.self_and_ancestors.reorder(depth: :asc)/.first.enable_workflows = true
+  org = @organization.self_and_ancestors.reorder(depth: :asc).first.enable_workflows = true
   org.save
 end
 
@@ -345,4 +345,45 @@ end
 
 Then("I should see a saved document") do
   @document
+end
+
+
+Given("I am on the show page for the organization") do
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Given("there are {int} organizations") do |int|
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Then("I should be able to see all the organizations") do
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Given("I am on the organization show page") do
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Given("there are {int} periods on the organization") do |int|
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Then("I should be able to see all the periods") do
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Given("there are {int} users on the organization") do |int|
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Then("I should be able to see all the users") do
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Then("When i visit the edit page i should see {string}") do |string|
+  pending # Write code here that turns the phrase above into concrete actions
+end
+
+Given("there is a user with the role of staff that I am the supervisor of") do
+  pending # Write code here that turns the phrase above into concrete actions
 end
