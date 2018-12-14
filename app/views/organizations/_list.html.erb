@@ -29,7 +29,8 @@
         
         full_path = base_path + org.slug
 
-        # fix path if anything is off (will do db call, should only happen if bad slugs or if user doesn't have access to this org's parent(s))
+        # fix path if anything is off (will do db call, should only happen if bad
+        # slugs or if user doesn't have access to this org's parent(s))
         if full_path.count('/') != org.depth || full_path.index('/') == 0
             full_path = org.full_org_path
             base_path = full_path.split('/')&.slice(0, org.depth)&.join('/') || ''
