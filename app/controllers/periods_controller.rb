@@ -1,37 +1,36 @@
-class PeriodsController < OrganizationsController
-  #Skip permissions defined in OrganizationsController
-  skip_before_action :require_admin_permissions
-  skip_before_action :require_designer_permissions
+class PeriodsController < Admin::PeriodsController
 
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit]
-  before_action :get_organizations, only: [:index, :new, :edit]
+  before_action :get_organizations, only: [:index, :new, :edit, :create, :update]
   before_action :require_organization_admin_permissions
 
   def index
     @organization = find_org_by_path(params[:slug])
-    @periods = Period.where(organization_id: @organization.id).reorder(start_date: :desc).page(params[:page]).per(params[:per])
+    @periods = Period.where(organization_id: @organization.id)
+    super
   end
 
   def new
     @organization = find_org_by_path(params[:slug])
-    @period = Period.new
+    super
   end
 
   def show
     @organization = find_org_by_path(params[:slug])
-    @period = Period.find(params[:id])
+    super
   end
 
   def edit
     @organization = find_org_by_path(params[:slug])
-    @period = Period.find(params[:id])
+    super
   end
 
   # POST /periods
   # POST /periods.json
   def create
+    @organization = find_org_by_path(params[:slug])
     @period = Period.new(period_params)
-    @period.organization_id = find_org_by_path(params[:slug]).id
+    @period.organization_id = @organization.id
     respond_to do |format|
       if @period.save
         format.html { redirect_to periods_path(params[:slug], org_path: params[:org_path]), notice: 'Period was successfully created.' }
@@ -44,8 +43,9 @@ class PeriodsController < OrganizationsController
   end
 
   def update
+    @organization = find_org_by_path(params[:slug])
     @period = Period.find(params[:id])
-    @period.organization_id = find_org_by_path(params[:slug]).id
+    @period.organization_id = @organization.id
     respond_to do |format|
       if @period.update(period_params)
         format.html { redirect_to periods_path(params[:slug], org_path: params[:org_path]), notice: 'Period was successfully updated.' }
