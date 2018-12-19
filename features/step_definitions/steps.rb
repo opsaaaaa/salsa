@@ -209,7 +209,8 @@ Then("the Report zip file should have documents in it") do
 end
 
 Given("the organization enable_workflows option is enabled") do
-  org = @organization.self_and_ancestors.reorder(depth: :asc).first.enable_workflows = true
+  org = @organization.self_and_ancestors.reorder(depth: :asc).first
+  org.enable_workflows = true
   org.save
 end
 
@@ -249,6 +250,8 @@ Then(/^I should be able to see all the (\w+) for the organization$/) do |class_n
     slugs = Component.where(organization_id: @organization.id).map(&:slug)
   when /workflow/
     slugs = WorkflowStep.where(organization_id: @organization.id).map(&:slug)
+  when /periods/
+    slugs = Period.where(organization_id: @organization.id).map(&:slug)
   end
   slugs.each do |slug|
     expect(page).to have_content(slug)
@@ -348,10 +351,6 @@ Then("I should see a saved document") do
 end
 
 
-Given("I am on the show page for the organization") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
 Given("there are {int} organizations") do |int|
   pending # Write code here that turns the phrase above into concrete actions
 end
@@ -360,8 +359,11 @@ Then("I should be able to see all the organizations") do
   pending # Write code here that turns the phrase above into concrete actions
 end
 
-Given("I am on the organization show page") do
-  pending # Write code here that turns the phrase above into concrete actions
+Given(/I am on the organization (\w+) page/) do |action|
+  case action
+  when /show/
+    visit organization_path(@organization.slug)
+  end
 end
 
 Given("there are {int} periods on the organization") do |int|

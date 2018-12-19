@@ -5,7 +5,7 @@ I want to be able to download a report
 
 
   Scenario: download report
-
+    # TODO fix this to work with S3
     Given there is a organization
     And that I am logged in as a admin
     And there are documents with document_metas that match the filter
