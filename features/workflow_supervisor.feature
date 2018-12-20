@@ -80,6 +80,5 @@ I want to have a defined set of workflow steps to go thrugh
     Then I should not see "Edit"
     And I should not see "#edit_document"
     When I go to the document edit page for the users document
-    And I save the page
     And I click the "#tb_share" link
     Then I should see "You are not authorized to edit this document"

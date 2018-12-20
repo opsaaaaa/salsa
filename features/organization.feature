@@ -22,14 +22,31 @@ I want to create, edit and view organizations
      And I click on "Create Organization"
      Then I should see "Organization was successfully created."
 
+  Scenario: create organization see error on invalid slug
+     When I click the "Add Organization" link
+     And I fill in the organization form with:
+        | name | Test Organization |
+        | slug | %$#^!@& SDF SDFH$^%#$^$ |
+        | default_account_filter | {"account_filter":"WI19"} |
+     And I click on "Create Organization"
+     Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"
+
   Scenario: update organization
-     Given there is a organizations
      And I am on the organization show page
      And I click the "Update Organization" link
-     And debugger
      When I fill in the organization form with:
         | name | Test Update Organization |
-        | slug | test_update_organization |
+        | slug | localhost |
         | default_account_filter | {"account_filter":"SP18"} |
      And I click on "Update Organization"
      Then I should see "Organization was successfully updated."
+
+  Scenario: update organization see error on invalid slug
+     And I am on the organization show page
+     And I click the "Update Organization" link
+     When I fill in the organization form with:
+        | name | Test Update Organization |
+        | slug | #@$ @**))~(_+#!@_^_$HDJ ) |
+        | default_account_filter | {"account_filter":"SP18"} |
+     And I click on "Update Organization"
+     Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"

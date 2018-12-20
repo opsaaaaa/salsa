@@ -84,9 +84,19 @@ class OrganizationsController < AdminController
       end
     end
 
-    @organization.update organization_params
 
-    redirect_to organization_path(slug: full_org_path(@organization), org_path: params[:org_path])
+    respond_to do |format|
+      if @organization&.update organization_params
+        format.html { redirect_to organization_path(slug: full_org_path(@organization), org_path: params[:org_path]), notice: 'Organization was successfully updated.' }
+        format.json { render :show, status: :created }
+      else
+        get_organizations
+        @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
+        format.html { render :edit }
+        format.json { render json: @organization.errors, status: :unprocessable_entity }
+      end
+    end
+
   end
 
   def delete
