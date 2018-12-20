@@ -26,7 +26,10 @@
         <tr>
           <td scope="row">
             <address>
-              <strong class="text-large"><%= link_to user.name, polymorphic_path([params[:controller].singularize],id: user.id, org_path: params[:org_path]) %></strong><br>
+              <strong class="text-large">
+                <%= link_to(user.name, polymorphic_path([params[:controller].singularize],id: user.id, org_path: params[:org_path]), id: "show_user_#{user.id}") %>
+              </strong>
+              <br>
               <%= link_to user.email, "mailto:${user.email}" %>
             </address>
           </td>

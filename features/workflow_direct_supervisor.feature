@@ -1,4 +1,4 @@
-Feature: workflow steps supervisor
+Feature: workflow steps direct supervisor
 as a direct supervisor
 In order to do employee review
 I want to have a defined set of workflow steps to go thrugh
@@ -11,8 +11,8 @@ I want to have a defined set of workflow steps to go thrugh
   @javascript
   Scenario: fail to complete step_1
     Given there is a workflow
-    And there is a user with the role of staff that I am the supervisor of
     And there is a user with the role of staff
+    And I am the supervisor of the user
     And there is a document on the first step in the workflow and assigned to the user
     And I am on the "/workflow/documents" page
     Then I should not see "Edit"

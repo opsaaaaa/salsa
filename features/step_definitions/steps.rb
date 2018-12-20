@@ -19,12 +19,24 @@ Given(/^that I am logged in as a (\w+)$/) do |role|
 end
 
 Given(/^there is a (\w+) on the organization$/) do |class_name|
-  record = create(class_name, organization_id: @organization.id)
+  case class_name
+  when /user/
+    record = create(class_name.singularize)
+    record_assignment = create('user_assignment', user: record, organization: @organization)
+  else
+    record = create(class_name, organization_id: @organization.id)
+  end
   instance_variable_set("@#{class_name}",record)
 end
 
 Given(/^there are (\d+) (\w+) for the organization/) do | number, class_name|
-  record = create(class_name.singularize, organization: @organization)
+  case class_name
+  when /users/
+    record = create(class_name.singularize)
+    record_assignment = create('user_assignment', user: record, organization: @organization)
+  else
+    record = create(class_name.singularize, organization: @organization)
+  end
   instance_variable_set("@#{class_name}",record)
 end
 
@@ -57,6 +69,9 @@ Given(/^there is a (\w+)$/) do |class_name|
   case class_name
   when /workflow/
     recordA = create(:workflow_step, slug: "final_step", step_type: "end_step", organization_id: @organization.id)
+    componentA = recordA.component
+    componentA.role = ""
+    componentA.save
     recordB = create(:workflow_step, slug: "step_4", next_workflow_step_id:recordA.id, organization_id: @organization.id)
     componentB = recordB.component
     componentB.role = "approver"
@@ -187,6 +202,8 @@ When(/^I click the "(.*?)" link$/) do |string|
     click_on("edit_#{@component.slug}")
   when /#edit_document/
     find(string).click
+  when /#show_user/
+    find(string+"_#{@user.id}").click
   else
     click_link(string)
   end
@@ -259,7 +276,12 @@ Then(/^I should be able to see all the (\w+) for the organization$/) do |class_n
 end
 
 Given(/^I am on the "(.*?)" page$/) do |page|
-  visit page
+  case page
+  when /edit_workflow_document/
+    visit edit_document
+  else
+    visit page
+  end
 end
 
 Then(/^I should see "(.*?)" in the url$/) do |string|
@@ -318,14 +340,6 @@ Then("I should not be able to edit the employee section") do
   pending
 end
 
-When("I fill in the form with:") do |table|
-  # table is a Cucumber::MultilineArgument::DataTable
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-When("I click the complete review button") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
 Then("I should see a new document edit url") do
   expect(page.current_url).not_to have_content(@document.view_id)
 end
@@ -344,48 +358,31 @@ Given(/^I am on the (\w*document\b) (\w+) page$/) do |document_type, page_path|
   end
 end
 
-
+Given(/^I am the (\w+) of the user$/) do |role|
+  Assignment.create(user_id: @current_user.id, team_member_id: @user.id, role: role)
+end
 
 Then("I should see a saved document") do
   @document
 end
 
-
-Given("there are {int} organizations") do |int|
-  pending # Write code here that turns the phrase above into concrete actions
+Given(/^there are (\w+) (\w+)$/) do |amount, class_name|
+  record = create_list(class_name, amount.to_i)
+  instance_variable_set("@#{class_name.pluralize}",record)
 end
 
-Then("I should be able to see all the organizations") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-Given(/I am on the organization (\w+) page/) do |action|
-  case action
-  when /show/
-    visit organization_path(@organization.slug)
+Then(/^I should be able to see all the organizations$/) do
+  slugs = Organization.all.map(&:name)
+  slugs.each do |slug|
+    expect(page).to have_content(slug)
   end
 end
 
-Given("there are {int} periods on the organization") do |int|
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-Then("I should be able to see all the periods") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-Given("there are {int} users on the organization") do |int|
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-Then("I should be able to see all the users") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-Then("When i visit the edit page i should see {string}") do |string|
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-Given("there is a user with the role of staff that I am the supervisor of") do
-  pending # Write code here that turns the phrase above into concrete actions
+Given(/^I am on the organization (\w+) page$/) do |action|
+  case action
+  when /show/
+    visit organization_path(@organization.slug)
+  when /index/
+    visit organizations_path
+  end
 end

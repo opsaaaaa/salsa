@@ -15,7 +15,6 @@ I want to create, edit, and view periods
 
   Scenario: Create Period
      When I click the "New" link
-     And I save the page
      And I fill in the period form with:
         | name | spring 2019 |
         | slug | spring-2019 |
