@@ -23,7 +23,7 @@ I want to complete a workflow step
     Given that I am logged in as a approver on the organization
     And there is a document on the second step in the workflow and assigned to the user
     And I am on the "/workflow/documents" page
-    Then I should not see "Edit"
+    Then I should not see "#edit_document"
     When I go to the document edit page for the users document
     Then I should see "you are not authorized to edit that document"
 
@@ -32,6 +32,6 @@ I want to complete a workflow step
     Given that I am logged in as a approver on the organization
     And there is a document on the last step in the workflow and assigned to the user
     And I am on the "/workflow/documents" page
-    Then I should not see "Edit"
+    Then I should not see "#edit_document"
     When I go to the document edit page for the users document
     Then I should see "you are not authorized to edit that document"
