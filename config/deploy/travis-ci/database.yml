@@ -1,5 +1,5 @@
 test:
-  host: localhost
+  host: db
   adapter: postgresql
   database: travis_ci_test
   encoding: unicode
