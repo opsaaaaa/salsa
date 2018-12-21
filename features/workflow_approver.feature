@@ -35,4 +35,4 @@ I want to complete a workflow step
     Then I should not see "#edit_document"
     When I go to the document edit page for the users document
     And I click the "#tb_share" link
-    Then I should see "you are not authorized to edit that document"
+    Then I should see "you are not authorized to edit this document"
