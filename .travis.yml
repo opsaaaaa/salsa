@@ -30,7 +30,7 @@ before_script:
 script:
   - bundle exec rake db:schema:load RAILS_ENV=test
   - bundle exec rake db:migrate RAILS_ENV=test
-  - bash ./cucumber.sh
+  - ./cucumber.sh
 
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -r $CC_TEST_REPORTER_ID
