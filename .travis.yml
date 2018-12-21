@@ -3,10 +3,16 @@ addons:
   apt:
     packages:
       - docker-ce
+      - build-essential
+      - libpq-dev nodejs
+      - libqt5webkit5-dev
+      - qt5-default
+      - cmake
+      - make
+      - xvfb
 before_script:
   - mkdir tmp/db/postgres-data -p
   - mkdir tmp/log -p
-  - apt-get update  && apt-get install -y build-essential libpq-dev nodejs libqt5webkit5-dev qt5-default cmake make xvfb
   - cp config/deploy/travis-ci/database.yml config/database.yml
   - cp config/deploy/travis-ci/application.yml config/application.yml
   - cp config/deploy/travis-ci/config.yml config/config.yml
