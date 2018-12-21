@@ -4,7 +4,7 @@ FROM ruby:2.4.0
 ENV APP_HOME /home/apps/salsa
 WORKDIR $APP_HOME
 
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs qt4-default cmake make xvfb
+RUN apt-get update  && apt-get install -y build-essential libpq-dev nodejs libqt5webkit5-dev qt5-default cmake make xvfb
 RUN gem install bundler
 
 COPY salsa/Gemfile* ./
