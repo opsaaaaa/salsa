@@ -81,10 +81,10 @@ end
 Given(/^there is a (\w+)$/) do |class_name|
   case class_name
   when /workflow/
-    recordA = create(:workflow_step, slug: "final_step", step_type: "end_step", organization_id: @organization.id)
+    recordA = create(:workflow_step, slug: "step_5", step_type: "end_step", organization_id: @organization.id)
     componentA = recordA.component
     componentA.user_role = "admin"
-    componentA.role = ""
+    componentA.role = nil
     componentA.save
     recordB = create(:workflow_step, slug: "step_4", next_workflow_step_id:recordA.id, organization_id: @organization.id)
     componentB = recordB.component
