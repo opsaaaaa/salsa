@@ -23,9 +23,9 @@ before_script:
   - rake db:seed RAILS_ENV=test
 
 script:
-  - sudo docker-compose run salsa rake db:schema:load RAILS_ENV=test
-  - sudo docker-compose run salsa rake db:migrate RAILS_ENV=test
-  - sudo docker-compose run salsa bash ./cucumber.sh
+  - rake db:schema:load RAILS_ENV=test
+  - rake db:migrate RAILS_ENV=test
+  - bash ./cucumber.sh
 
 after_script:
   - sudo docker-compose run salsa ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT --prefix /home/apps/salsa -r $CC_TEST_REPORTER_ID
