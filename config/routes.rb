@@ -116,6 +116,8 @@ Rails.application.routes.draw do
         get '/lms/courses/:lms_course_id', to: 'documents#course', as: 'lms_course_document'
         get '/lms/courses/:lms_course_id/version/:version', to: 'documents#course', as: 'lms_course_document_history'
 
+        post '/lti/init', to: 'lti#init', as: 'lti_init'
+
         get 'canvas/list_courses'
         get 'canvas/relink_courses'
         get 'oauth2/login'
