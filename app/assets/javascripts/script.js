@@ -113,7 +113,7 @@ function liteOff(x) {
 
       var promptText = 'Please enter a title or disable this section';
 
-      if (element.is('h2') && text == '') {
+      if (element.is('h2') && text == '' && element.data('can-delete') != true) {
         text = promptText;
         element.addClass('prompt');
       } else if (element.hasClass('prompt') && text != promptText) {
