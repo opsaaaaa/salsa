@@ -124,6 +124,14 @@ class DocumentsController < ApplicationController
       end
     end
     if @lms_course
+      # see if there is a organization matched for course
+      document_organization = @organization.self_and_descendants.select { |organization| organization.lms_account_id == @lms_course['account_id'].to_s }
+
+      # update the organziation for this request to be the document's organization
+      if document_organization && document_organization.length == 1
+        @organization = document_organization.first
+      end
+
       @document = Document.find_by lms_course_id: params[:lms_course_id], organization: @organization.self_and_descendants
 
       # flag to see if there is a match on the token id
