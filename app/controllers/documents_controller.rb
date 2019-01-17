@@ -360,7 +360,6 @@ class DocumentsController < ApplicationController
       false
     end
   end
-  end
 
   def get_canvas_course lms_course_id
     lms_connection_information
