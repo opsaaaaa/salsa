@@ -51,7 +51,7 @@ class AdminController < ApplicationController
     if @organization&.setting("enable_shibboleth")
       return redirect_to new_user_session_path(org_path: params[:org_path])
     end
-  	if @organization and @organization.root_org_setting("lms_authentication_source") != "" and @organization.root_org_setting("lms_authentication_source") != nil
+  	if @organization and @organization.setting("lms_authentication_source") != nil
   		redirect_to oauth2_login_path
 	  else
   		render action: :login, layout: false
@@ -156,7 +156,7 @@ class AdminController < ApplicationController
     @org = Organization.find_by slug: org_slug
 
     if @org
-      @canvas_endpoint = @org[:lms_authentication_source]
+      @canvas_endpoint = @org.setting('lms_authentication_source')
 
       @canvas_client = Canvas::API.new(:host => @canvas_endpoint, :token => @canvas_access_token)
 
@@ -280,8 +280,8 @@ class AdminController < ApplicationController
     redirect_port = ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
 
     # custom authentication source, use the keys from the DB
-    if @organization && @organization[:lms_authentication_source] != ''
-      @oauth_endpoint = @organization[:lms_authentication_source] unless @organization[:lms_authentication_source] == ''
+    if @organization && @organization.setting('lms_authentication_source') != nil
+      @oauth_endpoint = @organization.setting('lms_authentication_source')
       @lms_client_id = @organization[:lms_authentication_id] unless @organization[:lms_authentication_id] == ''
       @lms_secret = @organization[:lms_authentication_key] unless @organization[:lms_authentication_key] == ''
     end

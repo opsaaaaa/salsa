@@ -108,8 +108,8 @@ class ApplicationController < ActionController::Base
     redirect_port = ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
 
     # custom authentication source, use the keys from the DB
-    if @organization && @organization[:lms_authentication_source] != ''
-      @oauth_endpoint = @organization[:lms_authentication_source] unless @organization[:lms_authentication_source] == ''
+    if @organization && @organization.setting('lms_authentication_source') != nil
+      @oauth_endpoint = @organization.setting('lms_authentication_source')
       @lms_client_id = @organization[:lms_authentication_id] unless @organization[:lms_authentication_id] == ''
       @lms_secret = @organization[:lms_authentication_key] unless @organization[:lms_authentication_key] == ''
       @callback_url = "https://#{@organization[:slug]}#{redirect_port}/oauth2/callback" unless @organization[:slug] == ''
