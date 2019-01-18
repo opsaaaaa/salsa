@@ -74,7 +74,7 @@
               <% if document.lms_course_id %>
                 <div>
                   Published to:
-                  <% if document.organization && document.organization[:lms_authentication_source] %>
+                  <% if document.organization && document.organization.setting('lms_authentication_source') %>
                     <a href="<%= document.organization.setting('lms_authentication_source') + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>">
                       <%= document.organization.setting('lms_authentication_source') + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>
                     </a>

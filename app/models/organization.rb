@@ -64,6 +64,11 @@ class Organization < ApplicationRecord
     org_slug
   end
 
+  # force null save so setting can cascade up the tree (most settings should probably be this way)
+  def lms_authentication_source=(val)
+    super(val == "" ? nil : val)
+  end
+
   def setting(setting)
     org = self.self_and_ancestors.where.not("#{setting}": nil).reorder(:depth).last
     org[setting]
