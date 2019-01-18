@@ -70,8 +70,13 @@ class Organization < ApplicationRecord
   end
 
   def setting(setting)
+    value = nil
     org = self.self_and_ancestors.where.not("#{setting}": nil).reorder(:depth).last
-    org[setting]
+    if org
+      value = org[setting]
+    end
+
+    return value
   end
 
   def root_org_setting(setting)
