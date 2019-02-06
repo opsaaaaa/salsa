@@ -26,7 +26,7 @@ class LtiController < ApplicationController
                     roles: params['roles'],
                 }
 
-                if lti_info[:roles].include? 'urn:lti:asdfrole:ims/lis/Instructor'
+                if lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
                     session[:lti_info] = lti_info
 
                     redirect_to lms_course_document_path(lti_info[:course_id])
