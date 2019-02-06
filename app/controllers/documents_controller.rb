@@ -349,23 +349,23 @@ class DocumentsController < ApplicationController
   end
 
   def authorized_to_edit_course lms_course_id
-    courses = get_canvas_courses
+    course = get_canvas_course lms_course_id
     user = current_user
     workflow_authorized = @organization.root_org_setting("enable_workflows") && user && @document.workflow_step_id && @document.assigned_to?(user)
     if workflow_authorized
       true
-    elsif courses.pluck("id").include?(lms_course_id.to_i)
+    elsif course != nil && course['id'] == lms_course_id.to_i
       true
     else
       false
     end
   end
 
-  def get_canvas_courses
+  def get_canvas_course lms_course_id
     lms_connection_information
     canvas_access_token = session[:canvas_access_token]["access_token"]
     canvas = Canvas::API.new(:host => session[:oauth_endpoint], :token => canvas_access_token)
-    courses = canvas.get("/api/v1/courses?per_page=50")
+    course = canvas.get("/api/v1/courses/#{lms_course_id}")
   end
 
   def is_saml_authenticated_user?

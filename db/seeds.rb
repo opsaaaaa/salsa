@@ -11,7 +11,7 @@ orgs.push Organization.create(
   name: "localhost",
   slug: "localhost",
   default_account_filter: '{"account_filter":"FL17"}',
-  lms_authentication_source: "",
+  lms_authentication_source: nil,
   lms_authentication_key: "asdas",
   lms_authentication_id: "lkjlk"
 )
@@ -20,7 +20,7 @@ orgs.push Organization.create(
   name: "lvh.me",
   slug: "lvh.me",
   default_account_filter: '{"account_filter":"SU17"}',
-  lms_authentication_source: "",
+  lms_authentication_source: nil,
   lms_authentication_key: "asdasd",
   lms_authentication_id: "lkjlkl"
 )
