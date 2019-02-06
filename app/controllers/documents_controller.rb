@@ -5,6 +5,7 @@ class DocumentsController < ApplicationController
   layout 'view'
 
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
+  before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
@@ -113,8 +114,14 @@ class DocumentsController < ApplicationController
       end
     end
 
+    lms_authentication_source = @organization.setting('lms_authentication_source')
+
     begin
-      @lms_course = @lms_client.get("/api/v1/courses/#{params[:lms_course_id]}", { include: 'syllabus_body' }) if @lms_client.token
+      if @lms_client
+        @lms_course = @lms_client.get("/api/v1/courses/#{params[:lms_course_id]}", { include: 'syllabus_body' }) if @lms_client.token
+      elsif lms_authentication_source == 'LTI'
+        @lms_course = session[:lti_info]
+      end
     rescue
       # if a designer of the org, allow them to pass...
       if has_role('designer')
