@@ -49,6 +49,9 @@ var cleanupDocument = function(context) {
     // tablednd
     $('[style="cursor: move;"]', documentToPublish).removeAttr('style');
 
+    // remove common browser extension artifacts
+    $('grammarly-btn').remove();
+
     return documentToPublish.html();
 }
 // control panel

@@ -113,7 +113,7 @@ function liteOff(x) {
 
       var promptText = 'Please enter a title or disable this section';
 
-      if (element.is('h2') && text == '') {
+      if (element.is('h2') && text == '' && element.data('can-delete') != true) {
         text = promptText;
         element.addClass('prompt');
       } else if (element.hasClass('prompt') && text != promptText) {
@@ -321,9 +321,6 @@ function liteOff(x) {
     if ($("#edit_syllabus")) {
       $("#tabs a").first().click();
     }
-
-    $("body").append($("<label>Edit Section Heading</label>").addClass(
-      "visuallyhidden")); // huh?
 
     $('#tb_save_canvas').on('ajax:beforeSend', function() {
       $('#loading_courses_dialog').removeClass('hidden').dialog({

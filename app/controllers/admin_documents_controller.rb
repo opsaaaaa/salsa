@@ -17,7 +17,7 @@ class AdminDocumentsController < AdminDocumentsBaseController
   def edit
     super
 
-    get_users
+    get_users @document
   end
 
   def versions
@@ -28,8 +28,19 @@ class AdminDocumentsController < AdminDocumentsBaseController
   private
 
   def get_users
-    @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: @organizations.pluck(:id) })
-    @users += [@document.user] if !@document.user.blank?
+    if params[:controller] == 'admin_documents'
+      organization_ids = @organizations.pluck(:id)
+    else
+      organization_ids = document.organization.descendants.pluck(:id) + [document.organization.id]
+    end
+
+    @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: organization_ids })
+    @users += [document.user] if !document.user.blank?
     @users = @users.uniq()
+  private
+
+  def get_document id=params[:id]
+    @document = Document.find(id)
+    raise('Insufficent permissions for this document') unless has_role('designer', @document.organization)
   end
 end

@@ -12,7 +12,7 @@ class ApplicationController < ActionController::Base
     root_org = Organization.find_by(slug: request.env["SERVER_NAME"])
     org_path = current_user&.user_assignments&.where(organization_id: root_org.descendants.pluck(:id))&.includes(:organization)&.reorder("organizations.depth DESC")&.first&.organization&.path
     org_path = params[:org_path] if org_path.blank?
-    
+
     return redirect_to full_url_for(request.parameters.merge(org_path: org_path)) if !current_page?(full_url_for(request.parameters.merge(org_path: org_path))) && request.env['SERVER_NAME'] != org_path
   end
 
@@ -51,7 +51,7 @@ class ApplicationController < ActionController::Base
   def check_organization_workflow_enabled
     organization = find_org_by_path(params[:slug])
     organization = find_org_by_path(get_org_path) if organization.blank?
-    if organization.root_org_setting('enable_workflows') != true
+    if organization && organization.root_org_setting('enable_workflows') != true
       return render :file => "public/401.html", :status => :unauthorized, :layout => false
     end
   end
@@ -107,9 +107,12 @@ class ApplicationController < ActionController::Base
 
     redirect_port = ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
 
+    lms_authentication_source = @organization.setting('lms_authentication_source');
+    use_canvas_api = @organization && lms_authentication_source != nil && lms_authentication_source != 'LTI'
+
     # custom authentication source, use the keys from the DB
-    if @organization && @organization[:lms_authentication_source] != ''
-      @oauth_endpoint = @organization[:lms_authentication_source] unless @organization[:lms_authentication_source] == ''
+    if use_canvas_api
+      @oauth_endpoint = @organization.setting('lms_authentication_source')
       @lms_client_id = @organization[:lms_authentication_id] unless @organization[:lms_authentication_id] == ''
       @lms_secret = @organization[:lms_authentication_key] unless @organization[:lms_authentication_key] == ''
       @callback_url = "https://#{@organization[:slug]}#{redirect_port}/oauth2/callback" unless @organization[:slug] == ''
@@ -121,7 +124,9 @@ class ApplicationController < ActionController::Base
     @lms_secret = APP_CONFIG['canvas_key'] unless @lms_secret
     @callback_url = "http://#{get_org_slug}#{redirect_port}/oauth2/callback" unless @callback_url
 
-    if canvas_access_token && canvas_access_token != ''
+    if lms_authentication_source == 'LTI'
+      @lms_user = session[:lti_info]
+    elsif canvas_access_token && canvas_access_token != ''
       @lms_client = Canvas::API.new(:host => @oauth_endpoint, :token => canvas_access_token)
 
       # if this throws an error, there is something wrong with the token
@@ -148,5 +153,9 @@ class ApplicationController < ActionController::Base
 
   def canvas_access_token
     session[:canvas_access_token]["access_token"] if session[:canvas_access_token]
+  end
+
+  def x_frame_allow_all
+    response.headers["X-FRAME-OPTIONS"] = "ALLOWALL"
   end
 end

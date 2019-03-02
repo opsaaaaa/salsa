@@ -5,6 +5,7 @@ class DocumentsController < ApplicationController
   layout 'view'
 
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
+  before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
@@ -113,8 +114,14 @@ class DocumentsController < ApplicationController
       end
     end
 
+    lms_authentication_source = @organization.setting('lms_authentication_source')
+
     begin
-      @lms_course = @lms_client.get("/api/v1/courses/#{params[:lms_course_id]}", { include: 'syllabus_body' }) if @lms_client.token
+      if @lms_client
+        @lms_course = @lms_client.get("/api/v1/courses/#{params[:lms_course_id]}", { include: 'syllabus_body' }) if @lms_client.token
+      elsif lms_authentication_source == 'LTI'
+        @lms_course = session[:lti_info]
+      end
     rescue
       # if a designer of the org, allow them to pass...
       if has_role('designer')
@@ -124,6 +131,14 @@ class DocumentsController < ApplicationController
       end
     end
     if @lms_course
+      # see if there is a organization matched for course
+      document_organization = @organization.self_and_descendants.select { |organization| organization.lms_account_id == @lms_course['account_id'].to_s }
+
+      # update the organziation for this request to be the document's organization
+      if document_organization && document_organization.length == 1
+        @organization = document_organization.first
+      end
+
       @document = Document.find_by lms_course_id: params[:lms_course_id], organization: @organization.self_and_descendants
 
       # flag to see if there is a match on the token id
@@ -341,23 +356,23 @@ class DocumentsController < ApplicationController
   end
 
   def authorized_to_edit_course lms_course_id
-    courses = get_canvas_courses
+    course = get_canvas_course lms_course_id
     user = current_user
     workflow_authorized = @organization.root_org_setting("enable_workflows") && user && @document.workflow_step_id && @document.assigned_to?(user)
     if workflow_authorized
       true
-    elsif courses.pluck("id").include?(lms_course_id.to_i)
+    elsif course != nil && course['id'] == lms_course_id.to_i
       true
     else
       false
     end
   end
 
-  def get_canvas_courses
+  def get_canvas_course lms_course_id
     lms_connection_information
     canvas_access_token = session[:canvas_access_token]["access_token"]
     canvas = Canvas::API.new(:host => session[:oauth_endpoint], :token => canvas_access_token)
-    courses = canvas.get("/api/v1/courses?per_page=50")
+    course = canvas.get("/api/v1/courses/#{lms_course_id}")
   end
 
   def is_saml_authenticated_user?

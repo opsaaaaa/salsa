@@ -40,7 +40,7 @@ class AdminController < ApplicationController
     elsif has_role 'auditor'
       redirect_to admin_auditor_reports_path, notice: flash[:notice]
     elsif ( has_role('staff', assignment_org = get_user_assignment_org(session[:authenticated_user],'staff')) || has_role('approver', assignment_org = get_user_assignment_org(session[:authenticated_user],'approver')) || has_role('supervisor', assignment_org = get_user_assignment_org(session[:authenticated_user],'supervisor')) ) && assignment_org&.root_org_setting('enable_workflows') == true
-      redirect_to workflow_document_index_path(org_path:assignment_org.path), notice: flash[:notice]
+      redirect_to workflow_document_index_path(org_path: assignment_org.path), notice: flash[:notice]
     else
       redirect_or_error
     end
@@ -51,7 +51,7 @@ class AdminController < ApplicationController
     if @organization&.setting("enable_shibboleth")
       return redirect_to new_user_session_path(org_path: params[:org_path])
     end
-  	if @organization and @organization.root_org_setting("lms_authentication_source") != "" and @organization.root_org_setting("lms_authentication_source") != nil
+  	if @organization and @organization.setting("lms_authentication_source") != nil
   		redirect_to oauth2_login_path
 	  else
   		render action: :login, layout: false
@@ -156,7 +156,7 @@ class AdminController < ApplicationController
     @org = Organization.find_by slug: org_slug
 
     if @org
-      @canvas_endpoint = @org[:lms_authentication_source]
+      @canvas_endpoint = @org.setting('lms_authentication_source')
 
       @canvas_client = Canvas::API.new(:host => @canvas_endpoint, :token => @canvas_access_token)
 
@@ -248,29 +248,30 @@ class AdminController < ApplicationController
 
     user_email = params[:q] if params[:search_user_email]
     user_id = params[:q].to_i if params[:search_user_id]
-    user_name = ".*#{params[:q]}.*" if params[:search_user_name]
+    user_name = "%#{params[:q]}%" if params[:search_user_name]
     user_remote_id = params[:q] if params[:search_connected_account_id]
 
     user_ids = User.where("email = ? OR id = ? OR name ~* ? ", user_email, user_id, user_name).pluck(:id)
-    user_ids += UserAssignment.where("lower(username) = ? ", user_remote_id.to_s.downcase).pluck(:user_id)
+    user_ids += UserAssignment.where("lower(username) = ? ", user_remote_id.to_s.downcase).pluck(:user_id) if user_remote_id
 
-    sql = ["organization_id IN (?) AND (lms_course_id = ? OR name ~* ? OR edit_id ~* ? OR view_id ~* ? OR template_id ~* ? )"]
-    param = [@organizations.pluck(:id), params[:q], ".*#{params[:q]}.*"]
+    sql = ["organization_id IN (?) AND (lms_course_id = ? OR name like ? OR edit_id like ? OR view_id like ? OR template_id like ?"]
+    param = [@organizations.pluck(:id), params[:q], "%#{params[:q]}%"]
 
     3.times do
-      param << "#{params[:q]}.*"
+      param << "#{params[:q]}%"
     end
 
     if !user_ids.blank?
       sql << "OR user_id IN (?)"
-      param << user_ids.join(",")
+      param << user_ids
     end
 
     if params[:search_document_text]
-      sql << "OR payload ~* ?"
-      param << ".*#{params[:q]}.*"
+      sql << "OR payload like ?"
+      param << "%#{params[:q]}%"
     end
 
+      sql << ")"
     @documents = Document.where(sql.join(' '), *param).page(page).per(per)
   end
 
@@ -279,8 +280,8 @@ class AdminController < ApplicationController
     redirect_port = ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
 
     # custom authentication source, use the keys from the DB
-    if @organization && @organization[:lms_authentication_source] != ''
-      @oauth_endpoint = @organization[:lms_authentication_source] unless @organization[:lms_authentication_source] == ''
+    if @organization && @organization.setting('lms_authentication_source') != nil
+      @oauth_endpoint = @organization.setting('lms_authentication_source')
       @lms_client_id = @organization[:lms_authentication_id] unless @organization[:lms_authentication_id] == ''
       @lms_secret = @organization[:lms_authentication_key] unless @organization[:lms_authentication_key] == ''
     end
