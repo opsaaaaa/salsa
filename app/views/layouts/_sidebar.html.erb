@@ -4,7 +4,9 @@
       <%= Document.where('documents.updated_at != documents.created_at').count %> documents<br>
       <%= Document.where('documents.updated_at = documents.created_at').count %> abandoned
     </div>
+  <% end %>
 
+  <% if has_role 'organization_admin' %>
     <%= link_to 'Add Organization', new_organization_path(org_path: params[:org_path]), class: 'btn btn-success' %>
 
     <hr>
