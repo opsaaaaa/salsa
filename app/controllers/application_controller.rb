@@ -137,16 +137,20 @@ class ApplicationController < ActionController::Base
         redirect_to oauth2_logout_path(org_path: params[:org_path])
       end
     elsif @lms_client_id
-      @lms_client = Canvas::API.new(:host => @oauth_endpoint, :client_id => @lms_client_id, :secret => @lms_secret)
+      begin
+        @lms_client = Canvas::API.new(:host => @oauth_endpoint, :client_id => @lms_client_id, :secret => @lms_secret)
 
-      if params[:lms_course_id]
-        if params[:document_token]
-          @redirect_url = "#{@lms_client.oauth_url(@callback_url)}%3Flms_course_id%3D#{params[:lms_course_id]}%26document_token%3D#{params[:document_token]}"
+        if params[:lms_course_id]
+          if params[:document_token]
+            @redirect_url = "#{@lms_client.oauth_url(@callback_url)}%3Flms_course_id%3D#{params[:lms_course_id]}%26document_token%3D#{params[:document_token]}"
+          else
+            @redirect_url = "#{@lms_client.oauth_url(@callback_url)}%3Flms_course_id%3D#{params[:lms_course_id]}"
+          end
         else
-          @redirect_url = "#{@lms_client.oauth_url(@callback_url)}%3Flms_course_id%3D#{params[:lms_course_id]}"
+          @redirect_url = "#{@lms_client.oauth_url(@callback_url)}%3Fdocument_id%3D#{params[:document_id]}"
         end
-      else
-        @redirect_url = "#{@lms_client.oauth_url(@callback_url)}%3Fdocument_id%3D#{params[:document_id]}"
+      rescue StandardError => e
+         flash[:error] = "Error establishing connection to LMS: #{e.message}"
       end
     end
   end
