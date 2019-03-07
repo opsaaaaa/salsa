@@ -9,7 +9,7 @@ var batch_token = "";
 
 $(function(){
   if($(".active-org").length) {
-    $('.sidebar').scrollTop($(".active-org").offset().top)
+    $('.nav-sidebar').scrollTop($(".active-org").offset().top-184)
   }
   
   $('#toggleChecked').on('click', function() {
