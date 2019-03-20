@@ -1,5 +1,5 @@
 class Organization < ApplicationRecord
-  acts_as_nested_set
+  acts_as_nested_set :counter_cache => :children_count
 
   has_many :documents
   has_many :components

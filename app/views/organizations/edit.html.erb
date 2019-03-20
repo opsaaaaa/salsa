@@ -1,4 +1,4 @@
-<% if has_role("admin") %>
+<% if has_role("organization_admin") && @org_descendants_count == 0 %>
   <%= link_to "Delete #{@organization[:name]}", organization_path(org_path: params[:org_path]), data: {:confirm => 'Are you sure?'}, :method => :delete, class: 'btn btn-danger pull-right' %>
 <% end %>
 

@@ -1,4 +1,5 @@
 <!-- Breadcrumbs -->
+<% if organization %>
 <div class="pull-left clearfix">
   <% organization.ancestors.each do |org| %>
     <%= link_to organization_path(org.full_slug, org_path: params[:org_path]) do %><small><%= org.slug %> </small><% end %>&raquo;
@@ -12,3 +13,4 @@
   <% end %>
 </div>
 <br>
+<% end %>

@@ -1,11 +1,8 @@
 class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
-  before_action :require_admin_permissions, only: [:new, :create, :destroy]
-  before_action :require_organization_admin_permissions, except: [:new, :create, :destroy, :show, :index]
-  before_action :require_designer_permissions, only: [
-      :show,
-      :index
-  ]
+  before_action :require_admin_permissions, only: [:new, :create, :delete]
+  before_action :require_organization_admin_permissions, except: [:show, :index]
+  before_action :require_designer_permissions, only: [:show, :index]
   before_action :get_organizations, only: [:index, :new, :edit, :create, :show, :start_workflow_form, :orphaned_documents]
   layout 'admin'
   def index
@@ -54,6 +51,8 @@ class OrganizationsController < AdminController
     @organization.default_account_filter = '{"account_filter":""}' if @organization.default_account_filter == ''
 
     @organization.default_account_filter = @organization.default_account_filter.to_json if @organization.default_account_filter.class == Hash
+
+    @org_descendants_count = @organization.descendants.count
   end
 
   # commit actions
@@ -91,6 +90,11 @@ class OrganizationsController < AdminController
 
   def delete
     @organization = find_org_by_path params[:slug]
+
+    if @organization.descendants.count > 0
+      raise("Can't delete organization that has child organizations")
+    end
+
     @organization.delete
 
     redirect_to organizations_path( org_path: params[:org_path])

@@ -42,7 +42,8 @@ module ApplicationHelper
 
     if output == ''
       # if there is a parent, recheck using it as the org
-      if component_org&.parent
+      puts('recursive', component_org&.parent)
+      if component_org&.parent != nil
         output = salsa_partial(name, org, org.parent)
       elsif component_org&.slug&.include? '/'
         output = salsa_partial(name, Organization.new(slug: org.slug.gsub(/\/[^\/]+$/, '')))
@@ -266,6 +267,10 @@ module ApplicationHelper
           organization = org
         end
       end
+    end
+
+    if !organization
+      raise('Organization not found')
     end
 
     organization

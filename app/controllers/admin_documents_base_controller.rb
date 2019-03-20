@@ -6,7 +6,7 @@ class AdminDocumentsBaseController < AdminController
     else
       @workflow_steps = WorkflowStep.where(organization_id: @document.organization_id).order(step_type: :desc)
     end
-    @periods = Period.where(organization_id: @document.organization&.parents&.pluck(:id).push(@document.organization&.id))
+    @periods = Period.where(organization_id: @document.organization&.parents&.pluck(:id)&.push(@document.organization&.id))
     if params[:controller] == 'admin_documents'
       organization_ids = @organizations.pluck(:id)
     else
