@@ -27,7 +27,7 @@ class AdminDocumentsController < AdminDocumentsBaseController
 
   private
 
-  def get_users
+  def get_users document
     if params[:controller] == 'admin_documents'
       organization_ids = @organizations.pluck(:id)
     else
@@ -37,9 +37,10 @@ class AdminDocumentsController < AdminDocumentsBaseController
     @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: organization_ids })
     @users += [document.user] if !document.user.blank?
     @users = @users.uniq()
-  private
+  end
 
-  def get_document id=params[:id]
+  def get_document id=nil
+    id = params[:id] unless id
     @document = Document.find(id)
     raise('Insufficent permissions for this document') unless has_role('designer', @document.organization)
   end

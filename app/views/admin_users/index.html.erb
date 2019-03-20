@@ -1,11 +1,18 @@
-<%= link_to 'Add User',  polymorphic_path([:new,params[:controller].singularize], org_path: params[:org_path]), class: 'btn btn-success pull-right' %>
-<% if has_role("admin") %>
-  <% if params[:show_archived] == "true" %>
-    <%= link_to 'Users', polymorphic_path([params[:controller]],show_archived: false, org_path: params[:org_path]), class: 'btn btn-success pull-right' %>
-  <% else %>
-    <%= link_to 'Archived Users', polymorphic_path([params[:controller]],show_archived: true, org_path: params[:org_path]), class: 'btn btn-success pull-right' %>
+<div class="pull-right">
+  <a class="btn btn-default" href="<%= organization_import_users_path(params[:slug], org_path: params[:org_path]) %>">
+    Import Users
+  </a>
+
+  <% if has_role("admin") %>
+    <% if params[:show_archived] == "true" %>
+      <%= link_to 'Users', polymorphic_path([params[:controller]],show_archived: false, org_path: params[:org_path]), class: 'btn btn-default' %>
+    <% else %>
+      <%= link_to 'Archived Users', polymorphic_path([params[:controller]],show_archived: true, org_path: params[:org_path]), class: 'btn btn-default' %>
+    <% end %>
   <% end %>
-<% end %>
+
+  <%= link_to 'Add User',  polymorphic_path([:new,params[:controller].singularize], org_path: params[:org_path]), class: 'btn btn-success' %>
+</div>
 
 <% if params[:controller] == "organization_users" %>
   <%= render :partial => "organizations/breadcrumbs", locals: {organization: @organization} %>

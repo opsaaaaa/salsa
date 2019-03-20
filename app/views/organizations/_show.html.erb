@@ -3,7 +3,7 @@
 
   <% other_orgs = @organizations.where.not(slug: params[:slug]).order('lft', 'rgt') %>
 
-  <%= form_tag('/admin/organizations/documents', method:'post', :html => { :class => "form-vertical" } ) do |f| %>
+  <%= form_tag('/admin/organizations/documents', method:'post' ) do |f| %>
     <div class="row">
 
       <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
@@ -14,9 +14,8 @@
         </div>
       </div>
 
-      <div class="form-group pull-right text-right">
-        <br>
-        <%= submit_tag 'submit', {class: 'btn btn-default'}%>
+      <div class="form-group col-sm-2">
+        <%= submit_tag 'Move', {class: 'btn btn-default mt-label'}%>
       </div>
       <% end %>
     </div>
@@ -110,15 +109,14 @@
                       <% if document.lms_course_id %>
                         <% if document.organization && document.organization[:lms_authentication_source] %>
                           <li>
-                            <a href="<%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>" target="_blank">
-                              Published to:
-                              <%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>
+                            <a href="<%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>">
+                              Published
                             </a>
                           </li>
                         <% end %>
 
                         <li>
-                          <%= link_to "Course Edit Link: #{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                          <%= link_to "Course", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                         </li>
                       <% end %>
                     <% elsif document.lms_course_id %>
@@ -133,19 +131,19 @@
 
                     <% if !document.organization&.disable_document_view %>
                       <li>
-                        <%= link_to "View: #{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                        <%= link_to "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                       </li>
                     <% end %>
 
 
                     <% if document.organization && document.organization.root_org_setting("enable_anonymous_actions") %>
                       <li>
-                        <%= link_to "Edit: #{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                        <%= link_to "Edit", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                       </li>
                       
                       <li>
                         <% if document.template_id %>
-                          <%= link_to "Template: #{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", target: "_blank", org_path: params[:org_path] %>
+                          <%= link_to "Template", "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                         <% end %>
                       </li>
                     <% end %>
