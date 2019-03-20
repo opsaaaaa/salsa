@@ -158,6 +158,10 @@ module ApplicationHelper
     end
   end
 
+  def get_organization_filter ()
+    return params[:organization]
+  end
+
   def has_role (role, org=nil)
     unless org
       if params[:slug]

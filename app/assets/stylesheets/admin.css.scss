@@ -5099,13 +5099,22 @@ body {
 .nav-sidebar {
   position: relative;
   /* 20px padding + 1px border */
+  padding-bottom: 20px;
   margin-right: -21px;
-  margin-bottom: -20px;
-  padding-bottom: 60px;
   margin-left: -20px;
   overflow-x: hidden;
   overflow-y: auto;
-  height: calc(100% - 50px);
+  height: calc(100% - 140px);
+}
+
+#org_filter {
+  margin-bottom:20px;
+  input {
+
+    width: 80%;
+    font-size: 1.3em;
+    padding: 5px;
+  }
 }
 .nav-sidebar > li > a {
   padding-right: 20px;
@@ -5180,4 +5189,8 @@ body {
   .alert-danger {
     display: none;
   }
+}
+
+.mt-label {
+  margin-top: 24px;
 }

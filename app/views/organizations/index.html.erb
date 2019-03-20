@@ -13,8 +13,13 @@
   </div>
 </div>
 
+
 <div class="row">
-  <div class="list-group col-md-12">
+  <form id="org_filter">
+    <label for="org_filter_input">Filter Organizations</label>
+    <input type="text" name="organization" id="org_filter_input" value="<%= get_organization_filter %>">
+  </form>
+  <ul class="list-group col-md-12">
     <% @organizations.each do |org| %>
       <li class="list-group-item depth-<%= org.depth %>">
         <% unless !org.slug? or (org.slug.include? '/' and (org.slug.index('/') > 0)) %>
@@ -27,5 +32,5 @@
         <% end %>
       </li>
     <% end %>
-  </div>
+  </ul>
 </div>
