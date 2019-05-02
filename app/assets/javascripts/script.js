@@ -25,6 +25,10 @@ function liteOff(x) {
     var lmsCourseElement = $('[data-lms-course]')
     if(lmsCourseElement) {
       var lmsCourse = lmsCourseElement.data('lms-course');
+
+      if(lmsCourse.login_id) {
+        $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
+      }
     }
     
     var defaultFields = $('[data-default]');
