@@ -34,8 +34,11 @@ class LtiController < ApplicationController
                 # logout any current user
                 session[:authenticated_user] = false
                 user = current_user
-                # login the new user
-                session[:authenticated_user] = user.id
+
+                if user
+                    # login the new user
+                    session[:authenticated_user] = user.id
+                end
 
                 if lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
                     session[:lti_info] = lti_info
