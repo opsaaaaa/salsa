@@ -22,7 +22,7 @@ class LtiController < ApplicationController
             if params[:launch_presentation_return_url]
                 lti_info = {
                     course_title: params['context_title'],
-                    course_id: params['context_id'],
+                    course_id: params['context_label'],
                     login_id: params['user_id'],
                     roles: params['roles'],
                 }
