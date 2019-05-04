@@ -22,6 +22,35 @@ function liteOff(x) {
 
 (function($) {
   $(function() {
+    var lmsCourseElement = $('[data-lms-course]')
+    if(lmsCourseElement) {
+      var lmsCourse = lmsCourseElement.data('lms-course');
+
+      if(lmsCourse.login_id) {
+        $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
+      }
+    }
+    
+    var defaultFields = $('[data-default]');
+    if(defaultFields && defaultFields.length) {
+      defaultFields.each(function(){
+        var element = $(this);
+        var field = element.data('default');
+        console.log(lmsCourse, field);
+        if(lmsCourse) {
+          if(lmsCourse[field]) {
+            var elementText = element.text().replace(/\s+/, '');
+            console.log(elementText);
+            if(elementText === '') {
+              element.text(lmsCourse[field]);
+            } else {
+              console.log(this);
+            }
+          }
+        }
+      });
+    }
+
     $('#tabs ul').sortable({
       items: 'li:not(:first-child)',
       start: function(e, ui) {

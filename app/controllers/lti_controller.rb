@@ -3,6 +3,7 @@ require 'uri'
 
 class LtiController < ApplicationController
     skip_before_action :verify_authenticity_token
+    skip_before_action :redirect_if_user_archived
     before_action :x_frame_allow_all
     before_action :lms_connection_information
 
@@ -21,10 +22,23 @@ class LtiController < ApplicationController
             if params[:launch_presentation_return_url]
                 lti_info = {
                     course_title: params['context_title'],
-                    course_id: params['context_id'],
+                    course_id: params['context_label'],
                     login_id: params['user_id'],
                     roles: params['roles'],
                 }
+
+                session['institution'] = request.env['SERVER_NAME']
+                session[:saml_authenticated_user] = {}
+                session[:saml_authenticated_user]['id'] = params['user_id']
+
+                # logout any current user
+                session[:authenticated_user] = false
+                user = current_user
+
+                if user
+                    # login the new user
+                    session[:authenticated_user] = user.id
+                end
 
                 if lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
                     session[:lti_info] = lti_info
@@ -43,7 +57,6 @@ class LtiController < ApplicationController
                 render :json => params
             end
         else
-            debugger
             raise 'invalid lti request'
         end
     end
