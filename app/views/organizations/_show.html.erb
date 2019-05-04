@@ -36,9 +36,16 @@
               <th scope="col">
                 Name
               </th>
-              <th scope="col" nowrap>
-                Course ID
-              </th>
+              <% if @organization.setting('lms_authentication_source') != nil %>
+                <th scope="col" nowrap>
+                  Course ID
+                </th>
+              <% end %>
+              <% if @organization.setting('enable_workflows') != nil %>
+                <th scope="col" nowrap>
+                  User
+                </th>
+              <% end %>
               <th scope="col">
                 Dates
               </th>
@@ -63,9 +70,17 @@
                 <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
               </th>
 
-              <td nowrap>
-                <%= document.lms_course_id %>
-              </td>
+              <% if @organization.setting('lms_authentication_source') != nil %>
+                <td nowrap>
+                  <%= document.lms_course_id %>
+                </td>
+              <% end %>
+
+              <% if @organization.setting('enable_workflows') != nil %>
+                <td nowrap>
+                  <%= document.user.name %>
+                </td>
+              <% end %>
 
               <td nowrap width="50%">
                 <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>

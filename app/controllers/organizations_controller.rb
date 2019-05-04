@@ -13,8 +13,15 @@ class OrganizationsController < AdminController
     get_documents
     @roots = @organizations.roots
 
+    redirectOrg = nil
     if @roots.count == 1
-      redirect_to organization_path(slug: full_org_path(@roots[0]), org_path: params[:org_path])
+      redirectOrg = @roots[0]
+    elsif @organizations.size == 1
+      redirectOrg = @organizations[0]
+    end
+
+    if redirectOrg
+      redirect_to organization_path(slug: full_org_path(redirectOrg), org_path: params[:org_path])
     end
   end
 

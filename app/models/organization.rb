@@ -14,7 +14,7 @@ class Organization < ApplicationRecord
   validates :slug, presence: true, format: {with: Regexp.new('\A' + SLUG_FORMAT.source + '\z')}
   validates_uniqueness_of :slug, :scope => :parent_id
   validates :slug, exclusion: { in: %w(status), message: "%{value} is reserved." }
-  validates_length_of :slug, minimum: 3, maximum: 20
+  validates_length_of :slug, minimum: 3, maximum: 128
 
   validates :name, presence: true
 

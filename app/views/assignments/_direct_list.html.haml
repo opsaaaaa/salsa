@@ -16,7 +16,7 @@
           %td= assignee.user.name + " : " + assignee.user.email
 
           %td
-            = link_to 'Destroy', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignee.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
+            = link_to 'Unassign', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignee.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
 - else
   %p Workflow summary not found
 
@@ -39,7 +39,7 @@
             %td= assignment.role
             %td= assignment.team_member.name + " : " + assignment.team_member.email
             %td
-              = link_to 'Destroy', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignment.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
+              = link_to 'Unassign', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignment.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
 
 - else
   %p No Assignents found

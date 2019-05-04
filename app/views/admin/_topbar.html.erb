@@ -90,7 +90,9 @@
         <% if get_org&.root_org_setting("enable_workflows") %>
           <li class="active"><%= link_to "Workflow Documents", workflow_document_index_path(org_path:params[:org_path]) %></li>
         <% end %>
-        <li class="active"><%= link_to "Organizations", organizations_path(org_path:"") %></li>
+        <% if @organizations.size > 1 %>
+          <li class="active"><%= link_to "Organizations", organizations_path(org_path:"") %></li>
+        <% end %>
         <li class="logout"><%= link_to "Logout", admin_logout_path(org_path:params[:org_path]) %></li>
       </ul>
     </div>
