@@ -87,6 +87,7 @@ Rails.application.routes.draw do
                 resources :users, as: 'organization_users', controller: 'organization_users' do
                     post 'archive'
                     post 'restore'
+                    get 'workflows', to: 'assignments#workflows', as: 'workflow_assignments'
                     resources :assignments, as: 'team_assignments', controller: 'assignments'
                 end
 

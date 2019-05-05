@@ -1,0 +1,57 @@
+<% @documents.each do |document| %>
+    <h2>
+        <%= document.name %>
+        <br>
+        <small>
+            <%= document.organization.name %>
+        </small>
+    </h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Status</th>
+                    <th scope="col">Step</th>
+                    <th scope="col">Assignee(s)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if @workflow_steps[document.id].length > 0 %>
+                    <% @workflow_steps[document.id].each_with_index do |step, index| %>
+                        <tr>
+                            <td width="20%">
+                                <% if step.id == document.workflow_step_id %>
+                                    In progress
+                                <% elsif @statuses[document.id][step.id] == true %>
+                                    Completed 
+                                <% end %>
+                            </td>
+                            <td width="40%"><%= step.name %></td>
+                            <td width="40%">
+                                <% if @assignees[step.id] != nil %>
+                                    <%= @assignees[step.id]['role'] %>
+
+                                    <ul>
+                                        <% @assignees[step.id]['users'].each_with_index do |assignee, index| %>
+                                            <li>
+                                                <%= assignee.name %>
+                                                -
+                                                <%= assignee.email.sub(/@example.com/, '') %>
+                                            </li>
+                                        <% end %>
+                                    </ul>
+                                    
+                                <% end %>
+                            </td>
+                        </tr>
+                    <% end %>
+                <% else %>
+                    <tr>
+                        <td width="20%">Completed</td>
+                        <td width="40%"><%= document.workflow_step.name %></td>
+                        <td width="40%"></td>
+                <% end %>
+            </tbody>
+        </table>
+    </div>
+<% end %>

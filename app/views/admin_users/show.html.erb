@@ -5,15 +5,17 @@
 <a class="btn btn-default pull-right" href="<%= polymorphic_path([:edit,params[:controller].singularize.to_sym], id: @user) %>">
   Edit User
 </a>
-<% if params[:controller] == "organization_users" && @organization.root_org_setting("enable_workflows") == true %>
-  <%= link_to "Details", polymorphic_path([params[:controller].singularize,:team_assignments],"#{params[:controller].singularize}_id".to_sym => @user.id, org_path: params[:org_path]), class:"btn btn-default pull-right" %>
-<% end %>
 
 <h1 class="page-header">
   <%= @user[:name] %>
   <br>
   <small><%= @user[:email] %></span>
 </h1>
+
+<% if params[:controller] == "organization_users" && @organization.root_org_setting("enable_workflows") == true %>
+  <%= link_to "Workflows", polymorphic_path([params[:controller].singularize,:team_assignments],"#{params[:controller].singularize}_id".to_sym => @user.id, org_path: params[:org_path]), class:"btn btn-primary" %>
+  <hr>
+<% end %>
 
 <div class="row">
   <%= render 'edit_permission', permission: @new_permission, action: 'Add' %>

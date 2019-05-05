@@ -1,10 +1,10 @@
 class AssignmentsController < AdminController
   before_action :set_assignment, only: %i[show edit update destroy]
   before_action :check_organization_workflow_enabled
-  before_action :set_roles, only: %i[edit show new index create update]
+  before_action :set_roles, only: %i[edit workflows show new index create update]
   before_action :set_users
   before_action :set_namespace
-  before_action :get_organizations, only: %i[index new edit create show]
+  before_action :get_organizations, only: %i[index workflows new edit create show]
   before_action :require_supervisor_permissions
 
   # GET /assignments
@@ -16,6 +16,93 @@ class AssignmentsController < AdminController
   # GET /assignments/1
   # GET /assignments/1.json
   def show
+  end
+
+  def workflows
+    @documents = @user.documents.where.not(workflow_step_id: nil).order('created_at DESC')
+
+    @workflow_steps = {}
+    @assignees = {}
+    @statuses = {}
+
+    @documents.each do |document|
+      @statuses[document.id] = {}
+      workflow_steps = []
+      current_step_index = nil
+
+      step = document.workflow_step
+
+      if step.step_type != 'end_step'
+        if step.step_type != 'start_step'
+          # get the start step for this workflow
+          # loop previous until start...
+          prev_index = 0
+          loop do
+            prev_step = step.previous_step
+
+            if prev_step == nil || prev_index > 20
+              step = nil
+              break
+            end
+            
+            step = prev_step
+            if step.step_type == 'start_step'
+              break
+            end
+            
+          end
+          prev_index += 1
+        end
+
+        if step == nil
+          break
+        end
+
+        workflow_step_index = 0
+        loop do
+          workflow_steps.push step
+
+          if step.next_workflow_step_id == nil || workflow_steps.length > 20
+            break
+          end
+
+          step = WorkflowStep.find step.next_workflow_step_id
+
+          if step.id == document.workflow_step_id
+            current_step_index = workflow_step_index
+          end
+          
+          if step.component != nil && step.component.role != ''
+            role = step.component.role
+
+            # find all direct assigned for role
+            managers = document.closest_users_with_role role
+            assignees = {
+              'role' => role,
+              'users' => @user.managers + managers,
+            }
+
+            # add assignees by step id to @assignees for use in the view
+            @assignees[step.id] = assignees
+          end
+
+          workflow_step_index += 1
+
+        end
+
+        workflow_steps.each_with_index do |step, index|
+          if current_step_index != nil && current_step_index >= index
+            @statuses[document.id][step.id] = true
+          else
+            @statuses[document.id][step.id] = false
+          end
+        end
+      end
+
+      @workflow_steps[document.id] = workflow_steps
+    end
+
+    render 'workflows'
   end
 
   # GET /assignments/new

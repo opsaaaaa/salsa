@@ -8,8 +8,9 @@ class WorkflowStep < ApplicationRecord
   belongs_to :organization, optional: true
   belongs_to :component, optional: true
   validate :step_type_valid
+  # TODO: next_step doesn't seem to work?
   belongs_to :next_step, :class_name => 'WorkflowStep', optional: true
-  has_one :previous_step, :class_name => 'WorkflowStep', :foreign_key => 'parent_id'
+
   has_many :documents
   has_many :organizations
 
@@ -50,7 +51,7 @@ class WorkflowStep < ApplicationRecord
   end
 
   def previous_step
-    WorkflowStep.find_by(self.id)
+    WorkflowStep.find_by_next_workflow_step_id(self.id)
   end
 
   def to_s
