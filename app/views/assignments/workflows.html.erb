@@ -1,8 +1,9 @@
 <% @documents.each do |document| %>
     <h2>
-        <%= document.name %>
+        <%= document.user.name %>
         <br>
         <small>
+            <%= document.period.name %> -
             <%= document.organization.name %>
         </small>
     </h2>
