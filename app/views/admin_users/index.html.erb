@@ -1,7 +1,7 @@
 <div class="pull-right">
-  <a class="btn btn-default" href="<%= organization_import_users_path(params[:slug], org_path: params[:org_path]) %>">
-    Import Users
-  </a>
+  <% if params[:slug] != nil %>
+    <%= link_to 'Import Users', polymorphic_path([:organization_import_users]), class: 'btn btn-default' %>
+  <% end %>  
 
   <% if has_role("admin") %>
     <% if params[:show_archived] == "true" %>
