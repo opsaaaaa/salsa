@@ -1,4 +1,4 @@
-FROM ruby:2.4.0
+FROM ruby:2.5.0
 
 # set the app directory var
 ENV APP_HOME /home/apps/salsa
