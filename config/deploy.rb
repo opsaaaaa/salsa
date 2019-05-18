@@ -23,6 +23,9 @@ set :puma_preload_app, true
 set :puma_worker_timeout, nil
 set :puma_init_active_record, true  # Change to true if using ActiveRecord
 
+set :swap_size,       ENV.fetch("SWAP_SIZE", "0").to_f # (only used on swap:create) specify size you want (in GB)
+set :swap,            ENV.fetch("SWAP", 'false') # used on enable/disable
+
 set :ssh_options,     { forward_agent: true }
 
 ## Defaults:
@@ -81,6 +84,42 @@ namespace :deploy do
   # after  :finishing,    :compile_assets
   # after  :finishing,    :cleanup
   # after  :finishing,    :restart
+end
+
+namespace :swap do
+  swap = fetch(:swap) != 'false'
+
+  # untested
+	# desc 'Create swap'
+  # task :create do
+  #   on roles(:all) do
+  #     info "Creating SWAP space"
+  #     execute :sudo, "fallocate -l #{swap}G /swapfile"
+  #     execute :sudo, "chmod 600 /swapfile"
+  #     execute :sudo, "mkswap /swapfile"
+  #     # echo vm.swappiness=0 >> /etc/sysctl.conf
+  #     info "SWAP memory successfully created"
+  #   end
+  # end
+
+  desc 'enable swap'
+  task :enable do
+    on roles(:all) do
+      execute :sudo, "swapon /swapfile"
+      info "SWAP memory successfully enabled"
+    end
+  end
+  
+  task :disable do
+    on roles(:all) do
+      execute :sudo, "swapoff /swapfile"
+      info "SWAP memory successfully disabled"
+		end
+  end
+  
+  # before "setup", "swap:create" if fetch(:swap_size) > 0
+  before "deploy", "swap:enable" unless fetch(:swap) == 'false'
+  after "deploy", "swap:disable" unless fetch(:swap) == 'false'
 end
 
 # ps aux | grep puma    # Get puma pid

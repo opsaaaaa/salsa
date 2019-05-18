@@ -44,6 +44,7 @@ gem 'seed_dump'
 gem 'pg', '0.20'
 
 gem 'devise_saml_authenticatable'
+gem 'ims-lti'
 
 group :production do
   gem 'rails_12factor'

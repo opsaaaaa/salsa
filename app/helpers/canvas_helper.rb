@@ -9,7 +9,7 @@ module CanvasHelper
     canvas_access_token = canvas_token
 
     if org
-      canvas_endpoint = org[:lms_authentication_source]
+      canvas_endpoint = org.setting('lms_authentication_source')
 
       canvas_client = Canvas::API.new(:host => canvas_endpoint, :token => canvas_access_token)
 

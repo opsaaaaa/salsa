@@ -41,6 +41,7 @@ class AdminDocumentsBaseController < AdminController
 
   def update
     get_document params[:id]
+    @periods = Period.where(organization_id: @document.organization&.parents&.pluck(:id).push(@document.organization&.id))
 
     # if the publish target changed, clear out the published at date
     if params[:document][:lms_course_id] && @document[:lms_course_id] != params[:document][:lms_course_id] || params[:document][:organization_id] && @document[:organization_id] != params[:document][:organization_id]
@@ -60,8 +61,6 @@ class AdminDocumentsBaseController < AdminController
         redirect_to workflow_document_index_path(org_path: params[:org_path])
       end
     else
-      flash[:error] = @document.errors.messages
-
       render 'edit'
     end
   end
@@ -81,6 +80,14 @@ class AdminDocumentsBaseController < AdminController
   end
 
   def document_params
-    params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :organization_id, :user_id, :period_id)
+    if has_role("admin")
+      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :organization_id, :user_id, :period_id)
+    elsif has_role("organization_admin")
+      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :organization_id, :user_id, :period_id)
+    elsif has_role("supervisor")
+      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :user_id, :period_id)
+    elsif has_role("designer")
+      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :user_id, :period_id)
+    end
   end
 end

@@ -69,7 +69,7 @@
           Supported LMS integrations
           <ul>
               <li>
-                  Canvas - <a href="https://github.com/oasis4hedev/salsa/blob/releases/0.9/_install/canvas_integration.md" target="_blank">Integration Guide</a>
+                  Canvas - <a href="https://github.com/oasis4hedev/salsa/blob/releases/0.9/_install/canvas_integration.md">Integration Guide</a>
               </li>
           </ul>
 
@@ -98,7 +98,7 @@
           </div>
 
           <div class="form-group">
-            <%= f.label :lms_info_slug, class: "control-label", "aria-describedby" => "lms-info-slug-help" %>
+            <%= f.label :lms_info_slug, "LSM info slug", class: "control-label", "aria-describedby" => "lms-info-slug-help" %>
             <div class="controls">
               <%= f.text_field :lms_info_slug, class: 'form-control' %>
               <div class="help-block" id="lms-info-slug-help">
@@ -110,15 +110,25 @@
           <div class="form-group">
             <div class="controls">
               <%= f.check_box :skip_lms_publish, class: '' %>
-              <%= f.label :skip_lms_publish, class: "control-label", "aria-describedby" => "skip-lms-publish-help" %>
+              <%= f.label :skip_lms_publish, "Skip LMS publish", class: "control-label", "aria-describedby" => "skip-lms-publish-help" %>
               <div class="help-block" id="skip-lms-publish-help">When enabled, the document:publish event will not try and publish the document to any configured LMS</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :lms_account_id, "LSM Account ID", class: "control-label", "aria-describedby" => "lms-info-slug-help" %>
+            <div class="controls">
+              <%= f.text_field :lms_account_id, class: 'form-control' %>
+              <div class="help-block" id="lms-info-slug-help">
+                  Link this organization to a specific LMS Account
+              </div>
             </div>
           </div>
 
         </fieldset>
 
         <div class="form-group">
-            <button data-toggle="collapse" data-target=".lms_config" type="button" class="lms_config collapse in">LMS Configuration</button>
+            <button data-toggle="collapse" data-target=".lms_config" type="button" class="btn btn-default lms_config collapse in">LMS Configuration</button>
         </div>
         <% if @organization&.slug&.start_with?("/") %>
           <% f.object = @organization.parents.last %>
