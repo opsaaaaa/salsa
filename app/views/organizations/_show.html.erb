@@ -41,7 +41,7 @@
                   Course ID
                 </th>
               <% end %>
-              <% if @organization.setting('enable_workflows') != nil %>
+              <% if @organization.setting('enable_workflows', false) != false %>
                 <th scope="col" nowrap>
                   User
                 </th>
@@ -76,9 +76,9 @@
                 </td>
               <% end %>
 
-              <% if @organization.setting('enable_workflows') != nil %>
+              <% if @organization.setting('enable_workflows', false) != false %>
                 <td nowrap>
-                  <%= document.user.name %>
+                  <%= document.user.name if document.user %>
                 </td>
               <% end %>
 

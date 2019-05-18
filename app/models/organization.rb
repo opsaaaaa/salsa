@@ -72,8 +72,8 @@ class Organization < ApplicationRecord
     super(val == "" ? nil : val)
   end
 
-  def setting(setting)
-    value = nil
+  def setting(setting, default=nil)
+    value = default
     org = self.self_and_ancestors.where.not("#{setting}": nil).reorder(:depth).last
     if org
       value = org[setting]
