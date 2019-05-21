@@ -109,6 +109,7 @@ class ApplicationController < ActionController::Base
 
     lms_authentication_source = @organization.setting('lms_authentication_source');
     use_canvas_api = @organization && lms_authentication_source != nil && lms_authentication_source != 'LTI'
+    @lms_type = 'canvas'
 
     # custom authentication source, use the keys from the DB
     if use_canvas_api
@@ -116,6 +117,8 @@ class ApplicationController < ActionController::Base
       @lms_client_id = @organization[:lms_authentication_id] unless @organization[:lms_authentication_id] == ''
       @lms_secret = @organization[:lms_authentication_key] unless @organization[:lms_authentication_key] == ''
       @callback_url = "https://#{@organization[:slug]}#{redirect_port}/oauth2/callback" unless @organization[:slug] == ''
+    else
+      @lms_type = lms_authentication_source
     end
 
     # defaults
