@@ -10,6 +10,7 @@ class DocumentsController < ApplicationController
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
   before_action :set_paper_trail_whodunnit
+  before_action :varify_org_and_doc_match
 
   def index
     redirect_to new_document_path(org_path: params[:org_path])
@@ -451,6 +452,18 @@ class DocumentsController < ApplicationController
 
     # backwards compatibility alias
     @syllabus = @document
+  end
+
+    #seans bookmark
+  def varify_org_and_doc_match
+    # when action is new and org dose not exist it is handled by failure case in the get_org_path helper 
+    if params[:action] != "new"
+      doc_id = Document.find_by_edit_id(params[:id]).organization_id if params[:action] === "edit"
+      doc_id = Document.find_by_view_id(params[:id]).organization_id if params[:action] === "show"
+      params[:test2] = doc_id.to_s + " ~ " + @organization.id.to_s
+      params[:test3] = Organization.all.map(&:path)
+      return render :file => "public/404.html", :status => :not_found, :layout => false if doc_id.to_s != @organization.id.to_s
+    end
   end
 
   def update_course_document course_id, html, lms_info_slug, lms_client, document=nil

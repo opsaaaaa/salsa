@@ -257,6 +257,10 @@ module ApplicationHelper
     organization = Organization.find { |o| o.full_org_path == path }
   end
 
+  def find_org_by_id id
+    organization = Organization.find(id)
+  end
+
   def redirect_port
     ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
   end
@@ -280,7 +284,10 @@ module ApplicationHelper
   end
 
   def get_org_path
-    return request.env['SERVER_NAME'] + '/' + params[:org_path] if params[:org_path] && Organization.all.map(&:path).include?(params[:org_path])
+    if params[:org_path] 
+      return request.env['SERVER_NAME'] + '/' + params[:org_path] if Organization.all.map(&:path).include?(params[:org_path])
+      return render :file => "public/404.html", :status => :not_found, :layout => false
+    end
     return request.env['SERVER_NAME']
   end
 
