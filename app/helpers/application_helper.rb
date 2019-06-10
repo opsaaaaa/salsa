@@ -286,7 +286,7 @@ module ApplicationHelper
   def get_org_path
     if params[:org_path] 
       return request.env['SERVER_NAME'] + '/' + params[:org_path] if Organization.all.map(&:path).include?(params[:org_path])
-      return render :file => "public/404.html", :status => :not_found, :layout => false
+      raise "error: parameter #{params[:org_path]} dose not exist."
     end
     return request.env['SERVER_NAME']
   end

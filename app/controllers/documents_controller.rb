@@ -10,7 +10,7 @@ class DocumentsController < ApplicationController
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
   before_action :set_paper_trail_whodunnit
-  before_action :varify_org_and_doc_match
+  before_action :verify_org_and_doc_match
 
   def index
     redirect_to new_document_path(org_path: params[:org_path])
@@ -38,7 +38,7 @@ class DocumentsController < ApplicationController
     document = Document.find_by_edit_id(params[:id])
     document_template = Document.find_by_template_id(params[:id])
     @document = Document.find_by_view_id(params[:id])
-
+    
     if params[:version].to_i > 0 && @document
       @document = @document.versions[params[:version].to_i].reify
     end
@@ -82,7 +82,7 @@ class DocumentsController < ApplicationController
       else
         @document_version = @document.versions.count
       end
-
+    
       verify_org
       @can_use_edit_token = can_use_edit_token(@document.lms_course_id)
       if @organization.root_org_setting("enable_workflows") && @document.assigned_to?(current_user) && @document.workflow_step_id
@@ -454,15 +454,9 @@ class DocumentsController < ApplicationController
     @syllabus = @document
   end
 
-    #seans bookmark
-  def varify_org_and_doc_match
-    # when action is new and org dose not exist it is handled by failure case in the get_org_path helper 
-    if params[:action] != "new"
-      doc_id = Document.find_by_edit_id(params[:id]).organization_id if params[:action] === "edit"
-      doc_id = Document.find_by_view_id(params[:id]).organization_id if params[:action] === "show"
-      params[:test2] = doc_id.to_s + " ~ " + @organization.id.to_s
-      params[:test3] = Organization.all.map(&:path)
-      return render :file => "public/404.html", :status => :not_found, :layout => false if doc_id.to_s != @organization.id.to_s
+  def verify_org_and_doc_match 
+    if @document && @organization
+      raise "error: document and organization don't match" unless @document.organization_id === @organization.id
     end
   end
 
