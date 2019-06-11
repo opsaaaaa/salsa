@@ -209,8 +209,10 @@ Then("the Report zip file should have documents in it") do
 end
 
 Given("the organization enable_workflows option is enabled") do
-  @organization.root_org_setting("enable_workflows") = true
-  @organization.save
+  # this was throwing syntax error, preventing cucumber from running.
+  # @organization.root_org_setting("enable_workflows") = true
+  # @organization.save
+  @organization.set_root_org_setting("enable_workflows" => true)
 end
 
 Given("that i am logged in as a supervisor") do

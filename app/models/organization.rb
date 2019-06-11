@@ -79,16 +79,28 @@ class Organization < ApplicationRecord
     return value
   end
 
-  def root_org_setting(setting)
+  # for clearity this probably be changed to get_root_org_setting
+  def root_org_setting (setting)
+    return find_org_root[setting]
+  end
+
+  def set_root_org_setting (settings)
+    org = find_org_root
+    settings.each do |setting,val|
+      org[setting] = val
+    end
+    org.save
+  end
+
+  def find_org_root
     if self.slug&.start_with?('/')
       org = self.ancestors.find_by(depth: 0)
-      result = org[setting]
     else
       org = self
-      result = org[setting]
     end
-      result
+    return org
   end
+
 
   def self.descendants
     ObjectSpace.each_object(Class).select { |klass| klass < self }
