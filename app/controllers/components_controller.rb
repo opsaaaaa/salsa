@@ -14,7 +14,7 @@ class ComponentsController < ApplicationController
     @available_liquid_variables = component_allowed_liquid_variables true
     @components = @organization.components
 
-    available_component_formats
+    @available_component_formats = Component.valid_formats(has_role("admin"))
 
     @components = @components.where(category: params[:category]) if params[:category]
 
@@ -23,51 +23,51 @@ class ComponentsController < ApplicationController
 
   def new
     @component = Component.new
-    @valid_slugs = valid_slugs(@component.slug)
+    @component.organization_id = @organization.id
+    @valid_slugs = @component.valid_slugs
     @available_liquid_variables = component_allowed_liquid_variables true
-    available_component_formats
+    @available_component_formats = Component.valid_formats(has_role("admin"))
   end
 
   def create
 
     @available_liquid_variables = component_allowed_liquid_variables true
     @component = Component.new component_params
-    @valid_slugs = valid_slugs(@component.slug)
     @component[:organization_id] = @organization[:id]
+    @valid_slugs = @component.valid_slugs
 
-    available_component_formats
-    if available_component_formats.include? @component.format
-      if @component.valid?
-        if valid_slug?(params[:slug])
-          @component.save
-          return redirect_to components_path(org_path: params[:org_path]), notice: "Component was successfully created."
-        else
-          flash[:error] = "Invalid Slug"
-          return render action: :new
-        end
+    @available_component_formats = Component.valid_formats(has_role("admin"))
+    set_role_validations(@component)
+
+    respond_to do |format|
+      if @component.save
+        format.html { redirect_to components_path(org_path: params[:org_path]), notice: "Component was successfully created." }
+        format.json { render :show, status: :created }
+      else
+        format.html { render :edit }
+        format.json { render json: @component.errors, status: :unprocessable_entity }
       end
     end
-
-    flash[:error] = 'Error creating component'
-    return render action: :new
   end
 
   def update
     @available_liquid_variables = component_allowed_liquid_variables true
-    available_component_formats
+    @available_component_formats = Component.valid_formats(has_role("admin"))
 
     @component = Component.find_by! slug: params[:component_slug], organization: @organization, format: @available_component_formats
-    @valid_slugs = valid_slugs(@component.slug)
+    @valid_slugs = @component.valid_slugs
 
-    if available_component_formats.include? component_params[:format]
-      if @component.valid? && valid_slug?(@component.slug) == true
-        @component.update component_params
-        return redirect_to components_path(org_path: params[:org_path]), notice: "Component was successfully updated."
+    set_role_validations(@component)
+
+    respond_to do |format|
+      if @component.update component_params
+        format.html { redirect_to components_path(org_path: params[:org_path]), notice: "Component was successfully updated." }
+        format.json { render :show, status: :created }
+      else
+        format.html { render :edit }
+        format.json { render json: @component.errors, status: :unprocessable_entity }
       end
     end
-
-    flash[:error] = 'Error updating component'
-    render action: :new
   end
 
   def show
@@ -77,9 +77,9 @@ class ComponentsController < ApplicationController
 
   def edit
     @available_liquid_variables = component_allowed_liquid_variables true
-    available_component_formats
+    @available_component_formats = Component.valid_formats(has_role("admin"))
     @component = Component.find_by! slug: params[:component_slug], organization: @organization, format: @available_component_formats
-    @valid_slugs = valid_slugs(@component.slug)
+    @valid_slugs = @component.valid_slugs
   end
 
   def export_components
@@ -112,6 +112,7 @@ class ComponentsController < ApplicationController
           organization_id: @organization.id,
           slug: file.name.remove(/\..*/, /\b_/).gsub(/ /, '_')
         )
+        set_role_validations(component)
         if params[:overwrite] == "true" || component.new_record?
           component.category = "document" if component.category.blank?
           component.category = "mailer" if File.extname(file.name).delete('.') == "liquid"
@@ -148,27 +149,12 @@ class ComponentsController < ApplicationController
 
   private
 
-  def valid_slug? component_slug
-    if has_role('admin') || valid_slugs(component_slug).include?(component_params[:slug])
-      true
+  def set_role_validations(component)
+    if has_role('admin')
+      component.user_role = "admin"
     else
-      false
+      component.user_role = "not_admin"
     end
-  end
-
-  def valid_slugs component_slug
-    @organization = get_organization if @organization.blank?
-    slugs = ['salsa', 'section_nav', 'control_panel', 'footer', 'dynamic_content_1', 'dynamic_content_2', 'dynamic_content_3', 'user_welcome_email']
-    if @organization.root_org_setting("enable_workflows")
-      wfsteps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
-      slugs += wfsteps.map(&:slug).map! {|x| x + "_mailer" }
-      slugs.push "workflow_welcome_email"
-    end
-    slugs.delete_if { |a| @organization.components.map(&:slug).include?(a) }
-    if action_name != "new"
-      slugs.push component_slug
-    end
-    return slugs
   end
 
   def get_organization
@@ -179,14 +165,6 @@ class ComponentsController < ApplicationController
      @orgs = @organization.parents.push(@organization) + @organization.descendants
      organization_levels = @orgs.map { |h| h.slice(:slug, :level).values }
      @organization_levels = organization_levels.sort {|a,b|  a[1] <=> b[1] }
-  end
-
-  def available_component_formats
-    if has_role('admin')
-      @available_component_formats = ['html','erb','haml','liquid',nil];
-    else
-      @available_component_formats = ['html','liquid',nil];
-    end
   end
 
   def component_params
