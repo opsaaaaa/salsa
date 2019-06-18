@@ -11,6 +11,7 @@ class Organization < ApplicationRecord
 
   default_scope { order('lft, rgt') }
   validates :slug, presence: true
+  validates_format_of :slug, :with => /\A[a-z0-9\-\_\.]*\Z/, message: "must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_) "
   validates_uniqueness_of :slug, :scope => :parent_id
   validates :slug, exclusion: { in: %w(status), message: "%{value} is reserved." }
   validates :name, presence: true

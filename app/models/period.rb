@@ -3,6 +3,7 @@ class Period < ApplicationRecord
   validates :start_date, presence: true
   validates :duration, presence: true
   validates :slug, uniqueness: { scope: :organization }
+  validates_format_of :slug, :with => /\A[a-z0-9\-\_\.]+\Z/, message: "must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_) "
   validates_uniqueness_of :is_default, if: :is_default, scope: :organization, message: "is already set for this organization"
 
   belongs_to :organization
