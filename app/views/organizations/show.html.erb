@@ -59,7 +59,7 @@
     <% if has_role 'organization_admin' and @organization.setting('lms_authentication_source') != nil %>
       <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#republishSearch">
         <span class="glyphicon glyphicon-refresh"></span>
-        <div class="link-text">Republish Documents</div>
+        <span class="link-text">Republish Documents</span>
       </button>
     <% end %>
     <% unless !@organization.root_org_setting("enable_anonymous_actions") && @organization.root_org_setting("enable_workflows") %>
