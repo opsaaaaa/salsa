@@ -20,46 +20,46 @@
     <% if has_role 'organization_admin' %>
       <a class="btn" href="<%= edit_organization_path(id: @organization[:id], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-cog"></span>
-        <span class="sr-only">Settings</span>
+        <div class="link-text">Settings</div>
       </a>
       <a class="btn" href="<%= components_path(organization_slug: params[:slug], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-folder-open"></span>
-        <span class="sr-only">Components</span>
+        <div class="link-text">Components</div>
       </a>
       <a class="btn" href="//<%= "#{org_slug_parts(@organization)[0]}#{redirect_port}"%><% if @organization.depth > 0 %>/<%= org_slug_parts(@organization)[1] %><% end %><%= admin_auditor_reports_path %>">
         <span class="glyphicon glyphicon-stats"></span>
-        <span class="sr-only">Reports</span>
+        <div class="link-text">Reports</div>
       </a>
 
       <a class="btn" href="<%= periods_path(slug: params[:slug], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-calendar"></span>
-        <span class="sr-only">Terms/Semesters</span>
+        <div class="link-text">Terms/Semesters</div>
       </a>
     <% end %>
     <% if has_role('supervisor') %>
       <a class="btn" href="<%= organization_users_path(params[:slug], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-user"></span>
-        <span class="sr-only">Users</span>
+        <div class="link-text">Users</div>
       </a>
     <% end %>
     <% if @organization.root_org_setting("enable_workflows") && has_role('supervisor', get_org) %>
       <a class="btn" href="<%= start_workflow_form_path(slug: params[:slug], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-play"></span>
-        <span class="sr-only">Start Workflow</span>
+        <div class="link-text">Start Workflow</div>
       </a>
       <a class="btn" href="<%= workflow_steps_path(params[:slug], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-tasks"></span>
-        <span class="sr-only">Workflow Steps</span>
+        <div class="link-text">Workflow Steps</div>
       </a>
 
     <% end %>
   </div>
   <div class="col-md-3 clearfix text-right">
     <!-- Trigger the modal with a button -->
-    <% if has_role 'organization_admin' %>
+    <% if has_role 'organization_admin' and @organization.setting('lms_authentication_source') != nil %>
       <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#republishSearch">
         <span class="glyphicon glyphicon-refresh"></span>
-        <span class="sr-only">Republish Documents</span>
+        <span class="link-text">Republish Documents</span>
       </button>
     <% end %>
     <% unless !@organization.root_org_setting("enable_anonymous_actions") && @organization.root_org_setting("enable_workflows") %>
