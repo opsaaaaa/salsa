@@ -3,24 +3,25 @@
 
   <% other_orgs = @organizations.where.not(slug: params[:slug]).order('lft', 'rgt') %>
 
+  <% can_move_documents = (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+
   <%= form_tag('/admin/organizations/documents', method:'post' ) do |f| %>
-    <div class="row">
+    <% if can_move_documents %>
+      <div class="row">
+        <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+          <div class="form-group col-sm-4">
+            <%= label_tag :organization_id, 'Move selected documents: ', class: "control-label" %>
+            <div class="controls">
+              <%= select('organization', 'id', other_orgs.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
+            </div>
+          </div>
 
-      <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
-      <div class="form-group col-sm-4">
-        <%= label_tag :organization_id, 'Move selected documents: ', class: "control-label" %>
-        <div class="controls">
-          <%= select('organization', 'id', other_orgs.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
-        </div>
+          <div class="form-group col-sm-2">
+            <%= submit_tag 'Move', {class: 'btn btn-default mt-label'}%>
+          </div>
+        <% end %>
       </div>
-
-      <div class="form-group col-sm-2">
-        <%= submit_tag 'Move', {class: 'btn btn-default mt-label'}%>
-      </div>
-      <% end %>
-    </div>
-
-    <% can_move_documents = (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+    <% end %>
 
     <div class="row">
       <div class="col-sm-12">
