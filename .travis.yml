@@ -7,6 +7,7 @@ before_script:
   - mkdir tmp/db/postgres-data -p
   - mkdir tmp/log -p
   - cp config/deploy/travis-ci/database.yml config/database.yml
+  - cp config/deploy/travis-ci/application.yml config/application.yml
   - cp config/deploy/travis-ci/config.yml config/config.yml
   - cp config/deploy/travis-ci/secrets.yml config/secrets.yml
   - cp config/deploy/travis-ci/Dockerfile ../
