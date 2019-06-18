@@ -5194,3 +5194,14 @@ body {
 .mt-label {
   margin-top: 24px;
 }
+
+.horizontal-list {
+  display: flex;
+  list-style: none;
+  justify-content: flex-start;
+  padding: 0;
+
+  li {
+    padding: 0 2em 0 0;
+  }
+}

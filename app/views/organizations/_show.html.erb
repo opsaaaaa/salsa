@@ -24,7 +24,13 @@
 
     <div class="row">
       <div class="col-sm-12">
-        <h2>Documents</h2>
+        <h2>
+          <% if params[:key] != nil %>
+            <%= params[:key].capitalize %>
+          <% end %>
+
+          Documents
+        </h2>
 
         <table class="table table-responsive striped">
           <thead>
@@ -113,45 +119,15 @@
                   <% org_base = '' %>
                 <% end %>
 
-                <div class="dropdown pull-right">
-                  <button class="btn btn-default dropdown-toggle" type="button" id="document_<%= document.id %>_links_control" data-toggle="dropdown" haspopup="true" aria-expanded="false" aria-controls="document_<%= document.id %>_links">
-                    Document Links
-                    <span class="caret"></span>
-                  </button>
-
-                  <ul class="dropdown-menu dropdown-menu-right" aria-labeldedby="document_<%= document.id %>_links_control" id="document_<%= document.id %>_links">
-                    <% if document.lms_published_at %>
-                      <% if document.lms_course_id %>
-                        <% if document.organization && document.organization[:lms_authentication_source] %>
-                          <li>
-                            <a href="<%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>">
-                              Published
-                            </a>
-                          </li>
-                        <% end %>
-
-                        <li>
-                          <%= link_to "Course", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
-                        </li>
-                      <% end %>
-                    <% elsif document.lms_course_id %>
-                      <li>
-                        LMS Course ID: <%= document.lms_course_id %>
-                        <div class="badge alert-warning">
-                          manually set, unpublished
-                        </div>
-                      </li>
-                    <% end %>
-
-
-                    <% if !document.organization&.disable_document_view %>
+                <div>
+                  <ul class="horizontal-list">
+                    <% if document.organization && document.organization.root_org_setting('disable_document_view') %>
                       <li>
                         <%= link_to "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                       </li>
                     <% end %>
 
-
-                    <% if document.organization && document.organization.root_org_setting("enable_anonymous_actions") %>
+                    <% if document.organization && document.organization.root_org_setting('enable_anonymous_actions') %>
                       <li>
                         <%= link_to "Edit", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                       </li>
@@ -161,6 +137,22 @@
                           <%= link_to "Template", "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                         <% end %>
                       </li>
+                    <% end %>
+
+                    <% if document.lms_course_id %>
+                      <li>
+                        <%= link_to "Course", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
+                      </li>
+
+                      <% if document.lms_published_at %>
+                        <% if document.organization && document.organization[:lms_authentication_source] %>
+                          <li>
+                            <a href="<%= document.organization[:lms_authentication_source] + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>">
+                              Published
+                            </a>
+                          </li>
+                        <% end %>
+                      <% end %>
                     <% end %>
 
                   </ul>
