@@ -220,8 +220,8 @@ When(/^I click the "(.*?)" link$/) do |string|
     click_on("edit_#{@component.slug}")
   when /#edit_document/
     find(string).click
-  when /#show_user/
-    find(string+"_#{@user.id}").click
+  when /#show_user/ 
+    click_link("#{@user.name}")
   else
     click_link(string)
   end
