@@ -22,6 +22,14 @@ function liteOff(x) {
 
 (function($) {
   $(function() {
+    $('#salsa_dynamic_content_templates > [data-target]').each(function(index, item){
+      var content = $(item).html();
+      var targetSelector = $(item).data('target');
+      var target = $(targetSelector, '#page-data');
+
+      target.html(content);
+    });
+
     var lmsCourseElement = $('[data-lms-course]')
     if(lmsCourseElement) {
       var lmsCourse = lmsCourseElement.data('lms-course');
