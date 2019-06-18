@@ -7,9 +7,15 @@
     </h1>
   </div>
   <div class="pull-right col-xs-4 text-right clearfix">
-    <%= link_to @organization.documents.where('documents.updated_at != documents.created_at').count.to_s + ' documents', organization_path(id: @organization[:id], org_path: params[:org_path]) %><br>
-    <% if @organization.documents.where('documents.updated_at = documents.created_at').count > 0 %>
-      <%= link_to @organization.documents.where('documents.updated_at = documents.created_at').count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path: params[:org_path]) %>
+    <%- document_count = @organization.documents.where('documents.updated_at != documents.created_at').count %>
+    <%- orphaned_count = @organization.documents.where('documents.updated_at = documents.created_at').count %>
+
+    <% if params[:key] != nil %>
+      <%= link_to document_count.to_s + ' documents', organization_path(id: @organization[:id], org_path: params[:org_path]) %><br>
+    <% end %>
+
+    <% if orphaned_count > 0 and params[:key] == nil %>
+      <%= link_to orphaned_count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path: params[:org_path]) %>
     <% end %>
   </div>
 </div>
@@ -33,7 +39,7 @@
 
       <a class="btn" href="<%= periods_path(slug: params[:slug], org_path: params[:org_path]) %>">
         <span class="glyphicon glyphicon-calendar"></span>
-        <div class="link-text">Terms/Semesters</div>
+        <div class="link-text">Time Periods</div>
       </a>
     <% end %>
     <% if has_role('supervisor') %>
