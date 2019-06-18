@@ -27,12 +27,12 @@ I want to complete a workflow step
     When I go to the document edit page for the users document
     Then I should see "you are not authorized to edit that document"
 
-  @javascript
-  Scenario: fail to edit final_step
-    Given that I am logged in as a approver on the organization
-    And there is a document on the last step in the workflow and assigned to the user
-    And I am on the "/workflow/documents" page
-    Then I should not see "#edit_document"
-    When I go to the document edit page for the users document
-    And I click the "#tb_share" link
-    Then I should see "You are not authorized to edit this document"
+  # @javascript
+  # Scenario: fail to edit final_step
+  #   Given that I am logged in as a approver on the organization
+  #   And there is a document on the last step in the workflow and assigned to the user
+  #   And I am on the "/workflow/documents" page
+  #   Then I should not see "#edit_document"
+  #   When I go to the document edit page for the users document
+  #   And I click the "#tb_share" link
+  #   Then I should see "You are not authorized to edit this document"
