@@ -22,6 +22,43 @@ function liteOff(x) {
 
 (function($) {
   $(function() {
+    $('#salsa_dynamic_content_templates > [data-target]').each(function(index, item){
+      var content = $(item).html();
+      var targetSelector = $(item).data('target');
+      var target = $(targetSelector, '#page-data');
+
+      target.html(content);
+    });
+
+    var lmsCourseElement = $('[data-lms-course]')
+    if(lmsCourseElement) {
+      var lmsCourse = lmsCourseElement.data('lms-course');
+
+      if(lmsCourse.login_id) {
+        $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
+      }
+    }
+    
+    var defaultFields = $('[data-default]');
+    if(defaultFields && defaultFields.length) {
+      defaultFields.each(function(){
+        var element = $(this);
+        var field = element.data('default');
+        console.log(lmsCourse, field);
+        if(lmsCourse) {
+          if(lmsCourse[field]) {
+            var elementText = element.text().replace(/\s+/, '');
+            console.log(elementText);
+            if(elementText === '') {
+              element.text(lmsCourse[field]);
+            } else {
+              console.log(this);
+            }
+          }
+        }
+      });
+    }
+
     $('#tabs ul').sortable({
       items: 'li:not(:first-child)',
       start: function(e, ui) {
@@ -113,7 +150,7 @@ function liteOff(x) {
 
       var promptText = 'Please enter a title or disable this section';
 
-      if (element.is('h2') && text == '') {
+      if (element.is('h2') && text == '' && element.data('can-delete') != true) {
         text = promptText;
         element.addClass('prompt');
       } else if (element.hasClass('prompt') && text != promptText) {

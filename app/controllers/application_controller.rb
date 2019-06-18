@@ -59,7 +59,7 @@ class ApplicationController < ActionController::Base
   def current_user
     if session[:authenticated_user]
       return User.find_by(id: session[:authenticated_user], archived: false)
-    elsif session[:saml_authenticated_user]
+    elsif session[:saml_authenticated_user] && session[:saml_authenticated_user]['id'] != ''
       user = UserAssignment.find_by("lower(username) = ?", session[:saml_authenticated_user]["id"].to_s.downcase)&.user
       return user if user&.archived == false
     end
@@ -107,12 +107,18 @@ class ApplicationController < ActionController::Base
 
     redirect_port = ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
 
+    lms_authentication_source = @organization.setting('lms_authentication_source');
+    use_canvas_api = @organization && lms_authentication_source != nil && lms_authentication_source != 'LTI'
+    @lms_type = 'canvas'
+
     # custom authentication source, use the keys from the DB
-    if @organization && @organization[:lms_authentication_source] != ''
-      @oauth_endpoint = @organization[:lms_authentication_source] unless @organization[:lms_authentication_source] == ''
+    if use_canvas_api
+      @oauth_endpoint = @organization.setting('lms_authentication_source')
       @lms_client_id = @organization[:lms_authentication_id] unless @organization[:lms_authentication_id] == ''
       @lms_secret = @organization[:lms_authentication_key] unless @organization[:lms_authentication_key] == ''
       @callback_url = "https://#{@organization[:slug]}#{redirect_port}/oauth2/callback" unless @organization[:slug] == ''
+    else
+      @lms_type = lms_authentication_source
     end
 
     # defaults
@@ -121,7 +127,9 @@ class ApplicationController < ActionController::Base
     @lms_secret = APP_CONFIG['canvas_key'] unless @lms_secret
     @callback_url = "http://#{get_org_slug}#{redirect_port}/oauth2/callback" unless @callback_url
 
-    if canvas_access_token && canvas_access_token != ''
+    if lms_authentication_source == 'LTI'
+      @lms_user = session[:lti_info]
+    elsif canvas_access_token && canvas_access_token != ''
       @lms_client = Canvas::API.new(:host => @oauth_endpoint, :token => canvas_access_token)
 
       # if this throws an error, there is something wrong with the token
@@ -148,5 +156,9 @@ class ApplicationController < ActionController::Base
 
   def canvas_access_token
     session[:canvas_access_token]["access_token"] if session[:canvas_access_token]
+  end
+
+  def x_frame_allow_all
+    response.headers["X-FRAME-OPTIONS"] = "ALLOWALL"
   end
 end
