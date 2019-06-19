@@ -517,6 +517,7 @@ DEPENDENCIES
   sqlite3
   turbolinks
   twitter-bootstrap-rails
+  tzinfo
   uber-s3
   uglifier
   zurb-foundation
