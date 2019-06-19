@@ -43,12 +43,12 @@
               <th scope="col">
                 Name
               </th>
-              <% if @organization.setting('lms_authentication_source') != nil %>
+              <% if @organization.root_org_setting('lms_authentication_source') != nil %>
                 <th scope="col" nowrap>
                   Course ID
                 </th>
               <% end %>
-              <% if @organization.setting('enable_workflows', false) != false %>
+              <% if @organization.root_org_setting('enable_workflows') != false %>
                 <th scope="col" nowrap>
                   User
                 </th>
@@ -77,13 +77,13 @@
                 <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
               </th>
 
-              <% if @organization.setting('lms_authentication_source') != nil %>
+              <% if @organization.root_org_setting('lms_authentication_source') != nil %>
                 <td nowrap>
                   <%= document.lms_course_id %>
                 </td>
               <% end %>
 
-              <% if @organization.setting('enable_workflows', false) != false %>
+              <% if @organization.root_org_setting('enable_workflows') != false %>
                 <td nowrap>
                   <%= document.user.name if document.user %>
                 </td>
