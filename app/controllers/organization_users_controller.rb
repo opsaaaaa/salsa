@@ -37,7 +37,8 @@ class OrganizationUsersController < AdminUsersController
     @organization = find_org_by_path(params[:slug])
 
     super
-    @user_assignments = @user.user_assignments.where(organization_id: @organization.self_and_descendants.pluck(:id))
+
+    @user_assignments = @user_assignment.user.user_assignments.where(organization_id: @organization.self_and_descendants.pluck(:id))
     return redirect_to organization_users_path(org_path: params[:org_path]) if @user_assignment.blank?
   end
 

@@ -1,0 +1,51 @@
+<h1 class="h2 mt-4">Assigned Documents</h1>
+<% if !documents.blank? %>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Staff</th>
+      <th scope="col">Organization</th>
+      <th scope="col">Workflow Step</th>
+      <th scope="col">Updated</th>
+      <th scope="col"><%=t '.actions', :default => t("helpers.actions") %></th>
+    </tr>
+  </thead>
+  <tbody>
+      <% documents.each do |document| %>
+
+        <tr>
+          <td>
+            <%= "#{document.user&.name} : #{document.user&.email}" %>
+          </td>
+          <td>
+            <%= document.organization.parent&.name %>:
+            <%= document.organization.name %>
+          </td>
+          <td>
+            <%= link_to document.workflow_step&.name+': '+document.workflow_step&.component&.name,
+                organization_user_workflow_assignments_path(organization_user_id: document.user_id, org_path: params[:org_path], slug: document.organization.root.slug+'/'+params[:org_path]),
+                class: 'nav-link' %>
+
+          </td>
+          <td nowrap>
+            <%= time_ago_in_words(document.updated_at)%> ago
+          </td>
+          <td>
+            <%= link_to "Edit", edit_document_path(document.edit_id, org_path:params[:org_path]), id:"edit_document" %>
+            <% if has_role('supervisor') && document.user_id != current_user&.id %>
+              <%= link_to "Versions", workflow_document_versions_path(document, org_path:params[:org_path]), :class => 'btn btn-default btn-xs' %>
+              <%= link_to t('.edit', :default => t("helpers.links.edit")), edit_workflow_document_path(document.id, org_path:params[:org_path]) %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+  </tbody>
+</table>
+<%= paginate documents if documents&.count.to_i > staff_documents&.count.to_i && documents&.count.to_i > user_documents&.count.to_i %>
+<% else %>
+<div class="col-md-12 mt-4">
+  <div class="alert alert-warning">
+    No assigned documents
+  </div>
+</div>
+<% end %>

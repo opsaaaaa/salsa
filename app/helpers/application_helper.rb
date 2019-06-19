@@ -71,6 +71,28 @@ module ApplicationHelper
     end
   end
 
+  def has_managment_permissions
+    result = false
+    check_for_admin_password
+
+    unless has_role('supervisor') || has_role('auditor')
+      # supervisor and auditor roles can be assigned to users (don't go through orgs)
+      direct_assignments = current_user&.assignments
+      direct_assignments&.each do |direct_assignment|
+        if ['supervisor', 'auditor'].include?(direct_assignment[:role])
+          result = true
+        end
+      end
+    end
+
+    return result
+  end
+
+  def require_managment_permissions
+    unless has_managment_permissions
+      return redirect_or_error
+    end
+  end
 
   def require_supervisor_permissions
     check_for_admin_password

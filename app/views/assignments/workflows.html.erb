@@ -27,7 +27,7 @@
                                     Completed 
                                 <% end %>
                             </td>
-                            <td width="40%"><%= step.name %></td>
+                            <td width="40%"><%= step.name %>: <%= step.component.name %></td>
                             <td width="40%">
                                 <% if @assignees[step.id] != nil %>
                                     <%= @assignees[step.id]['role'] %>

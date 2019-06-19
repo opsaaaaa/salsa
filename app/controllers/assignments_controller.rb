@@ -1,11 +1,14 @@
 class AssignmentsController < AdminController
+  layout :set_layout
+  
   before_action :set_assignment, only: %i[show edit update destroy]
   before_action :check_organization_workflow_enabled
   before_action :set_roles, only: %i[edit workflows show new index create update]
   before_action :set_users
   before_action :set_namespace
   before_action :get_organizations, only: %i[index workflows new edit create show]
-  before_action :require_supervisor_permissions
+  before_action :require_supervisor_permissions, except: [:workflows]
+  before_action :require_managment_permissions, only: [:workflows]
 
   # GET /assignments
   # GET /assignments.json
@@ -217,5 +220,13 @@ class AssignmentsController < AdminController
   # Never trust parameters from the scary internet, only allow the white list through.
   def assignment_params
     params.require(:assignment).permit(:role, :user_id, :team_member_id)
+  end
+
+  def set_layout
+    if has_role('supervisor')
+      return 'admin'
+    else
+      return 'workflow'
+    end
   end
 end

@@ -633,3 +633,20 @@ img {
     margin-left: 0;
   }
 }
+
+.skip-content {
+  padding: .5em 1em;
+  &:focus {
+    position: absolute;
+    z-index: 999;
+    outline: thin dotted;
+  }
+}
+
+nav, .nav-pills {
+  font-size: 1rem;
+
+  a {
+    text-decoration: none;
+  }
+}

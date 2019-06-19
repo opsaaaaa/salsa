@@ -109,6 +109,14 @@ class AdminUsersController < AdminController
     @roles.delete('Global Administrator') unless has_role('admin')
 
     @user_assignment = get_user_assignment(params[:id])
+
+    if @user_assignment == nil
+      raise ActionController::RoutingError.new('Not Found')
+    end
+
+    unless @organizations.pluck(:id).include?(@user_assignment.organization.id)
+      raise ActionController::RoutingError.new('Not Authorized')
+    end
   end
 
   def update_assignment
