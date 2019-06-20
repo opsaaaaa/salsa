@@ -75,7 +75,6 @@ class Organization < ApplicationRecord
     if org
       value = org[setting]
     end
-
     return value
   end
 

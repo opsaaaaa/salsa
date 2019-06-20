@@ -298,4 +298,10 @@ module ApplicationHelper
     org_slug = get_org_slug
     ReportHelper.get_document_meta org_slug, nil, params
   end
+
+  def get_country_time_zones(country = 'US')
+    TZInfo::Country.get(country).zones
+  end
+
 end
+

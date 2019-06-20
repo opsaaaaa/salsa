@@ -1,3 +1,5 @@
+require 'tzinfo'
+
 class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
   before_action :require_admin_permissions, only: [:new, :create, :destroy]
@@ -172,4 +174,4 @@ class OrganizationsController < AdminController
       params.require(:organization).permit(:name, :export_type, :enable_workflows, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_anonymous_actions, :track_meta_info_from_document, :force_https)
     end
   end
-end
+
