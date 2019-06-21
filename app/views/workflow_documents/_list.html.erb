@@ -1,6 +1,20 @@
-<h1 class="h2 mt-4">My Documents</h1>
-<% if !user_documents.blank? %>
-<table class="table table-striped">
+<h1 class="h2 mt-4" id="page_title">My Documents</h1>
+
+<form class="col-md-12 form-inline">
+  <div class="row">
+    <div class="form-group">
+      <%= label_tag(:step_filter, "Step") %>&nbsp;
+      <%= select_tag "step_filter", options_from_collection_for_select(@workflow_steps, "slug", "label", params[:step_filter]), :include_blank => 'Any' %>
+    </div>
+
+    <button type="submit" class="btn btn-default">
+      Update
+    </button>
+  </div>
+</form>
+
+<% if user_documents && user_documents.count > 0 %>
+<table class="table table-striped" aria-labeledby="page_title">
   <thead>
     <tr>
       <th scope="col">Document</th>
@@ -18,9 +32,15 @@
           <td><%= "#{document.organization.parent&.name} : #{document.organization.name}" %></td>
           <td><%= document.workflow_step&.name %>: <%= document.workflow_step&.component&.name %></td>
           <td>
-            <% document.assignees&.each do |assignee| %>
-              <%= "#{assignee&.name}: #{assignee&.email}" if document.user %>
-              <br>
+            <% if document.workflow_step&.step_type == 'end_step' %>
+              Complete
+            <% else %>
+              <% document.assignees&.each do |assignee| %>
+                <% if assignee.id != document.user_id %>
+                  <%= assignee&.name %>
+                  <br>
+                <% end %>
+              <% end %>
             <% end %>
           </td>
           <td nowrap>
@@ -33,7 +53,7 @@
     <% end %>
   </tbody>
 </table>
-<%= paginate user_documents if user_documents&.count.to_i > documents&.count.to_i && user_documents&.count.to_i > staff_documents&.count.to_i %>
+<%= paginate user_documents %>
 <% else %>
 <div class="col-md-12 mt-4">
   <div class="alert alert-warning">

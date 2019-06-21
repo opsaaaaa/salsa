@@ -8,7 +8,7 @@ class AssignmentsController < AdminController
   before_action :set_namespace
   before_action :get_organizations, only: %i[index workflows new edit create show]
   before_action :require_supervisor_permissions, except: [:workflows]
-  before_action :require_managment_permissions, only: [:workflows]
+  before_action :require_management_permissions, only: [:workflows]
 
   # GET /assignments
   # GET /assignments.json
@@ -223,7 +223,7 @@ class AssignmentsController < AdminController
   end
 
   def set_layout
-    if has_role('supervisor')
+    if params[:action] != 'workflows'
       return 'admin'
     else
       return 'workflow'

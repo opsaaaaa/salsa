@@ -1,19 +1,2 @@
-<% if @has_assignments %>
-  <ul class="nav-pills nav col-md-12">
-    <li>
-      <a class="btn btn-primary" href="./documents">My Documents</a>
-    </li>
-    <li>
-      <a class="btn" href="./documents/assignments">Assignments</a>
-    </li>
-  </ul>
-<% end %>
-
 <%- model_class = Document -%>
-<% if !@user_documents.blank? || !@documents.blank? || !@staff_documents.blank? %>
-  <%= render :partial => "list", locals:{ user_documents: @user_documents, documents: @documents, staff_documents: @staff_documents } %>
-<% else %>
-  <div class="alert alert-warning">
-    No documents were found.
-  </div>
-<% end %>
+<%= render :partial => "list", locals:{ user_documents: @user_documents, documents: @documents, staff_documents: @staff_documents } %>

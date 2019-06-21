@@ -28,33 +28,48 @@
     <a href="#maincontent" class="sr-only sr-only-focusable btn btn-info skip-content">Skip to main content</a>
     <nav class="navbar navbar-expand-sm navbar-dark bg-dark navbar-fixed-top" role="navigation">
       <a class="navbar-brand" href="/"><%= Organization.where(slug: request.env["SERVER_NAME"]).first.name %></a>
+
+      <div class="navbar-nav mr-auto username">
+        <div class="nav-item">
+          <span class="nav-link">
+            <%= current_user.name %>
+          </span>
+        </div>
+      </div>
+
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <%- org_slug = params[:slug] %>
-
-        <% if org_slug == nil %>
-          <%- org_slug = request.env["SERVER_NAME"] + '/' + params[:org_path] %>
-        <% end %>
-
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <%= link_to 'Documents',
-              workflow_document_index_path(
-                org_path: params[:org_path],
-              ),
-              class: 'nav-link' %>
-          </li>
-          <li class="nav-item">
+          <% if @has_assignments %>
+            <%- org_slug = params[:slug] %>
 
-            <%= link_to 'Assignments',
-              workflow_document_assignments_path(
-                org_path: params[:org_path]
-              ),
-              class: 'nav-link' %>
-          </li>
+            <% if org_slug == nil %>
+              <%- org_slug = request.env["SERVER_NAME"] + '/' + params[:org_path] %>
+            <% end %>
+
+            <%- documents_link = workflow_document_index_path(
+                org_path: params[:org_path],
+              ) %>
+
+            <%- assignments_link = workflow_document_assignments_path(
+                org_path: params[:org_path],
+              ) %>
+              
+            <li class="nav-item">
+              <%= link_to 'Documents',
+                documents_link,
+                class: 'nav-link' + (' active' if current_page?(documents_link)).to_s %>
+            </li>
+            <li class="nav-item">
+
+              <%= link_to 'Assignments',
+                assignments_link,
+                class: 'nav-link' + (' active' if current_page?(assignments_link)).to_s %>
+            </li>
+          <% end %>
           <li class="logout">
             <%= link_to "Logout",
               admin_logout_path(org_path: params[:org_path]),

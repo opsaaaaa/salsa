@@ -1,6 +1,20 @@
-<h1 class="h2 mt-4">Assigned Documents</h1>
+<h1 class="h2 mt-4" id="page_title">Assigned Documents</h1>
+
+<form class="col-md-12 form-inline">
+  <div class="row">
+    <div class="form-group">
+      <%= label_tag(:step_filter, "Step") %>&nbsp;
+      <%= select_tag "step_filter", options_from_collection_for_select(@workflow_steps, "slug", "label", params[:step_filter]), :include_blank => 'Any' %>
+    </div>
+
+    <button type="submit" class="btn btn-default">
+      Update
+    </button>
+  </div>
+</form>
+
 <% if !documents.blank? %>
-<table class="table table-striped">
+<table class="table table-striped" aria-labeledby="page_title">
   <thead>
     <tr>
       <th scope="col">Staff</th>
@@ -23,17 +37,18 @@
           </td>
           <td>
             <%= link_to document.workflow_step&.name+': '+document.workflow_step&.component&.name,
-                organization_user_workflow_assignments_path(organization_user_id: document.user_id, org_path: params[:org_path], slug: document.organization.root.slug+'/'+params[:org_path]),
-                class: 'nav-link' %>
+                organization_user_workflow_assignments_path(organization_user_id: document.user_id, org_path: params[:org_path], slug: document.organization.root.slug+'/'+params[:org_path]) %>
 
           </td>
           <td nowrap>
             <%= time_ago_in_words(document.updated_at)%> ago
           </td>
           <td>
-            <%= link_to "Edit", edit_document_path(document.edit_id, org_path:params[:org_path]), id:"edit_document" %>
-            <% if has_role('supervisor') && document.user_id != current_user&.id %>
-              <%= link_to "Versions", workflow_document_versions_path(document, org_path:params[:org_path]), :class => 'btn btn-default btn-xs' %>
+            <% if document.workflow_step.step_type != 'end_step' %>
+              <%= link_to "Review", edit_document_path(document.edit_id, org_path:params[:org_path]), id:"edit_document" %>
+            <% end%>
+            
+            <% if has_role('supervisor') %>
               <%= link_to t('.edit', :default => t("helpers.links.edit")), edit_workflow_document_path(document.id, org_path:params[:org_path]) %>
             <% end %>
           </td>
