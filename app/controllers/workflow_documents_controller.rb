@@ -20,14 +20,30 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
     organization_ids = org.root.self_and_descendants.pluck(:id)
     user_assignment = current_user.user_assignments.find_by organization_id: org.id if current_user
     @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order('name')
+    @periods = Period.where(organization_id: organization_ids).order('name')
+    @documents = Document.where(organization_id:org.self_and_descendants.pluck(:id))
+      .where('documents.updated_at != documents.created_at')
+
     if params[:step_filter] && params[:step_filter] != ''
-      @documents = Document.where(organization_id:org.descendants.pluck(:id)).where('documents.updated_at != documents.created_at')
       wfs = @workflow_steps.find_by(slug: params[:step_filter])
-      @documents = @documents.where(workflow_step_id: wfs&.id )
+      @user_documents = @documents.where(workflow_step_id: wfs&.id )
     else
-      @documents = Document.where(organization_id:org.self_and_descendants.pluck(:id).push(org.id)).where('documents.updated_at != documents.created_at')
-      @user_documents = @documents.where(user_id: current_user&.id).page(params[:page]).per(params[:per]) if current_user
+      end_steps = @workflow_steps.where(organization_id: organization_ids).find_by(step_type: 'end_step')
+      @user_documents = @documents.where.not(workflow_step_id: end_steps&.id )
+        .where(user_id: current_user&.id)
     end
+
+    if params[:period_filter] != nil && params[:period_filter] != ''
+      @user_documents = @user_documents.where(period_id: params[:period_filter].to_i)
+    end
+
+    if params[:organization_filter] != nil && params[:organization_filter] != ''
+      @user_documents = @user_documents.where(organization_id: params[:organization_filter].to_i)
+    end
+
+    @user_documents = @user_documents.order(updated_at: :desc)
+      .page(params[:page])
+      .per(params[:per])
   end
 
   def assignments
@@ -38,14 +54,26 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
     organization_ids = org.root.self_and_descendants.pluck(:id)
     user_assignment = current_user.user_assignments.find_by organization_id: org.id if current_user
     @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order('name')
+    @periods = Period.where(organization_id: organization_ids).order('name')
     @documents = Document
       .where(organization_id: organization_ids)
       .where('documents.updated_at != documents.created_at')
       .where.not(user_id: current_user.id)
 
+    if params[:period_filter] != nil && params[:period_filter] != ''
+      @documents = @documents.where(period_id: params[:period_filter].to_i)
+    end
+
+    if params[:organization_filter] != nil && params[:organization_filter] != ''
+      @documents = @documents.where(organization_id: params[:organization_filter].to_i)
+    end
+
     if params[:step_filter] && params[:step_filter] != ''
-      wfs = @workflow_steps.find_by(slug: params[:step_filter])
+      wfs = @workflow_steps.where(organization_id: organization_ids).find_by(slug: params[:step_filter])
       @documents = @documents.where(workflow_step_id: wfs&.id )
+    else
+      end_steps = @workflow_steps.where(organization_id: organization_ids).find_by(step_type: 'end_step')
+      @documents = @documents.where.not(workflow_step_id: end_steps&.id )
     end
 
     @documents = get_documents(current_user, @documents)
