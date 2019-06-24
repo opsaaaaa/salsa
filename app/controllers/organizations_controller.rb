@@ -9,16 +9,7 @@ class OrganizationsController < AdminController
       :index
   ]
   before_action :get_organizations, only: [:index, :new, :edit, :create, :show, :start_workflow_form, :orphaned_documents]
-  before_action :test_time_zone
   layout 'admin'
-
-  def test_time_zone
-    @organization = find_org_by_path params[:slug]
-    params[:test] = [
-      @organization.setting("time_zone"),
-      @organization.parent_id
-    ]
-  end
 
   def index
     get_documents

@@ -9,8 +9,6 @@
     </div>
   <% end %>
 
-  <%= debug(params[:test])%>
-
   <% if !@organization.new_record? %>
     <% form_action = organization_path slug: full_org_path(@organization), org_path: params[:org_path] %>
   <% else %>
