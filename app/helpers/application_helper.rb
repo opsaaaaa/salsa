@@ -301,6 +301,10 @@ module ApplicationHelper
 
   def get_country_time_zones(country = 'US')
     TZInfo::Country.get(country).zones
+    # TZInfo::Country.get(country).zone_identifiers
+    # zone_ids.each do |zone|
+      # zones TZInfo::Timezone.get(zone_id)
+    # end
   end
 
 end

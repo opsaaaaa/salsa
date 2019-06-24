@@ -9,7 +9,17 @@ class OrganizationsController < AdminController
       :index
   ]
   before_action :get_organizations, only: [:index, :new, :edit, :create, :show, :start_workflow_form, :orphaned_documents]
+  before_action :test_time_zone
   layout 'admin'
+
+  def test_time_zone
+    @organization = find_org_by_path params[:slug]
+    params[:test] = [
+      @organization.setting("time_zone"),
+      @organization.parent_id
+    ]
+  end
+
   def index
     get_documents
     @roots = @organizations.roots
@@ -167,11 +177,11 @@ class OrganizationsController < AdminController
     if has_role 'admin'
 
       params.require(:organization).permit(:name, :export_type, :slug, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
-      :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
+      :force_https, :enable_workflow_report, :time_zone, :default_account_filter, default_account_filter: [:account_filter])
 
 
     elsif has_role 'organization_admin'
-      params.require(:organization).permit(:name, :export_type, :enable_workflows, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_anonymous_actions, :track_meta_info_from_document, :force_https)
+      params.require(:organization).permit(:name, :export_type, :enable_workflows, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_anonymous_actions, :track_meta_info_from_document, :force_https, :time_zone)
     end
   end
-
+end
