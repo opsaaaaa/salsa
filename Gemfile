@@ -57,7 +57,7 @@ group :production do
 end
 
 # time zone  
-gem 'tzinfo'
+# gem 'tzinfo'
 # gem 'tzinfo-data', '~> 1.2019.1'
 
 # preprocessors
