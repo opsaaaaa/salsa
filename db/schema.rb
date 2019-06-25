@@ -152,7 +152,7 @@ ActiveRecord::Schema.define(version: 20190619215213) do
     t.string "idp_cert_fingerprint_algorithm"
     t.string "authn_context"
     t.string "lms_account_id"
-    t.string "time_zone", default: ""
+    t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"

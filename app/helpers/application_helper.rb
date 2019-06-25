@@ -310,8 +310,10 @@ module ApplicationHelper
     else
       org = Organization.find(org_id)
     end
-    return time.in_time_zone(org.get_time_zone).strftime("%m/%d/%Y")
+    zone = org.setting("time_zone")
+    zone = Time.zone.name if zone === nil
+    return time.in_time_zone(zone).strftime("%m/%d/%Y")
   end
-  
+
 end
 

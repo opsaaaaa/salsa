@@ -8,6 +8,7 @@ class Organization < ApplicationRecord
   has_many :users, through: :user_assignments
   has_many :workflow_steps
 
+  before_validation :use_nil_for_blank_time_zone
 
   default_scope { order('lft, rgt') }
   validates :slug, presence: true
@@ -93,10 +94,8 @@ class Organization < ApplicationRecord
     ObjectSpace.each_object(Class).select { |klass| klass < self }
   end
 
-  def get_time_zone
-    org = self.self_and_ancestors.where.not(time_zone: '').last
-    return Time.zone unless org
-    return org.setting("time_zone")
+  def use_nil_for_blank_time_zone
+    self.time_zone = nil if time_zone.blank?
   end
 
 end
