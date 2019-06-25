@@ -1,5 +1,3 @@
-require 'tzinfo'
-
 class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
   before_action :require_admin_permissions, only: [:new, :create, :destroy]
