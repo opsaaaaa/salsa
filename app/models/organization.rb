@@ -95,7 +95,6 @@ class Organization < ApplicationRecord
 
   def get_time_zone
     org = self.self_and_ancestors.where.not(time_zone: '').last
-    # .setting("time_zone") 
     return Time.zone unless org
     return org.setting("time_zone")
   end

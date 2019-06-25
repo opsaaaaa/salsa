@@ -56,10 +56,6 @@ group :production do
   gem 'newrelic_rpm'
 end
 
-# time zone  
-# gem 'tzinfo'
-# gem 'tzinfo-data', '~> 1.2019.1'
-
 # preprocessors
 gem 'coffee-rails'
 gem 'compass-rails'

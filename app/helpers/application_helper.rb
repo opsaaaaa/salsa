@@ -300,30 +300,18 @@ module ApplicationHelper
   end
 
   def get_country_time_zones(country = 'US')
-    # TZInfo::Country.get(country).zones
     ActiveSupport::TimeZone.country_zones(country)
     # ActiveSupport::TimeZone.us_zones
-
   end
 
   def formatted_date (time, org_id = nil)
     unless org_id
-      current_org = find_org_by_path params[:slug] 
+      org = find_org_by_path params[:slug] 
     else
-      current_org = Organization.find(org_id)
+      org = Organization.find(org_id)
     end
-    # org_time_zone = current_org.self_and_ancestors.where.not(time_zone: '').last.setting("time_zone")
-    # return org_time_zone
-    # date_offset = time.in_time_zone(current_org.get_time_zone)
-    
-    return time.in_time_zone(current_org.get_time_zone).strftime("%m/%d/%Y") + current_org.get_time_zone
+    return time.in_time_zone(org.get_time_zone).strftime("%m/%d/%Y")
   end
   
-  def time_zone_test
-    formatted_date(Time.new(2012, 8, 29, 23, 59, 59))
-    # ActiveSupport::TimeZone.all
-    # Time.zone
-  end
-
 end
 
