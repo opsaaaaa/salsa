@@ -1,52 +1,86 @@
 class WorkflowDocumentsController < AdminDocumentsBaseController
+  layout :set_layout
+  
   #skip designer permissions from admin_controller
   skip_before_action :require_designer_permissions
 
   before_action :redirect_to_sub_org, only:[:index,:edit,:versions]
-  layout :set_layout
   before_action :check_organization_workflow_enabled
   before_action :set_paper_trail_whodunnit, only: [:revert_document]
   before_action :get_organizations_if_supervisor
   before_action :require_staff_permissions, only: [:index]
-  before_action :require_supervisor_permissions, except: [:index]
+  before_action :require_supervisor_permissions, except: [:index,:assignments]
+  before_action :require_management_permissions, only: [:assignments]
 
   def index
+    @direct_assignments = current_user.assignments.pluck('role')
+    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
+
     org = get_org
+    organization_ids = org.root.self_and_descendants.pluck(:id)
     user_assignment = current_user.user_assignments.find_by organization_id: org.id if current_user
-    @workflow_steps = WorkflowStep.where(organization_id: org.organization_ids.push(org.id))
-    if has_role("supervisor") && params[:show_completed] == "true"
-      @documents = Document.where(organization_id:org.descendants.pluck(:id)).where('documents.updated_at != documents.created_at')
-      @documents = @documents.where(workflow_step_id: WorkflowStep.where(step_type:"end_step").pluck(:id) )
-    elsif has_role("supervisor") && (params[:show_completed] == "false")
-      @documents = Document.where(organization_id: org.descendants.pluck(:id)).where('documents.updated_at != documents.created_at')
-      @documents = @documents.where(workflow_step_id: WorkflowStep.where.not(step_type:"end_step").pluck(:id) + [nil] )
-    elsif has_role("supervisor") && params[:step_filter]
-      @documents = Document.where(organization_id:org.descendants.pluck(:id)).where('documents.updated_at != documents.created_at')
-      wfs = @workflow_steps.find_by(id: params[:step_filter].to_i)
+    @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order('name')
+    @periods = Period.where(organization_id: organization_ids).order('name')
+    @documents = Document.where(organization_id:org.self_and_descendants.pluck(:id))
+      .where('documents.updated_at != documents.created_at')
+
+    if params[:step_filter] && params[:step_filter] != ''
+      wfs = @workflow_steps.find_by(slug: params[:step_filter])
+      @user_documents = @documents.where(workflow_step_id: wfs&.id )
+    else
+      end_steps = @workflow_steps.where(organization_id: organization_ids).find_by(step_type: 'end_step')
+      @user_documents = @documents.where.not(workflow_step_id: end_steps&.id )
+        .where(user_id: current_user&.id)
+    end
+
+    if params[:period_filter] != nil && params[:period_filter] != ''
+      @user_documents = @user_documents.where(period_id: params[:period_filter].to_i)
+    end
+
+    if params[:organization_filter] != nil && params[:organization_filter] != ''
+      @user_documents = @user_documents.where(organization_id: params[:organization_filter].to_i)
+    end
+
+    @user_documents = @user_documents.order(updated_at: :desc)
+      .page(params[:page])
+      .per(params[:per])
+  end
+
+  def assignments
+    @direct_assignments = current_user.assignments.pluck('role')
+    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
+
+    org = get_org
+    organization_ids = org.root.self_and_descendants.pluck(:id)
+    user_assignment = current_user.user_assignments.find_by organization_id: org.id if current_user
+    @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order('name')
+    @periods = Period.where(organization_id: organization_ids).order('name')
+    @documents = Document
+      .where(organization_id: organization_ids)
+      .where('documents.updated_at != documents.created_at')
+      .where.not(user_id: current_user.id)
+
+    if params[:period_filter] != nil && params[:period_filter] != ''
+      @documents = @documents.where(period_id: params[:period_filter].to_i)
+    end
+
+    if params[:organization_filter] != nil && params[:organization_filter] != ''
+      @documents = @documents.where(organization_id: params[:organization_filter].to_i)
+    end
+
+    if params[:step_filter] && params[:step_filter] != ''
+      wfs = @workflow_steps.where(organization_id: organization_ids).find_by(slug: params[:step_filter])
       @documents = @documents.where(workflow_step_id: wfs&.id )
     else
-      user_ids = []
-
-      ua_user_ids = current_user&.user_assignments&.find_by(organization_id: org.self_and_ancestors.pluck(:id))&.assignments&.pluck(:user_id)
-      user_ids += ua_user_ids if ua_user_ids !=nil
-
-      a_user_ids = current_user&.assignments&.pluck(:team_member_id)
-      user_ids += a_user_ids if a_user_ids !=nil
-
-      component_ids = Component.where(role: ["staff","supervisor","approver"]).pluck(:id)
-      workflow_step_ids = WorkflowStep.where(component: component_ids).where.not(step_type: "end_step").pluck(:id)
-
-      period = Period.where(organization_id: org.self_and_ancestors.pluck(:id)).find_by(is_default: true)
-
-      @staff_documents = Document.where(period_id: period&.id,user_id: user_ids, organization_id: org.self_and_descendants.pluck(:id), workflow_step_id: workflow_step_ids).reorder(updated_at: :desc).page(params[:page]).per(params[:per])
-
-      @documents = Document.where(organization_id:org.self_and_descendants.pluck(:id).push(org.id)).where('documents.updated_at != documents.created_at')
-
-      @user_documents = @documents.where(user_id: current_user&.id) if current_user
-      @documents = get_documents(current_user, @documents).reorder(updated_at: :asc)
-      @user_documents = @user_documents.where.not(id: @documents.pluck(:id)).reorder(updated_at: :desc).page(params[:page]).per(params[:per]) if @user_documents
+      end_steps = @workflow_steps.where(organization_id: organization_ids).find_by(step_type: 'end_step')
+      @documents = @documents.where.not(workflow_step_id: end_steps&.id )
     end
-    @documents = @documents.reorder(created_at: :asc).page(params[:page]).per(params[:per])
+
+    @documents = get_documents(current_user, @documents)
+      .reorder(updated_at: :desc)
+      .page(params[:page])
+      .per(params[:per])
+      
   end
 
   def update
@@ -105,10 +139,6 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
   end
 
   def set_layout
-    if has_role('supervisor')
-      return 'admin'
-    else
-      return 'workflow'
-    end
+    return 'workflow'
   end
 end

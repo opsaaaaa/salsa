@@ -48,16 +48,18 @@
         <div class="link-text">Users</div>
       </a>
     <% end %>
-    <% if @organization.root_org_setting("enable_workflows") && has_role('supervisor', get_org) %>
-      <a class="btn" href="<%= start_workflow_form_path(slug: params[:slug], org_path: params[:org_path]) %>">
-        <span class="glyphicon glyphicon-play"></span>
-        <div class="link-text">Start Workflow</div>
-      </a>
-      <a class="btn" href="<%= workflow_steps_path(params[:slug], org_path: params[:org_path]) %>">
-        <span class="glyphicon glyphicon-tasks"></span>
-        <div class="link-text">Workflow Steps</div>
-      </a>
-
+    <% if @organization.root_org_setting("enable_workflows") %>
+      <% if has_role('supervisor', get_org) %>
+        <a class="btn" href="<%= start_workflow_form_path(slug: params[:slug], org_path: params[:org_path]) %>">
+          <span class="glyphicon glyphicon-play"></span>
+          <div class="link-text">Start Workflow</div>
+        </a>
+      <% elsif has_role('organization_admin', get_org) %>
+        <a class="btn" href="<%= workflow_steps_path(params[:slug], org_path: params[:org_path]) %>">
+          <span class="glyphicon glyphicon-tasks"></span>
+          <div class="link-text">Workflow Steps</div>
+        </a>
+      <% end %>
     <% end %>
   </div>
   <div class="col-md-3 clearfix text-right">

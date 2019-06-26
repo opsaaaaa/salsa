@@ -1,8 +1,8 @@
 <% @documents.each do |document| %>
-    <h2>
+    <h2 class="h2 mt-4">
         <%= document.user.name %>
         <br>
-        <small>
+        <small class="text-muted small">
             <%= document.period.name %> -
             <%= document.organization.name %>
         </small>
@@ -24,16 +24,16 @@
                                 <% if step.id == document.workflow_step_id %>
                                     In progress
                                 <% elsif @statuses[document.id][step.id] == true %>
-                                    Completed 
+                                    Completed
                                 <% end %>
                             </td>
-                            <td width="40%"><%= step.name %></td>
+                            <td width="40%"><%= step.name %>: <%= step.component.name %></td>
                             <td width="40%">
                                 <% if @assignees[step.id] != nil %>
                                     <%= @assignees[step.id]['role'] %>
 
                                     <ul>
-                                        <% @assignees[step.id]['users'].each_with_index do |assignee, index| %>
+                                        <% @assignees[step.id]['users'].uniq.each_with_index do |assignee, index| %>
                                             <li>
                                                 <%= assignee.name %>
                                                 -

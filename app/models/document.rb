@@ -21,25 +21,31 @@ class Document < ApplicationRecord
   end
 
   def assignees
-    if self.workflow_step_id
-      component = self.workflow_step&.component
-      return nil if component.blank?
-      if component.role == "staff"
-        User.where(id: self.user_id)
-      elsif component.role == "supervisor" && self.user&.user_assignments&.find_by(organization_id:self.organization_id)&.role == "staff"
-        User.where(id: self.closest_roles("supervisor").pluck(:user_id))
-      elsif component.role == "supervisor"
-        User.where(id: self.closest_roles("supervisor", nil, false).pluck(:user_id))
-      elsif component.role == "approver"
-        user_ids = self.approvers_that_have_not_signed.pluck(:id)
-        User.where(id: self.closest_user_with_role("approver", user_ids)&.id)
-      else
-        []
-      end
-    else
-      []
-    end
+    users = []
 
+    if self.workflow_step_id
+      if self.workflow_step&.step_type == 'end_step'
+        user_ids = self.approvers_that_signed.pluck(:id)
+        user_ids += User.where(id: self.closest_roles("supervisor").pluck(:user_id))
+        users = User.where(id: self.closest_roles("supervisor", nil, false).pluck(:user_id))
+      else
+        component = self.workflow_step&.component
+        return nil if component.blank?
+
+        if component.role == "staff"
+          users = User.where(id: self.user_id)
+        elsif component.role == "supervisor" && self.user&.user_assignments&.find_by(organization_id:self.organization_id)&.role == "staff"
+          users = User.where(id: self.closest_roles("supervisor").pluck(:user_id))
+        elsif component.role == "supervisor"
+          users = User.where(id: self.closest_roles("supervisor", nil, false).pluck(:user_id))
+        elsif component.role == "approver"
+          user_ids = self.approvers_that_have_not_signed.pluck(:id)
+          users = User.where(id: self.closest_user_with_role("approver", user_ids)&.id)
+        end
+      end
+    end
+    
+    return users
   end
 
   #TODO fix approver permissions with assignments

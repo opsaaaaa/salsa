@@ -3,24 +3,25 @@
 
   <% other_orgs = @organizations.where.not(slug: params[:slug]).order('lft', 'rgt') %>
 
+  <% can_move_documents = (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+
   <%= form_tag('/admin/organizations/documents', method:'post' ) do |f| %>
-    <div class="row">
+    <% if can_move_documents %>
+      <div class="row">
+        <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+          <div class="form-group col-sm-4">
+            <%= label_tag :organization_id, 'Move selected documents: ', class: "control-label" %>
+            <div class="controls">
+              <%= select('organization', 'id', other_orgs.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
+            </div>
+          </div>
 
-      <% if (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
-      <div class="form-group col-sm-4">
-        <%= label_tag :organization_id, 'Move selected documents: ', class: "control-label" %>
-        <div class="controls">
-          <%= select('organization', 'id', other_orgs.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
-        </div>
+          <div class="form-group col-sm-2">
+            <%= submit_tag 'Move', {class: 'btn btn-default mt-label'}%>
+          </div>
+        <% end %>
       </div>
-
-      <div class="form-group col-sm-2">
-        <%= submit_tag 'Move', {class: 'btn btn-default mt-label'}%>
-      </div>
-      <% end %>
-    </div>
-
-    <% can_move_documents = (@organization || @organizations.count != 1) && other_orgs.count > 0 && has_role('organization_admin') %>
+    <% end %>
 
     <div class="row">
       <div class="col-sm-12">
@@ -42,12 +43,12 @@
               <th scope="col">
                 Name
               </th>
-              <% if @organization.setting('lms_authentication_source') != nil %>
+              <% if @organization.root_org_setting('lms_authentication_source') != nil %>
                 <th scope="col" nowrap>
                   Course ID
                 </th>
               <% end %>
-              <% if @organization.setting('enable_workflows', false) != false %>
+              <% if @organization.root_org_setting('enable_workflows') != false %>
                 <th scope="col" nowrap>
                   User
                 </th>
@@ -76,13 +77,13 @@
                 <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
               </th>
 
-              <% if @organization.setting('lms_authentication_source') != nil %>
+              <% if @organization.root_org_setting('lms_authentication_source') != nil %>
                 <td nowrap>
                   <%= document.lms_course_id %>
                 </td>
               <% end %>
 
-              <% if @organization.setting('enable_workflows', false) != false %>
+              <% if @organization.root_org_setting('enable_workflows') != false %>
                 <td nowrap>
                   <%= document.user.name if document.user %>
                 </td>

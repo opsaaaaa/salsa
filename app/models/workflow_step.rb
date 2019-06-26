@@ -58,6 +58,14 @@ class WorkflowStep < ApplicationRecord
     return "#{self.slug} from organization: #{self.organization.slug} "
   end
 
+  def label
+    if self.step_type != 'end_step'
+      return "#{self.name}: #{self.component&.name}"
+    end
+
+    return 'Completed'
+  end
+
   def step_type_valid
     WorkflowStep.step_types.include?(self.step_type)
   end

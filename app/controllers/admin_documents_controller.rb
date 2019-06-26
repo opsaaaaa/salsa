@@ -28,13 +28,9 @@ class AdminDocumentsController < AdminDocumentsBaseController
   private
 
   def get_users document
-    if params[:controller] == 'admin_documents'
-      organization_ids = @organizations.pluck(:id)
-    else
-      organization_ids = document.organization.descendants.pluck(:id) + [document.organization.id]
-    end
-
-    @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: organization_ids })
+    organization_ids = [document.organization.id]
+    
+    @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: organization_ids }).order('email', 'name')
     @users += [document.user] if !document.user.blank?
     @users = @users.uniq()
   end
