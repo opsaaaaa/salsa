@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'pp'
 
 RSpec.describe "workflow_steps/edit", type: :view do
   before(:each) do
