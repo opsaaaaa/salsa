@@ -14,14 +14,14 @@ class WorkflowMailer < ApplicationMailer
       if @next_component && @next_component.role == "supervisor"
         users = document.assignees
         users.each do |user|
-          mail(to: user.email, subject: @subject)
+          send_email(to: user.email, subject: @subject)
         end
         user = nil
       elsif @next_component && @next_component.role == "approver"
         user_ids = document.approvers_that_have_not_signed.map(&:whodunnit)
         user = document.closest_users_with_role("approver", user_ids).where(id:user_ids).first
       end
-      mail(to: user&.email, subject: @subject) if !user.blank?
+      send_email(to: user&.email, subject: @subject) if !user.blank?
     end
   end
 
@@ -32,7 +32,7 @@ class WorkflowMailer < ApplicationMailer
       @template = Liquid::Template.parse(@mail_component.layout)
       @welcome_email = @template.render(allowed_variables).html_safe
       @subject = Liquid::Template.parse(@mail_component.subject).render(allowed_variables).html_safe
-      mail(to: user.email, subject: @subject)
+      send_email(to: user.email, subject: @subject)
     end
   end
 end

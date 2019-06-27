@@ -254,6 +254,9 @@ class DocumentsController < ApplicationController
           @document.paper_trail_event = 'publish'
           @document.published_at = DateTime.now
           @document.save!
+          
+          workflow_log = WorkflowLog.create(user: current_user, step_id: @document.workflow_step.id, document: @document, role: @document.workflow_step.component.role)
+
           @document.update(workflow_step_id: @document.workflow_step.next_workflow_step_id) if @document.workflow_step&.next_workflow_step_id && (@document.workflow_step.component.role != "approver"|| @document.signed_by_all_approvers)
         end
         flash[:notice] = 'The workflow document step has been completed'

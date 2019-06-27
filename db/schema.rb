@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190111055854) do
+ActiveRecord::Schema.define(version: 20190624203943) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -191,6 +191,7 @@ ActiveRecord::Schema.define(version: 20190111055854) do
     t.datetime "updated_at"
     t.json "report_filters"
     t.boolean "is_archived", default: false
+    t.string "archive_url"
     t.index ["organization_id"], name: "index_report_archives_on_organization_id"
   end
 
@@ -255,6 +256,18 @@ ActiveRecord::Schema.define(version: 20190111055854) do
     t.index ["user_id", "user_type"], name: "index_vestal_versions_on_user_id_and_user_type"
     t.index ["user_name"], name: "index_vestal_versions_on_user_name"
     t.index ["versioned_id", "versioned_type"], name: "index_vestal_versions_on_versioned_id_and_versioned_type"
+  end
+
+  create_table "workflow_logs", force: :cascade do |t|
+    t.bigint "document_id"
+    t.bigint "user_id"
+    t.bigint "step_id"
+    t.string "role"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_id"], name: "index_workflow_logs_on_document_id"
+    t.index ["step_id"], name: "index_workflow_logs_on_step_id"
+    t.index ["user_id"], name: "index_workflow_logs_on_user_id"
   end
 
   create_table "workflow_steps", force: :cascade do |t|
