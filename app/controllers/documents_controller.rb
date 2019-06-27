@@ -83,6 +83,10 @@ class DocumentsController < ApplicationController
       end
 
       verify_org
+
+      @view_url = view_url
+      @template_url = template_url(@document)
+
       @can_use_edit_token = can_use_edit_token(@document.lms_course_id)
       if @organization.root_org_setting("enable_workflows") && @document.assigned_to?(current_user) && @document.workflow_step_id
         render :layout => 'edit', :template => '/documents/content'
