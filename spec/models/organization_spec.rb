@@ -3,7 +3,6 @@ require 'pp'
 
 RSpec.describe Organization, type: :model do
   
-  # pending "add some examples to (or delete) #{__FILE__}"
   context "validation tests" do
     let(:organization) { FactoryBot.build(:organization) }
 
