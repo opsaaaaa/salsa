@@ -7,7 +7,7 @@ class Oauth2Controller < ApplicationController
     lms_connection_information
 
     session[:institution] = @institution
-    session[:oauth_endpoint] = @oauth_endpoint
+    session[:oauth_endpoint] = @oauth_endpoint 
 
     return redirect_to(@redirect_url) if @redirect_url
     return redirect_back(fallback_location: root_path)

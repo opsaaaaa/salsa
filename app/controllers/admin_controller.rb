@@ -30,9 +30,6 @@ class AdminController < ApplicationController
   force_ssl only:[:canvas_courses, :canvas_accounts,:canvas_courses,:canvas_accounts_sync]
 
   def landing
-    if current_user === nil
-      return render action: :login, layout: false
-    end
     if current_user&.archived
       return redirect_to admin_unassigned_user_path
     end
