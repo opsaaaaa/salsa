@@ -73,9 +73,6 @@ class User < ApplicationRecord
   #   super
   # end
 
-  def get_remote_user_id
-    # self.user_assignments.where.username
-  end
 
   def activate
     if !self.activated
