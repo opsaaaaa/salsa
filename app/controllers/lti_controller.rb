@@ -1,6 +1,5 @@
 require 'ims/lti'
 require 'uri'
-require 'user_assignment'
 
 class LtiController < ApplicationController
     skip_before_action :verify_authenticity_token
@@ -72,7 +71,7 @@ class LtiController < ApplicationController
 
     def populate_remote_user_id(lti_info)
         result = nil
-        
+
         user = User.all.where(email: lti_info[:email])
         if user.count == 1
             user = user.first
