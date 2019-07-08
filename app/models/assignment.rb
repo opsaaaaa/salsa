@@ -3,6 +3,6 @@ class Assignment < ApplicationRecord
   alias_attribute :manager, :user
   belongs_to :team_member, class_name: 'User'
 
-  validates :role, uniqueness: { scope: [:team_member, :user] 
+  validates :role, uniqueness: { scope: [:team_member, :user] } 
 
 end
