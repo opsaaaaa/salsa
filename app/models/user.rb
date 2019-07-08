@@ -73,6 +73,9 @@ class User < ApplicationRecord
   #   super
   # end
 
+  def is_admin?
+    self.user_assignments.pluck(:organization_id).map.include?(nil)
+  end
 
   def activate
     if !self.activated

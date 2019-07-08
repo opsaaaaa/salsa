@@ -1,5 +1,6 @@
 require 'ims/lti'
 require 'uri'
+require 'user_assignment'
 
 class LtiController < ApplicationController
     skip_before_action :verify_authenticity_token
@@ -36,114 +37,19 @@ class LtiController < ApplicationController
                 session[:saml_authenticated_user]['id'] = params['user_id']
                 # raise session[:saml_authenticated_user]["id"].to_s.downcase.inspect
 
-
                 # logout any current user
                 session[:authenticated_user] = false
                 user = current_user
+                # raise user
+
+                unless user
+                    user = populate_remote_user_id(lti_info)
+                end
 
                 if user
                     # login the new user
                     session[:authenticated_user] = user.id
-                else # when the LTI user id dose not match a remote_user_id
-                    test1 = 1
-                    user = User.all.where(email: lti_info[:email])
-                    # and the LTI email matches only one users email
-                    if user.count == 1
-                        test1 = 2
-                        user = user.first
-                        # if user.user_assignments.count == 1
-                        # raise user.user_assignments.inspect
-                        # org_roles = @organization.user_assignments.pluck()
-                        # if user.orga.pluck(:id).map.include?(@organization.users.pluck(:id))
-                        #     test1 = 3
-                            
-                        # end
-                        
-                        # raise @organization.self_and_descendants.pluck(:id).inspect
-                        # raise user.user_assignments.pluck(:organization_id).inspect
-                        # raise ((@organization.self_and_descendants.collect {|org| org.user_assignments.pluck(:id)}).flatten & user.user_assignments.pluck(:id)).inspect
-                        
-                        # and that users role has an organization that is within LTI organization (self and descendants)
-                        # and that user has only one role within the LTI organization (self and descendants)
-                        if ((@organization.self_and_descendants.collect {|org| org.user_assignments.pluck(:id)}).flatten & user.user_assignments.pluck(:id)).count == 1
-                            test1 = 4
-                            # user = User.find_by(name: "cow")
-
-                            # and that user dose not have global permissions.
-                            if !user.user_assignments.pluck(:organization_id).map.include?(nil)
-                            
-                                test1 = 5
-                                # and remote_use_id is empty
-                                # ua = user.user_assignments.first
-                                # ua.username = nil
-                                # ua.save
-                                test1 = user.user_assignments.first.username.to_s + "_fail"
-                                # raise ([nil] & [nil, '']).inspect
-                                if !([user.user_assignments.first.username] & [nil, ""]).empty?
-                                # if !nil.nil? && !"".empty?
-                                    test1 = user.user_assignments.first.username.to_s + "_pass"
-                                    # then populate the remote_user_id for that user with LTI user id
-                                    # and login that user.
-                                    ua = user.user_assignments.first
-                                    ua.username = lti_info[:login_id]
-                                    ua.save
-                                end
-                            end
-                        end
-
-                        # raise ([ 1, 2, 3, 4, 5, 6, 7] & [13 , 20, 10]).empty?.inspect
-                        
-                        # if !(@organization.self_and_descendants.pluck(:id) & user.user_assignments.pluck(:organization_id)).empty?
-                        #     # test1 = 4
-                        #     # raise 
-                        #     if true
-                        #     end
-                        # end
-                    end
-                    raise test1.to_s
-                    # test = get_items_with_empty_feild(username:  @organization.user_assignments)
-                    # Organization.empty_remote_user_ids
-                    # User.empty_remote_user_ids                    
-                    # UserAssignments.empty_remote_user_ids
-
-                    # # input should be an array and a field
-                    # with_empty_feilds(username:  @organization.user_assignments )
-                    # returns an array of records with :field that is blank
-                    
-                    # user_potato = User.all.where()
-                    # potato2 = @organization.self_and_descendants.all.collect {|org| org.user_assignments.where({username: [nil,""]})&.user}
-                    # org_users = @organization.self_and_descendants.collect {|org| org.users }
-                    # potato2 = org_users.collect {|user| user&.user_assignments }
-                    # [1].user_assignments
-                    # potato3 = potato2.all
-
-                    # get_all_users = []
-                    # @organization.self_and_descendants.each do |org|
-                        # result.push(items.where({feild => [nil,""]})
-                        # get_all_users.push(org.users)
-                    # end 
-                    # test1 = [[1,2],[3,[2,5]]]
-                    # org_ids = @organization.self_and_descendants.pluck(:id)
-                    # user_by_email = User.all.where(email: lti_info[:email] )
-                    # if user_by_email && user_by_email.count == 1
-                        # user_by_email = user_by_email.first
-
-
-                    # end
-                    # test3 = test2.flatten(1).where({ username: [nil,""], email: lti_info[:email] })
-                    # raise user_by_email.inspect
-                    # raise get_all_users.where({ username: [nil,""], email: lti_info[:email] })
-                    # raise get_all_users.inspect
-                    # org_user = org_users.where({username: [nil,""], email: lti_info[email]})
-                    
-                    # test1 = users.where lti_info[:email]
-                    # test = User.all.where({username: [nil,""], email: lti_info[email]})
-                    # raise @organization.self_and_descendants.inspect
-                    # raise users.inspect
-                    # raise User.find_by(name: "cow").user_assignments.first.inspect
-                    # raise User.first.user_assignments.count.inspect
                 end
-                # raise current_user.inspect
 
                 if lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
                     session[:lti_info] = lti_info
@@ -159,7 +65,6 @@ class LtiController < ApplicationController
                     end
                 end
             else
-                # render :json => params
                 render :json => params
             end
         else
@@ -169,17 +74,30 @@ class LtiController < ApplicationController
 
     private
 
-    def remote_user_id_role_blacklist
-        ["admin"]
-    end
-
-    def get_items_with_empty_feild (val)
-        result = []
-        val.each do |feild, items|
-            result.push(items.where({feild => [nil,""]}))
+    def populate_remote_user_id(lti_info)
+        result = nil
+        user = User.all.where(email: lti_info[:email])
+        if user.count == 1
+            user = user.first
+            
+            assignment = (@organization.self_and_descendants.collect {|org| org.user_assignments}).flatten(1) & user.user_assignments
+            if assignment.count == 1
+                assignment = assignment.first
+                
+                unless user.is_admin?
+                    
+                    if assignment.should_lti_populate_remote_user?
+                        # in the data base remote_user_id is username.
+                        assignment.username = lti_info[:login_id]
+                        assignment.save
+                        result = user
+                    end
+                
+                end
+            
+            end
         end
-        return nil if result.blank?
-        return result
+        result
     end
 
     def get_consumer_key(obj)
