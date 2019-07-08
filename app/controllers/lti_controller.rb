@@ -9,8 +9,6 @@ class LtiController < ApplicationController
     before_action :lms_connection_information
 
     def init
-        # raise session[:saml_authenticated_user]["id"].to_s.downcase.inspect
-        # raise UserAssignment.find_by("lower(username) = ?", session[:saml_authenticated_user]["id"].to_s.downcase)&.user.inspect
         consumer_key = get_consumer_key params
         consumer_secret = get_consumer_secret consumer_key
         is_valid_nonce = validate_oauth_nonce params
@@ -35,12 +33,10 @@ class LtiController < ApplicationController
                 session['institution'] = request.env['SERVER_NAME']
                 session[:saml_authenticated_user] = {}
                 session[:saml_authenticated_user]['id'] = params['user_id']
-                # raise session[:saml_authenticated_user]["id"].to_s.downcase.inspect
 
                 # logout any current user
                 session[:authenticated_user] = false
                 user = current_user
-                # raise user
 
                 unless user
                     user = populate_remote_user_id(lti_info)
@@ -76,6 +72,7 @@ class LtiController < ApplicationController
 
     def populate_remote_user_id(lti_info)
         result = nil
+        
         user = User.all.where(email: lti_info[:email])
         if user.count == 1
             user = user.first
