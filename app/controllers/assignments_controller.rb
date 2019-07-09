@@ -88,9 +88,11 @@ class AssignmentsController < AdminController
             workflow_logs = nil
           end
 
+          assigned_managers = @user.assignees.where(role: role).map(&:user)
+          
           assignees = {
             'role' => role,
-            'users' => @user.managers + managers,
+            'users' => assigned_managers + managers,
             'logs' => workflow_logs,
           }
 
