@@ -23,6 +23,7 @@ class AssignmentsController < AdminController
 
   def workflows
     @documents = @user.documents.where.not(workflow_step_id: nil).order('created_at DESC')
+    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
 
     @workflow_steps = {}
     @assignees = {}
@@ -30,75 +31,83 @@ class AssignmentsController < AdminController
 
     @documents.each do |document|
       @statuses[document.id] = {}
+      @assignees[document.id] = {}
       workflow_steps = []
       current_step_index = nil
 
       step = document.workflow_step
 
-      if step.step_type != 'end_step'
-        if step.step_type != 'start_step'
-          # get the start step for this workflow
-          # loop previous until start...
-          prev_index = 0
-          loop do
-            prev_step = step.previous_step
+      if step.step_type != 'start_step'
+        # get the start step for this workflow
+        # loop previous until start...
+        prev_index = 0
+        loop do
+          prev_step = step.previous_step
 
-            if prev_step == nil || prev_index > 20
-              step = nil
-              break
-            end
-            
-            step = prev_step
-            if step.step_type == 'start_step'
-              break
-            end
-            
+          if prev_step == nil || prev_index > 20
+            step = nil
+            break
           end
-          prev_index += 1
+          
+          step = prev_step
+          if step.step_type == 'start_step'
+            break
+          end
+          
         end
+        prev_index += 1
+      end
 
-        if step == nil
+      if step == nil
+        break
+      end
+
+      workflow_step_index = 0
+      loop do
+        workflow_steps.push step
+
+        if step.next_workflow_step_id == nil || workflow_steps.length > 20
           break
         end
 
-        workflow_step_index = 0
-        loop do
-          workflow_steps.push step
+        step = WorkflowStep.find step.next_workflow_step_id
 
-          if step.next_workflow_step_id == nil || workflow_steps.length > 20
-            break
+        if step.id == document.workflow_step_id
+          current_step_index = workflow_step_index
+        end
+        
+        if step.component != nil && step.component.role != ''
+          role = step.component.role
+
+          # find all direct assigned for role
+          managers = document.closest_users_with_role role
+          workflow_logs = WorkflowLog.where(document_id: document.id, step_id: step.id)
+            .group(:user_id, :role).select(:user_id, :role)
+
+          if workflow_logs.length == 0
+            workflow_logs = nil
           end
 
-          step = WorkflowStep.find step.next_workflow_step_id
+          assignees = {
+            'role' => role,
+            'users' => @user.managers + managers,
+            'logs' => workflow_logs,
+          }
 
-          if step.id == document.workflow_step_id
-            current_step_index = workflow_step_index
-          end
           
-          if step.component != nil && step.component.role != ''
-            role = step.component.role
-
-            # find all direct assigned for role
-            managers = document.closest_users_with_role role
-            assignees = {
-              'role' => role,
-              'users' => @user.managers + managers,
-            }
-
-            # add assignees by step id to @assignees for use in the view
-            @assignees[step.id] = assignees
-          end
-
-          workflow_step_index += 1
-
+          # add assignees by step id to @assignees for use in the view
+          @assignees[document.id][step.id] = assignees
         end
 
-        workflow_steps.each_with_index do |step, index|
-          if current_step_index != nil && current_step_index >= index
-            @statuses[document.id][step.id] = true
-          else
-            @statuses[document.id][step.id] = false
-          end
+        workflow_step_index += 1
+
+      end
+
+      workflow_steps.each_with_index do |step, index|
+        if current_step_index != nil && current_step_index >= index
+          @statuses[document.id][step.id] = true
+        else
+          @statuses[document.id][step.id] = false
         end
       end
 

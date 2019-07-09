@@ -22,26 +22,60 @@
                         <tr>
                             <td width="20%">
                                 <% if step.id == document.workflow_step_id %>
-                                    In progress
+                                    <% if step.step_type != 'end_step' %>
+                                        In progress
+                                    <% end %>    
                                 <% elsif @statuses[document.id][step.id] == true %>
                                     Completed
                                 <% end %>
                             </td>
                             <td width="40%"><%= step.name %>: <%= step.component.name %></td>
                             <td width="40%">
-                                <% if @assignees[step.id] != nil %>
-                                    <%= @assignees[step.id]['role'] %>
-
-                                    <ul>
-                                        <% @assignees[step.id]['users'].uniq.each_with_index do |assignee, index| %>
-                                            <li>
-                                                <%= assignee.name %>
-                                                -
-                                                <%= assignee.email.sub(/@example.com/, '') %>
-                                            </li>
+                                <% if @assignees[document.id][step.id] != nil %>
+                                    <% if @assignees[document.id][step.id]['logs'] %>
+                                        <% if @assignees[document.id][step.id]['role'] == 'approver' %>
+                                            Completed:
                                         <% end %>
-                                    </ul>
-                                    
+
+                                        <ul>
+                                            <% @assignees[document.id][step.id]['logs'].each do |log, index| %>
+                                                <li>
+                                                    <%= log.user.name %>
+                                                    -
+                                                    <%= log.user.email.sub(/@example.com/, '') %>
+
+                                                    <% if @assignees[document.id][step.id]['role'] != log.role %>
+                                                        (<%= log.role %>)
+                                                    <% end %>
+                                                </li>
+                                            <% end %>
+                                        </ul>
+                                    <% end %>
+
+                                    <% if @statuses[document.id][step.id] != true %>
+                                        <% if @assignees[document.id][step.id]['role'] == 'approver' %>
+                                            <% if step.id == document.workflow_step_id %>
+                                                Pending:
+                                            <% else %>
+                                                All of:
+                                            <% end %>
+                                        <% else %>
+                                            Any of:
+                                        <% end %>
+                                        <ul>
+                                            <% @assignees[document.id][step.id]['users'].uniq.each_with_index do |assignee, index| %>
+                                                <% if !@assignees[document.id][step.id]['logs'] || !@assignees[document.id][step.id]['logs'].pluck(:user_id).include?(assignee.id) %>
+                                                    <% if !@assignees[document.id][step.id]['logs'] || (@statuses[document.id][step.id] != true && @assignees[document.id][step.id]['role'] == 'approver') %>
+                                                        <li>
+                                                            <%= assignee.name %>
+                                                            -
+                                                            <%= assignee.email.sub(/@example.com/, '') %>
+                                                        </li>
+                                                    <% end %>
+                                                <% end %>
+                                            <% end %>                                    
+                                        </ul>
+                                    <% end %>
                                 <% end %>
                             </td>
                         </tr>
