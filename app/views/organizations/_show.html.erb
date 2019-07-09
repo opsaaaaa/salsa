@@ -156,6 +156,17 @@
                       <% end %>
                     <% end %>
 
+                    <% if @organization.root_org_setting('enable_workflows') != false %>
+                      <% if document.user_id %>
+                        <%= link_to "Workflow",
+                          organization_user_workflow_assignments_path(
+                            organization_user_id: document.user_id,
+                            org_path: params[:org_path],
+                            slug: params[:slug]
+                          ) %>
+                        <% end %>
+                    <% end %>
+
                   </ul>
                 </div>
               </td>

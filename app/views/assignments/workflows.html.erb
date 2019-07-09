@@ -57,10 +57,10 @@
                                             <% if step.id == document.workflow_step_id %>
                                                 Pending:
                                             <% else %>
-                                                All of:
+                                                All <%= @assignees[document.id][step.id]['role'] %>s:
                                             <% end %>
                                         <% else %>
-                                            Any of:
+                                            Any <%= @assignees[document.id][step.id]['role'] %>:
                                         <% end %>
                                         <ul>
                                             <% @assignees[document.id][step.id]['users'].uniq.each_with_index do |assignee, index| %>
