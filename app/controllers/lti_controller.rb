@@ -20,14 +20,7 @@ class LtiController < ApplicationController
 
         if authenticator.valid_signature?
             if params[:launch_presentation_return_url]
-                lti_info = {
-                    course_title: params['context_title'],
-                    course_id: params['context_label'],
-                    login_id: params['user_id'],
-                    roles: params['roles'],
-                    email: params['tool_consumer_instance_contact_email']
-                }
-
+                lti_info = get_lti_info
 
                 session['institution'] = request.env['SERVER_NAME']
                 session[:saml_authenticated_user] = {}
@@ -37,10 +30,13 @@ class LtiController < ApplicationController
                 session[:authenticated_user] = false
                 user = current_user
 
+                # user ||= find_lti_user_by_eamil(lti_info[:email])
                 unless user
-                    user = populate_remote_user_id(lti_info)
+                    user = find_lti_user_by_eamil( lti_info[:email] )
+                    assignment = find_shared_org_and_user_assignments )
+                    populate_remote_user_id( lti_info[:login_id], assignment )
                 end
-
+                
                 if user
                     # login the new user
                     session[:authenticated_user] = user.id
@@ -59,6 +55,8 @@ class LtiController < ApplicationController
                         return render :file => "public/404.html", :status => :not_found, :layout => false
                     end
                 end
+
+
             else
                 render :json => params
             end
@@ -69,31 +67,42 @@ class LtiController < ApplicationController
 
     private
 
-    def populate_remote_user_id(lti_info)
-        result = nil
+    def populate_remote_user_ids(remote_user_id, assignment)
+        # user = User.find_by(email: lti_info[:email])
+        orgs = @organization.self_and_descendants
+        user = find_lti_user_by_email
+        assignment = find_shared_org_and_user_assignment(orgs,user)
+        return nil unless assignment.should_lti_populate_remote_user?
+        # in the data base remote_user_id is username
+        # assignment.username = lti_info[:login_id]
+        # assignment.save
+        # assignment # this is the return value
+    end
 
-        user = User.all.where(email: lti_info[:email])
-        if user.count == 1
-            user = user.first
-            
-            assignment = (@organization.self_and_descendants.collect {|org| org.user_assignments}).flatten(1) & user.user_assignments
-            if assignment.count == 1
-                assignment = assignment.first
-                
-                unless user.is_admin?
-                    
-                    if assignment.should_lti_populate_remote_user?
-                        # in the data base remote_user_id is username.
-                        assignment.username = lti_info[:login_id]
-                        assignment.save
-                        result = user
-                    end
-                
-                end
-            
-            end
-        end
-        result
+    def find_shared_org_and_user_assignments(orgs,user)
+        assignments = UserAssignment.where(organization: @organization.self_and_descendants, user: user)
+        return nil unless assignments.count == 1
+        assignments.first
+    end
+
+    def find_lti_user_by_eamil(user_email, orgs)
+        user = User.joins(:user_assignments).find_by( {
+            :user_assignments => { :organization_id => orgs }, 
+            :users => { :email => user_email }
+        } )
+        return nil if !user 
+        return nil if user.is_admin?
+        user
+    end
+
+    def get_lti_info
+        {
+            course_title: params['context_title'],
+            course_id: params['context_label'],
+            login_id: params['user_id'],
+            roles: params['roles'],
+            email: params['tool_consumer_instance_contact_email']
+        }
     end
 
     def get_consumer_key(obj)

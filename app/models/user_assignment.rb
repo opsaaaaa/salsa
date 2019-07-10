@@ -57,5 +57,11 @@ class UserAssignment < ApplicationRecord
   def should_lti_populate_remote_user?
     self.username.blank?
   end
-  
+ 
+  # def 
+  #     assignments = UserAssignment.where(organization: @organization.self_and_descendants, user: user)
+  #     return nil unless assignments.count == 1
+  #     assignment = assignments.first
+    
+  # end
 end

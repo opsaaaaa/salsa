@@ -16,12 +16,13 @@ class User < ApplicationRecord
   has_many :assignees, class_name: 'Assignment', foreign_key: :team_member_id
   has_many :managers, through: :assignees, source: :user
   has_many :team_members, :class_name => 'User', through: :assignments, source: "team_member"
+  has_many :organizations, through: :user_assignments
 
   has_secure_password validations: false
   validates_presence_of :password, on: :create
 
   has_many :user_assignments
-
+  
   def self.saml_resource_locator(model, saml_response, auth_value)
     user = UserAssignment.find_by("lower(username) = ?", auth_value.to_s.downcase)&.user
     user = User.find_by(email: saml_response.attribute_value_by_resource_key("email")) if user.blank?
