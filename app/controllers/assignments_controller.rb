@@ -23,6 +23,11 @@ class AssignmentsController < AdminController
 
   def workflows
     @documents = @user.documents.where.not(workflow_step_id: nil).order('created_at DESC')
+
+    if params[:document_id]
+      @documents = [@documents.find(params[:document_id].to_i)]
+    end
+
     @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
 
     @workflow_steps = {}
@@ -89,13 +94,12 @@ class AssignmentsController < AdminController
           end
 
           assigned_managers = @user.assignees.where(role: role).map(&:user)
-          
+
           assignees = {
             'role' => role,
             'users' => assigned_managers + managers,
             'logs' => workflow_logs,
           }
-
           
           # add assignees by step id to @assignees for use in the view
           @assignees[document.id][step.id] = assignees
@@ -113,7 +117,7 @@ class AssignmentsController < AdminController
         end
       end
 
-      @workflow_steps[document.id] = workflow_steps
+      @workflow_steps[document.id] = workflow_steps.where(component: {role: ['supervisor', 'approver']})
     end
 
     render 'workflows'

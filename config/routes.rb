@@ -89,6 +89,7 @@ Rails.application.routes.draw do
                     post 'archive'
                     post 'restore'
                     get 'workflows', to: 'assignments#workflows', as: 'workflow_assignments'
+                    get 'workflows/:document_id', to: 'assignments#workflows', as: 'document_workflow_assignments'
                     resources :assignments, as: 'team_assignments', controller: 'assignments'
                 end
 
