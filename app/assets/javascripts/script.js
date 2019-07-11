@@ -59,15 +59,13 @@ function liteOff(x) {
       defaultFields.each(function(){
         var element = $(this);
         var field = element.data('default');
-        console.log(lmsCourse, field);
+
         if(lmsCourse) {
           if(lmsCourse[field]) {
             var elementText = element.text().replace(/\s+/, '');
-            console.log(elementText);
+
             if(elementText === '') {
               element.text(lmsCourse[field]);
-            } else {
-              console.log(this);
             }
           }
         }
@@ -79,7 +77,7 @@ function liteOff(x) {
       dynamicFields.each(function(){
         var element = $(this);
         var field = element.data('dynamic');
-        console.log(lmsCourse, field);
+
         if(field.search(/^course./) === 0 &&lmsCourse) {
           if(lmsCourse[field.split('.')[1]]) {
             element.text(lmsCourse[field.split('.')[1]]);
