@@ -36,16 +36,8 @@ class LtiController < ApplicationController
                 session[:authenticated_user] = false
                 user = current_user
 
-                unless user
-                    assignment = find_remote_user_assignment(lti_info[:email])
-                    user_by_email = find_lti_user_by_eamil(lti_info[:email])
-                    if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
-                        # in the data base remote_user_id is username
-                        assignment.set(:username => lti_info[:login_id])
-                        user = user_by_email
-                    end
-                end
-                
+                user = populate_remote_user(user,lti_info)
+
                 if user
                     # login the new user
                     session[:authenticated_user] = user.id
@@ -76,6 +68,20 @@ class LtiController < ApplicationController
 
     private
 
+    def populate_remote_user(user,lti_info)
+        unless user
+            assignment = find_remote_user_assignment(lti_info[:email])
+            user_by_email = find_lti_user_by_eamil(lti_info[:email])
+            if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
+                # in the data base remote_user_id is username
+                assignment.set(:username => lti_info[:login_id])
+                user_by_email
+            else
+                nil
+            end
+        end
+    end
+
     def find_remote_user_assignment(lti_email, orgs = @organization.self_and_descendants)
 
         assignments = UserAssignment.joins(:user).where( {
@@ -89,14 +95,14 @@ class LtiController < ApplicationController
 
     def find_lti_user_by_eamil(user_email, orgs = @organization.self_and_descendants)
         
-        user = User.joins(:user_assignments).where( {
+        users = User.joins(:user_assignments).where( {
             :user_assignments => { :organization_id => orgs }, 
             :users => { :email => user_email }
         } )
 
-        return nil unless user.count == 1 
-        return nil if user.first.is_admin?
-        user.first
+        return nil unless users.count == 1 
+        return nil if users.first.is_admin?
+        users.first
     end
 
     def get_consumer_key(obj)
