@@ -107,8 +107,6 @@ function liteOff(x) {
           }
         }
 
-        var elementText = element.text();
-
         if(element.text().search(/\{\{[^\}]+\}\}/) < 0) {
           element.removeClass('editable').removeAttr('tabindex');
         }
