@@ -1,19 +1,28 @@
+include CollectiveIdea::Acts::NestedSet
+
 class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
-  before_action :require_admin_permissions, only: [:new, :create, :destroy]
-  before_action :require_organization_admin_permissions, except: [:new, :create, :destroy, :show, :index]
+  before_action :require_organization_admin_permissions, except: [:show, :index, :start_workflow_form, :start_workflow]
+  before_action :require_supervisor_permissions, only: [:start_workflow_form, :start_workflow]
   before_action :require_designer_permissions, only: [
       :show,
       :index
   ]
-  before_action :get_organizations, only: [:index, :new, :edit, :create, :show, :start_workflow_form, :orphaned_documents]
+  before_action :get_organizations
   layout 'admin'
   def index
     get_documents
     @roots = @organizations.roots
 
+    redirectOrg = nil
     if @roots.count == 1
-      redirect_to organization_path(slug: full_org_path(@roots[0]), org_path: params[:org_path])
+      redirectOrg = @roots[0]
+    elsif @organizations.size == 1
+      redirectOrg = @organizations[0]
+    end
+
+    if redirectOrg
+      redirect_to organization_path(slug: full_org_path(redirectOrg), org_path: params[:org_path])
     end
   end
 
@@ -59,10 +68,11 @@ class OrganizationsController < AdminController
   # commit actions
   def create
     @export_types = Organization.export_types
-    @organization = Organization.new organization_params
+    @organization = Organization.new 
+    @organization.assign_attributes organization_params
 
     respond_to do |format|
-      if @organization.save
+      if !@organization.errors.any? and @organization.save
         format.html { redirect_to organization_path(full_org_path(@organization), org_path: params[:org_path]), notice: 'Organization was successfully created.' }
         format.json { render :show, status: :created }
       else
@@ -84,9 +94,18 @@ class OrganizationsController < AdminController
       end
     end
 
-    @organization.update organization_params
 
-    redirect_to organization_path(slug: full_org_path(@organization), org_path: params[:org_path])
+    respond_to do |format|
+      if @organization&.update organization_params
+        format.html { redirect_to organization_path(slug: full_org_path(@organization), org_path: params[:org_path]), notice: 'Organization was successfully updated.' }
+        format.json { render :show, status: :created }
+      else
+        get_organizations
+        @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
+        format.html { render :edit }
+        format.json { render json: @organization.errors, status: :unprocessable_entity }
+      end
+    end
   end
 
   def delete
@@ -162,14 +181,42 @@ class OrganizationsController < AdminController
   end
 
   def organization_params
-    if has_role 'admin'
+    org_params = params.require(:organization)
 
-      params.require(:organization).permit(:name, :export_type, :slug, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
+    if !has_role 'admin'
+      if org_params[:parent_id] == '' or org_params[:parent_id] == nil
+        if @organization.parent_id != nil or @organization.new_record?
+          @organization.errors.add('parent_id', ' is required')
+        end
+      else
+        if !@organization.new_record? and @organization.parent_id == nil
+          @organization.errors.add('parent_id', ' cannot be changed for top level organizations')
+        end
+
+        if org_params[:parent_id].to_i != @organization.parent_id
+          if !@organizations.map(&:id).include?(org_params[:parent_id].to_i)
+            @organization.errors.add('parent_id', ' is invalid.')
+          end
+        end
+      end
+    end
+
+    if org_params[:parent_id] == ''
+      if org_params[:slug].start_with?('/')
+        @organization.errors.add('slug', ' must not start with `/` for top level organizations.')
+      end
+    else
+      blocked_slugs = ['/admin', '/salsa', '/lms', '/oauth2', '/lti', '/login']
+      if !org_params[:slug].start_with?('/')
+        @organization.errors.add('slug', ' must start with `/` for sub-organizations.')
+      elsif blocked_slugs.include?(org_params[:slug].downcase)
+        @organization.errors.add('slug', ' is a reserved path. Choose another slug.')
+      end
+    end
+
+    if has_role 'organization_admin'
+      org_params.permit(:name, :export_type, :slug, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
       :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
-
-
-    elsif has_role 'organization_admin'
-      params.require(:organization).permit(:name, :export_type, :enable_workflows, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_anonymous_actions, :track_meta_info_from_document, :force_https)
     end
   end
 end

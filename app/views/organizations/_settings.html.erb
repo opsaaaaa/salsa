@@ -1,6 +1,6 @@
 <fieldset>
     <legend>Settings</legend>
-    <% if !@organization.new_record? %>
+    <% if !@organization.new_record? and @workflow_steps %>
       <div class="form-group">
         <div>
         <%= f.label :default_workflow_step_id, :class => 'control-label' %>

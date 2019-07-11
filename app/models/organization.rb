@@ -8,11 +8,14 @@ class Organization < ApplicationRecord
   has_many :users, through: :user_assignments
   has_many :workflow_steps
 
+  SLUG_FORMAT = /(\/?([a-z0-9][a-z0-9.-]+)?[a-z0-9]+)/
 
   default_scope { order('lft, rgt') }
-  validates :slug, presence: true
+  validates :slug, presence: true, format: {with: Regexp.new('\A' + SLUG_FORMAT.source + '\z')}
   validates_uniqueness_of :slug, :scope => :parent_id
   validates :slug, exclusion: { in: %w(status), message: "%{value} is reserved." }
+  validates_length_of :slug, minimum: 3, maximum: 128
+
   validates :name, presence: true
 
   def self.export_types
@@ -69,8 +72,8 @@ class Organization < ApplicationRecord
     super(val == "" ? nil : val)
   end
 
-  def setting(setting)
-    value = nil
+  def setting(setting, default=nil)
+    value = default
     org = self.self_and_ancestors.where.not("#{setting}": nil).reorder(:depth).last
     if org
       value = org[setting]
@@ -80,7 +83,7 @@ class Organization < ApplicationRecord
   end
 
   def root_org_setting(setting)
-    if self.slug&.start_with?('/')
+    if self.slug_was&.start_with?('/')
       org = self.ancestors.find_by(depth: 0)
       result = org[setting]
     else

@@ -1,6 +1,5 @@
 class WorkflowStepsController < OrganizationsController
   skip_before_action :require_designer_permissions
-  skip_before_action :require_admin_permissions
   skip_before_action :require_organization_admin_permissions
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit]
   before_action :check_organization_workflow_enabled
@@ -102,7 +101,7 @@ class WorkflowStepsController < OrganizationsController
     end
 
     def redirect_if_wrong_organization
-      if params[:slug].split('/')[-1] != @workflow_step.organization.slug
+      if params[:slug].split('/')[-1] != @workflow_step.organization.slug.sub!(/^\//, '')
         if params[:action] != 'index'
           redirect_to "#{params[:org_path]}/admin/organization/#{@workflow_step.organization.full_slug}/workflow_steps/#{params[:id]}/#{params[:action]}"
         else

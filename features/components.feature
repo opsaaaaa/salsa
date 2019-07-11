@@ -25,6 +25,18 @@ I want to create, edit and view components
      And I click on "Create Component"
      Then I should see "Component was successfully created."
 
+  Scenario: create component see error on invalid slug
+     When I click the "Add Component" link
+     And I fill in the component form with:
+        | name | Step 1 |
+        | slug | !@#$%^&*())(invalid) |
+        | description | this is a description |
+        | category | document |
+        | layout | <head></head> |
+        | format | html |
+     And I click on "Create Component"
+     Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"
+
   Scenario: update component
      Given there is a component on the organization
      And I am on the components index page for the organization
@@ -38,3 +50,17 @@ I want to create, edit and view components
         | format | html |
      And I click on "Update Component"
      Then I should see "Component was successfully updated."
+
+  Scenario: update component see error on invalid slug
+     Given there is a component on the organization
+     And I am on the components index page for the organization
+     And I click the "Edit" link
+     When I fill in the component form with:
+        | name | Step not 1 |
+        | slug | $#)%(@*_!^*($#invalid)) |
+        | description | this is a different description |
+        | category | document |
+        | layout | <head></head><body></body> |
+        | format | html |
+     And I click on "Update Component"
+     Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"

@@ -24,6 +24,7 @@ class OrganizationUsersController < AdminUsersController
     super
 
     @user_assignment = UserAssignment.create(user_id:@user.id, organization_id:@organization.id ,role:"staff", cascades: true) if @user_saved
+    flash[:notice] = "User successfully created."
   end
 
   def assign
@@ -37,6 +38,7 @@ class OrganizationUsersController < AdminUsersController
 
     super
 
+    @user_assignments = @user_assignment.user.user_assignments.where(organization_id: @organization.self_and_descendants.pluck(:id))
     return redirect_to organization_users_path(org_path: params[:org_path]) if @user_assignment.blank?
   end
 
@@ -58,9 +60,9 @@ class OrganizationUsersController < AdminUsersController
 
   def edit
     @organization = find_org_by_path(params[:slug])
-    user_ids = UserAssignment.where(organization_id: @organization&.id).pluck(:user_id)
+    user_ids = UserAssignment.where(organization_id: @organization&.self_and_descendants&.pluck(:id)).pluck(:user_id)
     users = User.where(id: user_ids, archived: false)
-    @user = users.find_by id: params[:id]&.to_i
+    @user = users.find_by id: params[:id].to_i
     return redirect_to organization_users_path(org_path: params[:org_path]) if @user.blank?
   end
 

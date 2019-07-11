@@ -16,12 +16,13 @@ services:
       - TRUSTED_IP=0.0.0.0/0
       - RAILS_ENV=test
     build: .
-    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    command: bundle exec rails server
     volumes:
       - .:/home/apps
       - ./salsa/tmp:/tmp
     ports:
-      - "80:3000"
-      - "3000:3000"
+      - "8080:3000"
+      - "3000:9292"
+      - "443:9292"
     depends_on:
       - db

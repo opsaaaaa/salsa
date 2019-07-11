@@ -9,7 +9,7 @@ In the admin account, create an access key for an application
 Admin -> Select account -> Developer Keys
 
     Key Name: Salsa (example.syllabustool.com)
-    Owner Email: oasis4he@gmail.com
+    Owner Email: admin@example.com
     Redirect URI (Legacy): http://example.syllabustool.com/oauth2/callback
 
 Click Save Key

@@ -18,7 +18,7 @@
 
   .form-group
     .col-md-3
-      = f.label :user_id, "Manger", :class => 'control-label'
+      = f.label :user_id, "Manager", :class => 'control-label'
       = f.collection_select(:user_id, @descendant_users,:id, :name)
       = f.error_span(:user_id)
   %button.btn.btn-success{:type => "submit"}

@@ -14,9 +14,29 @@ class AdminDocumentsController < AdminDocumentsBaseController
     @document = Document.new
   end
 
+  def edit
+    super
+
+    get_users @document
+  end
+
+  def versions
+    get_document params[:id]
+    @document_versions = @document.versions.where(event: "update").page(params[:page]).per(params[:per])
+  end
+
   private
 
-  def get_document id=params[:id]
+  def get_users document
+    organization_ids = [document.organization.id]
+    
+    @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: organization_ids }).order('email', 'name')
+    @users += [document.user] if !document.user.blank?
+    @users = @users.uniq()
+  end
+
+  def get_document id=nil
+    id = params[:id] unless id
     @document = Document.find(id)
     raise('Insufficent permissions for this document') unless has_role('designer', @document.organization)
   end

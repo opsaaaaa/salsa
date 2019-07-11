@@ -282,12 +282,20 @@ function liteOff(x) {
       notification('Saving...');
     });
 
+    var document_workflow_step = $('[data-document-slug]').attr(
+      'data-document-slug');
+    var document_step_type = $('[data-document-step-type]').attr(
+      'data-document-step-type');
+
+    // if(document_step_type == 'start_step') {
+    //   console.log('there', $(".workflow_step:not(#" + document_workflow_step + ")"));
+    //   console.log(".workflow_step:not(#" + document_workflow_step + ")")
+    //   $(".workflow_step:not(#" + document_workflow_step + ")").hide();
+    //   $("#" + document_workflow_step + ".workflow_step").show();
+    // }
+
     $('#tb_save, #tb_share').on('ajax:success', function(event, data, xhr,
       settings) {
-      var document_workflow_step = $('[data-document-slug]').attr(
-        'data-document-slug');
-      var document_step_type = $('[data-document-step-type]').attr(
-        'data-document-step-type');
       if (document_step_type !== "default_step") {
         $(".workflow_step").fadeTo(500, 1)
       }

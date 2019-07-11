@@ -109,6 +109,14 @@ class AdminUsersController < AdminController
     @roles.delete('Global Administrator') unless has_role('admin')
 
     @user_assignment = get_user_assignment(params[:id])
+
+    if @user_assignment == nil
+      raise ActionController::RoutingError.new('Not Found')
+    end
+
+    unless @organizations.pluck(:id).include?(@user_assignment.organization.id)
+      raise ActionController::RoutingError.new('Not Authorized')
+    end
   end
 
   def update_assignment
@@ -150,6 +158,7 @@ class AdminUsersController < AdminController
     if @user.save
       @user_saved = true
 
+      flash[:notice] = "Users successfully created."
       redirect_to polymorphic_path([params[:controller].singularize], id: @user.id, org_path: params[:org_path])
     else
       flash[:error] = 'Error creating user'
@@ -160,6 +169,7 @@ class AdminUsersController < AdminController
   def update
     @user = User.find params[:id]
     if @user.update user_params
+      flash[:notice] = "User successfully updated."
       redirect_to polymorphic_path([params[:controller].singularize], id: @user.id, org_path: params[:org_path])
     else
       return render action: :edit, params: params

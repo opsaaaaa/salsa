@@ -1,21 +1,7 @@
 class AdminDocumentsBaseController < AdminController
   def edit
     get_document params[:id]
-    if @document.organization&.root_org_setting("inherit_workflows_from_parents")
-      @workflow_steps = WorkflowStep.where(organization_id: @document.organization.organization_ids + [@document.organization_id]).order(step_type: :desc)
-    else
-      @workflow_steps = WorkflowStep.where(organization_id: @document.organization_id).order(step_type: :desc)
-    end
-    @periods = Period.where(organization_id: @document.organization&.parents&.pluck(:id).push(@document.organization&.id))
-    if params[:controller] == 'admin_documents'
-      organization_ids = @organizations.pluck(:id)
-    else
-      organization_ids = @document.organization.descendants.pluck(:id) + [@document.organization.id]
-    end
-
-    @users = User.includes(:user_assignments).where(archived: false, user_assignments: { organization_id: organization_ids })
-    @users += [@document.user] if !@document.user.blank?
-    @users = @users.uniq()
+    setup_edit_action @document
   end
 
   def versions
@@ -61,6 +47,10 @@ class AdminDocumentsBaseController < AdminController
         redirect_to workflow_document_index_path(org_path: params[:org_path])
       end
     else
+      flash[:error] = @document.errors.messages
+      setup_edit_action @document
+      get_users
+
       render 'edit'
     end
   end
@@ -68,7 +58,22 @@ class AdminDocumentsBaseController < AdminController
   def delete
   end
 
-  private
+  protected
+
+  def setup_edit_action document
+    organization_ids = document.organization_id
+    
+    if document.organization&.root_org_setting("inherit_workflows_from_parents")
+      organization_ids = document.organization.root.self_and_descendants.pluck(:id)
+    end
+
+    @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order(:name)
+    get_periods organization_ids
+  end
+
+  def get_periods organization_ids
+    @periods = Period.where(organization_id: organization_ids).order(:name)
+  end
 
   def get_document id=params[:id]
     @document = Document.find(id)

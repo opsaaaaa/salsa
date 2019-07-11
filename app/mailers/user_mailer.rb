@@ -7,7 +7,7 @@ class UserMailer < ApplicationMailer
       @template = Liquid::Template.parse(@mail_component.layout)
       @welcome_email = @template.render(allowed_variables).html_safe
       @subject = Liquid::Template.parse(@mail_component.subject).render(allowed_variables).html_safe
-      mail(to: user.email, subject: @subject)
+      send_email(to: user.email, subject: @subject)
     end
   end
 
@@ -21,7 +21,7 @@ class UserMailer < ApplicationMailer
       @subject = Liquid::Template.parse(@mail_component.subject).render(allowed_variables).html_safe
       mail_users_emails = organization&.user_assignments&.where(role:"organization_admin")&.map(&:user).map(&:email)
       mail_users_emails = UserAssignment.where(role:"admin").map(&:user).map(&:email) if mail_users_emails.blank?
-      mail(to: mail_users_emails, subject: @subject)
+      send_email(to: mail_users_emails, subject: @subject)
     end
   end
 end

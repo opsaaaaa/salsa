@@ -104,5 +104,5 @@ Capybara::Webkit.configure do |config|
   config.skip_image_loading
 
   # Raise JavaScript errors as exceptions
-  config.raise_javascript_errors = true
+  config.raise_javascript_errors = false
 end

@@ -1,63 +1,79 @@
 
 <%= render :partial => "organizations/breadcrumbs", locals: {organization: @organization} %>
 <div class="row">
-  <h1 class="page-header col-md-6">
-    <%= @organization[:name] %>
-  </h1>
-  <div class="pull-right col-md-6 text-right clearfix">
-    <%= link_to @organization.documents.where('documents.updated_at != documents.created_at').count.to_s + ' documents', organization_path(id: @organization[:id], org_path: params[:org_path]) %><br>
-    <%= link_to @organization.documents.where('documents.updated_at = documents.created_at').count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path: params[:org_path]) %>
+  <div class="col-xs-8">
+    <h1 class="page-header">
+      <%= @organization[:name] %>
+    </h1>
+  </div>
+  <div class="pull-right col-xs-4 text-right clearfix">
+    <%- document_count = @organization.documents.where('documents.updated_at != documents.created_at').count %>
+    <%- orphaned_count = @organization.documents.where('documents.updated_at = documents.created_at').count %>
+
+    <% if params[:key] != nil %>
+      <%= link_to document_count.to_s + ' documents', organization_path(id: @organization[:id], org_path: params[:org_path]) %><br>
+    <% end %>
+
+    <% if orphaned_count > 0 and params[:key] == nil %>
+      <%= link_to orphaned_count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path: params[:org_path]) %>
+    <% end %>
   </div>
 </div>
 
 <div id="organizationControl" class="row">
 
-  <p class="col-md-9">
+  <div class="col-md-9">
     <% if has_role 'organization_admin' %>
-      <a class="btn btn-default" href="<%= edit_organization_path(id: @organization[:id], org_path: params[:org_path]) %>">
-        Update Organization
+      <a class="btn" href="<%= edit_organization_path(id: @organization[:id], org_path: params[:org_path]) %>">
+        <span class="glyphicon glyphicon-cog"></span>
+        <div class="link-text">Settings</div>
+      </a>
+      <a class="btn" href="<%= components_path(organization_slug: params[:slug], org_path: params[:org_path]) %>">
+        <span class="glyphicon glyphicon-folder-open"></span>
+        <div class="link-text">Components</div>
+      </a>
+      <a class="btn" href="//<%= "#{org_slug_parts(@organization)[0]}#{redirect_port}"%><% if @organization.depth > 0 %>/<%= org_slug_parts(@organization)[1] %><% end %><%= admin_auditor_reports_path %>">
+        <span class="glyphicon glyphicon-stats"></span>
+        <div class="link-text">Reports</div>
       </a>
 
-      <a class="btn btn-default" href="<%= components_path(organization_slug: params[:slug], org_path: params[:org_path]) %>">
-        Manage Components
+      <a class="btn" href="<%= periods_path(slug: params[:slug], org_path: params[:org_path]) %>">
+        <span class="glyphicon glyphicon-calendar"></span>
+        <div class="link-text">Time Periods</div>
       </a>
-
-      <% if @organization.lms_authentication_key != '' %>
-          <a class="btn btn-default" href="//<%= "#{org_slug_parts(@organization)[0]}#{redirect_port}"%><% if @organization.depth > 0 %>/<%= org_slug_parts(@organization)[1] %><% end %><%= admin_auditor_reports_path %>">
-            View Dashboard
-          </a>
-      <% end %>
-
-      <a class="btn btn-default" href="<%= periods_path(slug: params[:slug], org_path: params[:org_path]) %>">
-        Manage Periods
-      </a>
-
     <% end %>
     <% if has_role('supervisor') %>
-      <a class="btn btn-default" href="<%= organization_import_users_path(params[:slug], org_path: params[:org_path]) %>">
-        Import Users
-      </a>
-      <a class="btn btn-default" href="<%= organization_users_path(params[:slug], org_path: params[:org_path]) %>">
-        Users
+      <a class="btn" href="<%= organization_users_path(params[:slug], org_path: params[:org_path]) %>">
+        <span class="glyphicon glyphicon-user"></span>
+        <div class="link-text">Users</div>
       </a>
     <% end %>
-    <% if @organization.root_org_setting("enable_workflows") && has_role('supervisor', get_org) %>
-      <a class="btn btn-default" href="<%= start_workflow_form_path(slug: params[:slug], org_path: params[:org_path]) %>">
-        Start Workflows
-      </a>
-      <a class="btn btn-default" href="<%= workflow_steps_path(params[:slug], org_path: params[:org_path]) %>">
-        Workflow Steps
-      </a>
-
+    <% if @organization.root_org_setting("enable_workflows") %>
+      <% if has_role('supervisor', get_org) %>
+        <a class="btn" href="<%= start_workflow_form_path(slug: params[:slug], org_path: params[:org_path]) %>">
+          <span class="glyphicon glyphicon-play"></span>
+          <div class="link-text">Start Workflow</div>
+        </a>
+      <% end %>
+      
+      <% if has_role('organization_admin', get_org) %>
+        <a class="btn" href="<%= workflow_steps_path(params[:slug], org_path: params[:org_path]) %>">
+          <span class="glyphicon glyphicon-tasks"></span>
+          <div class="link-text">Workflow Steps</div>
+        </a>
+      <% end %>
     <% end %>
-  </p>
+  </div>
   <div class="col-md-3 clearfix text-right">
     <!-- Trigger the modal with a button -->
-    <% if has_role 'organization_admin' %>
-      <button type="button" class="btn btn-primary " data-toggle="modal" data-target="#republishSearch">Republish...</button>
+    <% if has_role 'organization_admin' and @organization.setting('lms_authentication_source') != nil %>
+      <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#republishSearch">
+        <span class="glyphicon glyphicon-refresh"></span>
+        <span class="link-text">Republish Documents</span>
+      </button>
     <% end %>
     <% unless !@organization.root_org_setting("enable_anonymous_actions") && @organization.root_org_setting("enable_workflows") %>
-      <a class="btn btn-success" href="//<%= "#{org_slug_parts(@organization)[0]}#{redirect_port}" %><% if @organization.depth > 0 %>/<%= org_slug_parts(@organization)[1] %><% end %>/SALSA/new">
+      <a class="btn btn-success btn-xs" href="//<%= "#{org_slug_parts(@organization)[0]}#{redirect_port}" %><% if @organization.depth > 0 %>/<%= org_slug_parts(@organization)[1] %><% end %>/SALSA/new">
         <span class="glyphicon glyphicon-plus"></span>
         SALSA
       </a>
@@ -70,6 +86,8 @@
 
 <div class="row">
 
-<%= render 'show' %>
+  <div class="col-sm-12">
+    <%= render 'show' %>
+  </div>
 
 </div>
