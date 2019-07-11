@@ -81,29 +81,29 @@ function liteOff(x) {
         var field = element.data('dynamic');
         console.log(lmsCourse, field);
         if(field.search(/^course./) === 0 &&lmsCourse) {
-          if(lmsCourse[field]) {
-            element.text(lmsCourse[field]);
+          if(lmsCourse[field.split('.')[1]]) {
+            element.text(lmsCourse[field.split('.')[1]]);
           } else {
             element.text('{{'+field+'}}');
           }
         }
         if(field.search(/^document./) === 0 && organization) {
-          if(organization[field]) {
-            element.text(organization[field]);
+          if(organization[field.split('.')[1]]) {
+            element.text(organization[field.split('.')[1]]);
           } else {
             element.text('{{'+field+'}}');
           }
         }
         if(field.search(/^user./) === 0 && user) {
-          if(user[field]) {
-            element.text(user[field]);
+          if(user[field.split('.')[1]]) {
+            element.text(user[field.split('.')[1]]);
           } else {
             element.text('{{'+field+'}}');
           }
         }
         if(field.search(/^period./) === 0 && period) {
-          if(period[field]) {
-            element.text(period[field]);
+          if(period[field.split('.')[1]]) {
+            element.text(period[field.split('.')[1]]);
           } else {
             element.text('{{'+field+'}}');
           }
