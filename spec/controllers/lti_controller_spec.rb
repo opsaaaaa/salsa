@@ -8,8 +8,8 @@ RSpec.describe LtiController, type: :controller do
     # then login that user.
 
     # given the LTI user id dose not match a remote_user_id
-    # and the LTI email matches a user
-    # and that users role has an organization that is within LTI organization (self and descendants)
+    # and the LTI email matches a single user
+    # and that user's role has an organization that is within LTI organization (self and descendants)
     # and that user has only one role within the LTI organization (self and descendants)
     # and that user dose not have global permissions.
     # and remote_use_id is empty

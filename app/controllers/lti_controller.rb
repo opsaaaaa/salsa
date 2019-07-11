@@ -82,7 +82,6 @@ class LtiController < ApplicationController
             :user_assignments => { :organization_id => orgs}, 
             :users => { :email => lti_email }
         } )
-        # could check for blank username here in the quary
 
         return nil unless assignments.count == 1
         assignments.first
