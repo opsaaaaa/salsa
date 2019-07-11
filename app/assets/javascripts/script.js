@@ -38,6 +38,21 @@ function liteOff(x) {
         $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
       }
     }
+
+    var organizationElement = $('[data-organization]')
+    if(organizationElement) {
+      var organization = organizationElement.data('organization');
+    }
+
+    var userElement = $('[data-user]')
+    if(userElement) {
+      var user = userElement.data('user');
+    }
+
+    var periodElement = $('[data-period]')
+    if(periodElement) {
+      var period = periodElement.data('period');
+    }
     
     var defaultFields = $('[data-default]');
     if(defaultFields && defaultFields.length) {
@@ -54,6 +69,43 @@ function liteOff(x) {
             } else {
               console.log(this);
             }
+          }
+        }
+      });
+    }
+
+    var dynamicFields = $('[data-dynamic]');
+    if(dynamicFields && dynamicFields.length) {
+      dynamicFields.each(function(){
+        var element = $(this);
+        var field = element.data('dynamic');
+        console.log(lmsCourse, field);
+        if(field.search(/^course./) === 0 &&lmsCourse) {
+          if(lmsCourse[field]) {
+            element.text(lmsCourse[field]);
+          } else {
+            element.text('{{'+field+'}}');
+          }
+        }
+        if(field.search(/^document./) === 0 &&organization) {
+          if(organization[field]) {
+            element.text(organization[field]);
+          } else {
+            element.text('{{'+field+'}}');
+          }
+        }
+        if(field.search(/^user./) === 0 &&) {
+          if(user[field]) {
+            element.text(user[field]);
+          } else {
+            element.text('{{'+field+'}}');
+          }
+        }
+        if(field.search(/^period./) === 0 &&period) {
+          if(period[field]) {
+            element.text(period[field]);
+          } else {
+            element.text('{{'+field+'}}');
           }
         }
       });
