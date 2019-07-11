@@ -22,7 +22,7 @@ class User < ApplicationRecord
   validates_presence_of :password, on: :create
 
   has_many :user_assignments
-  
+
   def self.saml_resource_locator(model, saml_response, auth_value)
     user = UserAssignment.find_by("lower(username) = ?", auth_value.to_s.downcase)&.user
     user = User.find_by(email: saml_response.attribute_value_by_resource_key("email")) if user.blank?

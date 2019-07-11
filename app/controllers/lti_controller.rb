@@ -20,7 +20,13 @@ class LtiController < ApplicationController
 
         if authenticator.valid_signature?
             if params[:launch_presentation_return_url]
-                lti_info = get_lti_info
+                lti_info = {
+                    course_title: params['context_title'],
+                    course_id: params['context_label'],
+                    login_id: params['user_id'],
+                    roles: params['roles'],
+                    email: params['tool_consumer_instance_contact_email']
+                }
 
                 session['institution'] = request.env['SERVER_NAME']
                 session[:saml_authenticated_user] = {}
@@ -30,11 +36,13 @@ class LtiController < ApplicationController
                 session[:authenticated_user] = false
                 user = current_user
 
-                # user ||= find_lti_user_by_eamil(lti_info[:email])
                 unless user
-                    user = find_lti_user_by_eamil( lti_info[:email] )
-                    assignment = find_shared_org_and_user_assignments )
-                    populate_remote_user_id( lti_info[:login_id], assignment )
+                    assignment = find_remote_user_assignment(lti_info[:email])
+                    user_by_email = find_lti_user_by_eamil(lti_info[:email])
+                    if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
+                        assignment.set_remote_user( lti_info[:login_id] )
+                        user = user_by_email
+                    end
                 end
                 
                 if user
@@ -67,42 +75,31 @@ class LtiController < ApplicationController
 
     private
 
-    def populate_remote_user_ids(remote_user_id, assignment)
-        # user = User.find_by(email: lti_info[:email])
-        orgs = @organization.self_and_descendants
-        user = find_lti_user_by_email
-        assignment = find_shared_org_and_user_assignment(orgs,user)
-        return nil unless assignment.should_lti_populate_remote_user?
-        # in the data base remote_user_id is username
-        # assignment.username = lti_info[:login_id]
-        # assignment.save
-        # assignment # this is the return value
-    end
+    def find_remote_user_assignment(lti_email, orgs = @organization.self_and_descendants)
 
-    def find_shared_org_and_user_assignments(orgs,user)
-        assignments = UserAssignment.where(organization: @organization.self_and_descendants, user: user)
+        assignments = UserAssignment.joins(:user).where( {
+            :user_assignments => { :organization_id => orgs}, 
+            :users => { :email => lti_email }
+        } )
+
+        # could check for blank username here in the quary
         return nil unless assignments.count == 1
         assignments.first
     end
 
-    def find_lti_user_by_eamil(user_email, orgs)
-        user = User.joins(:user_assignments).find_by( {
+    def find_lti_user_by_eamil(user_email, orgs = @organization.self_and_descendants)
+        
+        user = User.joins(:user_assignments).where( {
             :user_assignments => { :organization_id => orgs }, 
             :users => { :email => user_email }
         } )
-        return nil if !user 
-        return nil if user.is_admin?
-        user
+
+        return nil unless user.count == 1 
+        return nil if user.first.is_admin?
+        user.first
     end
 
     def get_lti_info
-        {
-            course_title: params['context_title'],
-            course_id: params['context_label'],
-            login_id: params['user_id'],
-            roles: params['roles'],
-            email: params['tool_consumer_instance_contact_email']
-        }
     end
 
     def get_consumer_key(obj)
