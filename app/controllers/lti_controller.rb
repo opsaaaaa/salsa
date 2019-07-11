@@ -40,7 +40,8 @@ class LtiController < ApplicationController
                     assignment = find_remote_user_assignment(lti_info[:email])
                     user_by_email = find_lti_user_by_eamil(lti_info[:email])
                     if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
-                        assignment.set_remote_user( lti_info[:login_id] )
+                        # in the data base remote_user_id is username
+                        assignment.set(:username => lti_info[:login_id])
                         user = user_by_email
                     end
                 end
@@ -81,8 +82,8 @@ class LtiController < ApplicationController
             :user_assignments => { :organization_id => orgs}, 
             :users => { :email => lti_email }
         } )
-
         # could check for blank username here in the quary
+
         return nil unless assignments.count == 1
         assignments.first
     end
@@ -97,9 +98,6 @@ class LtiController < ApplicationController
         return nil unless user.count == 1 
         return nil if user.first.is_admin?
         user.first
-    end
-
-    def get_lti_info
     end
 
     def get_consumer_key(obj)

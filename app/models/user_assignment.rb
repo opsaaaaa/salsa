@@ -55,14 +55,14 @@ class UserAssignment < ApplicationRecord
   end
   
   def should_lti_populate_remote_user?
-    [nil,""]
     # in the data base remote_user_id is username
-    # self.username.blank?
+    self.username.blank?
   end
- 
-  def set_remote_user(remote_user_id)
-    # in the data base remote_user_id is username
-    self.username = remote_user_id
+
+  def set(values)
+    values.each do |feild, val|
+      self[feild] = val
+    end
     self.save
   end
 
