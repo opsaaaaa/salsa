@@ -87,21 +87,21 @@ function liteOff(x) {
             element.text('{{'+field+'}}');
           }
         }
-        if(field.search(/^document./) === 0 &&organization) {
+        if(field.search(/^document./) === 0 && organization) {
           if(organization[field]) {
             element.text(organization[field]);
           } else {
             element.text('{{'+field+'}}');
           }
         }
-        if(field.search(/^user./) === 0 &&) {
+        if(field.search(/^user./) === 0 && user) {
           if(user[field]) {
             element.text(user[field]);
           } else {
             element.text('{{'+field+'}}');
           }
         }
-        if(field.search(/^period./) === 0 &&period) {
+        if(field.search(/^period./) === 0 && period) {
           if(period[field]) {
             element.text(period[field]);
           } else {
