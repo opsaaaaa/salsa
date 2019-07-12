@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190624203943) do
+ActiveRecord::Schema.define(version: 20190712081735) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -152,6 +152,7 @@ ActiveRecord::Schema.define(version: 20190624203943) do
     t.string "idp_cert_fingerprint_algorithm"
     t.string "authn_context"
     t.string "lms_account_id"
+    t.string "period_meta_key"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"
@@ -169,6 +170,8 @@ ActiveRecord::Schema.define(version: 20190624203943) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.date "start_date"
+    t.string "alias"
+    t.string "remote_id"
     t.index ["slug", "organization_id"], name: "index_periods_on_slug_and_organization_id", unique: true
   end
 

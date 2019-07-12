@@ -161,13 +161,22 @@ class Document < ApplicationRecord
 
   def set_default_period
     if !self.period_id
-
-      #TODO: after adding a remote_id to periods, and setting for which field to use for periods,
+      period = nil
+      
       # check if there is a matching period via document meta,
+      document_meta_period_key = self.organization.setting('period_meta_key')
+      if document_meta_period_key
+        document_meta_period = self.meta.where(key: document_meta_period_key).first
 
-      # if not... proceed
+        if document_meta_period
+          period = Period.where(remote_id: document_meta_period.value)
+        end
+      end
 
-      period = closest_period
+      if !period
+        # get closes default period
+        period = closest_period nil, true
+      end
 
       self.period_id = period.id if period
     end
