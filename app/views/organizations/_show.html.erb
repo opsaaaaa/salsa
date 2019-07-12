@@ -53,7 +53,7 @@
                   Course ID
                 </th>
               <% end %>
-              <% if @organization.root_org_setting('enable_workflows') != false %>
+              <% if @organization.root_org_setting('enable_workflows') %>
                 <th scope="col" nowrap>
                   User
                 </th>
