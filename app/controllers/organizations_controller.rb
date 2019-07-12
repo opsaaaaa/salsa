@@ -52,6 +52,7 @@ class OrganizationsController < AdminController
 
   def show
     get_documents params[:slug]
+    get_periods
   end
 
   def edit
@@ -172,7 +173,8 @@ class OrganizationsController < AdminController
     end
 
     if @organization
-      documents = Document.where("documents.organization_id=? AND documents.updated_at #{operation} documents.created_at", @organization[:id])
+      organization_ids = @organization.id
+      documents = Document.where("documents.organization_id IN (?) AND documents.updated_at #{operation} documents.created_at", organization_ids)
     else
       documents = Document.where("documents.organization_id IS NULL AND documents.updated_at #{operation} documents.created_at")
     end

@@ -68,11 +68,7 @@ class AdminDocumentsBaseController < AdminController
     end
 
     @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order(:name)
-    get_periods organization_ids
-  end
-
-  def get_periods organization_ids
-    @periods = Period.where(organization_id: organization_ids).order(:name)
+    get_periods
   end
 
   def get_document id=params[:id]

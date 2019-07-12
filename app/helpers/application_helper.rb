@@ -343,4 +343,20 @@ module ApplicationHelper
     @document = Document.find(id)
     raise('Insufficent permissions for this document') unless has_role('designer', @document.organization)
   end
+
+  def get_periods organization_ids=nil
+    if !organization_ids
+      if @document
+        org = @document.organization
+      elsif @organization
+        org = @organization
+      end
+
+      organization_ids = org&.self_and_ancestors.pluck(:id)
+    end
+
+    if organization_ids
+      @periods = Period.where(organization_id: organization_ids).order('name')
+    end
+  end
 end

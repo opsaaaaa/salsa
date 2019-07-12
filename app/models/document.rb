@@ -2,6 +2,7 @@ class Document < ApplicationRecord
   has_paper_trail
 
   before_validation :normalize_blank_values, :ensure_ids
+  before_create :set_default_period
 
   belongs_to :organization
   belongs_to :component, optional: true
@@ -90,6 +91,16 @@ class Document < ApplicationRecord
     return User.where(id: self.closest_roles(role,user_ids).pluck(:user_id))
   end
 
+  def closest_period(slug=nil, default=nil)
+    org_ids = self.organization&.self_and_ancestors&.pluck(:id)
+    periods = Period.where(organization_id: org_ids)&.includes(:organization)&.reorder("organizations.depth DESC")
+
+    periods = periods.where(slug: slug) if slug != nil
+    periods = periods.where(is_default: default) if default != nil
+
+    return periods&.first
+  end
+
   def approvers
     orgs = self.organization.parents + [self.organization]
     approvers_array = []
@@ -146,6 +157,20 @@ class Document < ApplicationRecord
     self.edit_id = Document.generate_id
     self.template_id = Document.generate_id
     self.lms_course_id = nil
+  end
+
+  def set_default_period
+    if !self.period_id
+
+      #TODO: after adding a remote_id to periods, and setting for which field to use for periods,
+      # check if there is a matching period via document meta,
+
+      # if not... proceed
+
+      period = closest_period
+
+      self.period_id = period.id if period
+    end
   end
 
   protected
