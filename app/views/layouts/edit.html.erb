@@ -30,7 +30,7 @@
     data-document="<%= @document.to_json(only: [:id, :name, :published_at, :created_at, :updated_at]) %>"
     data-organization="<%= @document.organization.to_json(only: [:id, :name]) %>"
     data-user="<%= @document.user.to_json(only: [:id, :name]) %>"
-    data-period="<%= @document.period.to_json(only: [:id, :name, :slug]) %>"
+    data-period="<%= @document.period.to_json(only: [:id, :name, :slug, :alias]) %>"
     data-document-meta="<%= @document.meta.select(:id, :key, :value).limit(10).index_by(&:key).to_json %>"
     >
     <%= salsa_partial 'toolbar' %>
