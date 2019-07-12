@@ -169,7 +169,7 @@ class Document < ApplicationRecord
         document_meta_period = self.meta.where(key: document_meta_period_key).first
 
         if document_meta_period
-          period = Period.where(remote_id: document_meta_period.value)
+          period = Period.where(remote_id: document_meta_period.value).first
         end
       end
 
