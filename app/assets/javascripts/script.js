@@ -30,28 +30,19 @@ function liteOff(x) {
       target.html(content);
     });
 
-    var lmsCourseElement = $('[data-lms-course]')
-    if(lmsCourseElement) {
-      var lmsCourse = lmsCourseElement.data('lms-course');
+    var editorElement = $('#editor_view');
+    if(editorElement) {
+      var lmsCourse = editorElement.data('lms-course');
 
       if(lmsCourse.login_id) {
         $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
       }
-    }
 
-    var organizationElement = $('[data-organization]')
-    if(organizationElement) {
-      var organization = organizationElement.data('organization');
-    }
-
-    var userElement = $('[data-user]')
-    if(userElement) {
-      var user = userElement.data('user');
-    }
-
-    var periodElement = $('[data-period]')
-    if(periodElement) {
-      var period = periodElement.data('period');
+      var doc = editorElement.data('document');
+      var organization = editorElement.data('organization');
+      var user = editorElement.data('user');
+      var period = editorElement.data('period');
+      var documentMeta = editorElement.data('document-meta');    
     }
     
     var defaultFields = $('[data-default]');
@@ -76,38 +67,55 @@ function liteOff(x) {
     if(dynamicFields && dynamicFields.length) {
       dynamicFields.each(function(){
         var element = $(this);
-        var field = element.data('dynamic');
-
-        if(field.search(/^course./) === 0 &&lmsCourse) {
-          if(lmsCourse[field.split('.')[1]]) {
-            element.text(lmsCourse[field.split('.')[1]]);
-          } else {
-            element.text('{{'+field+'}}');
-          }
-        }
-        if(field.search(/^document./) === 0 && organization) {
-          if(organization[field.split('.')[1]]) {
-            element.text(organization[field.split('.')[1]]);
-          } else {
-            element.text('{{'+field+'}}');
-          }
-        }
-        if(field.search(/^user./) === 0 && user) {
-          if(user[field.split('.')[1]]) {
-            element.text(user[field.split('.')[1]]);
-          } else {
-            element.text('{{'+field+'}}');
-          }
-        }
-        if(field.search(/^period./) === 0 && period) {
-          if(period[field.split('.')[1]]) {
-            element.text(period[field.split('.')[1]]);
-          } else {
-            element.text('{{'+field+'}}');
-          }
+        var reference = element.data('dynamic');
+        var variable = reference;
+        var subVariable = null;
+        var object = null;
+        
+        if(reference.search('.') >= 0) {
+          var parts = reference.split('.');
+          objectName = parts[0];
+          variable = parts[1];
+          subVariable = parts[2];
         }
 
-        if(element.text().search(/\{\{[^\}]+\}\}/) < 0) {
+        var elementText = '';
+        var referenceMapping = {
+          'course': lmsCourse,
+          'document': doc,
+          'organization': organization,
+          'user': user,
+          'period': period,
+          'meta': documentMeta,
+        };
+
+        var pattern = new RegExp('^'+objectName+'\.');
+
+        if (referenceMapping.hasOwnProperty(objectName)) {
+          object = referenceMapping[objectName];
+        }
+
+        if(reference.search(pattern) === 0 && object) {
+          if(object[variable]) {
+            if(typeof object[variable] === 'string') {
+              elementText = object[variable];
+            } else {
+              if(parts.length == 2 && object[variable].value) {
+                elementText = object[variable].value;
+              } else if(parts.length == 3 && object[variable][subVariable] && typeof object[variable][parts[2]] === 'string') {
+                elementText = object[variable][subVariable];
+              }
+            }
+          }
+        }
+
+        if(elementText === '') {
+          elementText = '{{'+reference+'}}';
+        }
+
+        element.text(elementText);
+
+        if(elementText && elementText.search(/\{\{[^\}]+\}\}/) < 0) {
           element.removeClass('editable').removeAttr('tabindex');
         }
       });

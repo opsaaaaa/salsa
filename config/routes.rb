@@ -9,6 +9,7 @@ Rails.application.routes.draw do
             post '/auth/shibboleth', to: 'users/saml_sessions#create'
         end
         resources :documents, path: 'SALSA', constraints: { slug: /.*/ }
+        get 'documents/:document_id/meta', to: 'admin_documents#meta', as: 'document_meta', constraints: { slug: /.*/ }
         scope 'workflow' do
             get 'documents/assignments', as: 'workflow_document_assignments', to: 'workflow_documents#assignments'
             resources :documents, as: 'workflow_document', controller: 'workflow_documents'

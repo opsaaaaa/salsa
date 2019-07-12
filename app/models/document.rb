@@ -8,7 +8,10 @@ class Document < ApplicationRecord
   belongs_to :period, optional: true
   belongs_to :workflow_step, optional: true
   belongs_to :user, optional: true
-  has_many :meta, class_name: DocumentMeta
+  
+  def meta
+    DocumentMeta.where("document_id = ? OR (document_id IS NULL AND lms_course_id = ? AND root_organization_id = ?)", self.id, self.lms_course_id, self.organization.root.id)
+  end
 
   validates :lms_course_id, uniqueness: { scope: :organization_id, message: "is already in use for this organization" }, allow_nil: true
   validates_uniqueness_of [:view_id, :edit_id, :template_id]

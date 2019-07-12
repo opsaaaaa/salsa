@@ -337,4 +337,10 @@ module ApplicationHelper
 
     mail(to: config[:to], subject: config[:subject])
   end
+
+  def get_document id=nil
+    id = params[:id] unless id
+    @document = Document.find(id)
+    raise('Insufficent permissions for this document') unless has_role('designer', @document.organization)
+  end
 end
