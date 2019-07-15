@@ -7,6 +7,7 @@ development:
   aws_region: 'AMAZON REGION'
   allow_erb_components: true
   admin_password: 'asdfasdf'
+  email_override: 'admin@example.com'
 
 test:
   domain: 'http://localhost:3000'

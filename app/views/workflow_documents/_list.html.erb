@@ -36,6 +36,10 @@
             <%= time_ago_in_words(document.updated_at)%> ago
           </td>
           <td>
+            <% if document.workflow_step.step_type != 'end_step' && document.assignees.count == 1 && document.assignees.first.id == current_user.id %>
+              <%= link_to "Edit", edit_document_path(document.edit_id, org_path:params[:org_path]), id:"edit_document" %>
+            <% end%>
+
             <%= link_to "View", document_path(document.view_id, org_path:params[:org_path]) %>
           </td>
         </tr>

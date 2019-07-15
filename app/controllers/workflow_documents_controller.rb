@@ -83,6 +83,12 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
       
   end
 
+  def edit
+    super
+
+    @users = get_users.uniq()
+  end
+
   def update
     get_document params[:id]
     # if the publish target changed, clear out the published at date
@@ -107,7 +113,6 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
 
       render 'edit', layout: 'admin'
     end
-    super
   end
 
   private

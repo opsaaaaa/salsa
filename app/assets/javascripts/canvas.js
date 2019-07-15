@@ -204,7 +204,7 @@ $(function() {
     });
 
     // remove all hidden content, canvas doesn't like our CSS
-    $('.canvas-hide, .hide, #page_break, .page-break, .content:has(#grade_scale.inactive), .disabled, #spacer, [style*="display: none;"], .dynamic-component, script', salsaDocument).remove();
+    $('.boilerplate, .canvas-hide, .hide, #page_break, .page-break, .content:has(#grade_scale.inactive), .disabled, #spacer, [style*="display: none;"], .dynamic-component, script', salsaDocument).remove();
 
     // remove hidden table cells
     $('.col2 tr > :nth-child(2),.col3 tr > :nth-child(3),.col4 tr > :nth-child(4),.col5 tr > :nth-child(5)').nextAll().remove();

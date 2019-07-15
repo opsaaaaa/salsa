@@ -52,6 +52,7 @@ class OrganizationsController < AdminController
 
   def show
     get_documents params[:slug]
+    get_periods
   end
 
   def edit
@@ -172,7 +173,8 @@ class OrganizationsController < AdminController
     end
 
     if @organization
-      documents = Document.where("documents.organization_id=? AND documents.updated_at #{operation} documents.created_at", @organization[:id])
+      organization_ids = @organization.id
+      documents = Document.where("documents.organization_id IN (?) AND documents.updated_at #{operation} documents.created_at", organization_ids)
     else
       documents = Document.where("documents.organization_id IS NULL AND documents.updated_at #{operation} documents.created_at")
     end
@@ -206,7 +208,7 @@ class OrganizationsController < AdminController
         @organization.errors.add('slug', ' must not start with `/` for top level organizations.')
       end
     else
-      blocked_slugs = ['/admin', '/salsa', '/lms', '/oauth2', '/lti', '/login']
+      blocked_slugs = ['/admin', '/salsa', '/lms', '/oauth2', '/lti', '/login', '/document', '/documents', '/workflow']
       if !org_params[:slug].start_with?('/')
         @organization.errors.add('slug', ' must start with `/` for sub-organizations.')
       elsif blocked_slugs.include?(org_params[:slug].downcase)
@@ -215,7 +217,7 @@ class OrganizationsController < AdminController
     end
 
     if has_role 'organization_admin'
-      org_params.permit(:name, :export_type, :slug, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
+      org_params.permit(:name, :export_type, :slug, :period_meta_key, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
       :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
     end
   end
