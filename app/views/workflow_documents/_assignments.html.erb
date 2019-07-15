@@ -26,7 +26,12 @@
           </td>
           <td>
             <%= link_to document.workflow_step&.name+': '+document.workflow_step&.component&.name,
-                organization_user_workflow_assignments_path(organization_user_id: document.user_id, org_path: params[:org_path], slug: document.organization.root.slug+'/'+params[:org_path]) %>
+                organization_user_document_workflow_assignments_path(
+                  organization_user_id: document.user_id,
+                  org_path: params[:org_path],
+                  slug: document.organization.root.slug+'/'+params[:org_path],
+                  document_id: document.id,
+                ) %>
 
           </td>
           <td nowrap>

@@ -30,13 +30,19 @@ function liteOff(x) {
       target.html(content);
     });
 
-    var lmsCourseElement = $('[data-lms-course]')
-    if(lmsCourseElement) {
-      var lmsCourse = lmsCourseElement.data('lms-course');
+    var editorElement = $('#editor_view');
+    if(editorElement) {
+      var lmsCourse = editorElement.data('lms-course');
 
       if(lmsCourse.login_id) {
         $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
       }
+
+      var doc = editorElement.data('document');
+      var organization = editorElement.data('organization');
+      var user = editorElement.data('user');
+      var period = editorElement.data('period');
+      var documentMeta = editorElement.data('document-meta');    
     }
     
     var defaultFields = $('[data-default]');
@@ -44,17 +50,73 @@ function liteOff(x) {
       defaultFields.each(function(){
         var element = $(this);
         var field = element.data('default');
-        console.log(lmsCourse, field);
+
         if(lmsCourse) {
           if(lmsCourse[field]) {
             var elementText = element.text().replace(/\s+/, '');
-            console.log(elementText);
+
             if(elementText === '') {
               element.text(lmsCourse[field]);
-            } else {
-              console.log(this);
             }
           }
+        }
+      });
+    }
+
+    var dynamicFields = $('[data-dynamic]');
+    if(dynamicFields && dynamicFields.length) {
+      dynamicFields.each(function(){
+        var element = $(this);
+        var reference = element.data('dynamic');
+        var variable = reference;
+        var subVariable = null;
+        var object = null;
+        
+        if(reference.search('.') >= 0) {
+          var parts = reference.split('.');
+          objectName = parts[0];
+          variable = parts[1];
+          subVariable = parts[2];
+        }
+
+        var elementText = '';
+        var referenceMapping = {
+          'course': lmsCourse,
+          'document': doc,
+          'organization': organization,
+          'user': user,
+          'period': period,
+          'meta': documentMeta,
+        };
+
+        var pattern = new RegExp('^'+objectName+'\.');
+
+        if (referenceMapping.hasOwnProperty(objectName)) {
+          object = referenceMapping[objectName];
+        }
+
+        if(reference.search(pattern) === 0 && object) {
+          if(object[variable]) {
+            if(typeof object[variable] === 'string') {
+              elementText = object[variable];
+            } else {
+              if(parts.length == 2 && object[variable].value) {
+                elementText = object[variable].value;
+              } else if(parts.length == 3 && object[variable][subVariable] && typeof object[variable][parts[2]] === 'string') {
+                elementText = object[variable][subVariable];
+              }
+            }
+          }
+        }
+
+        if(elementText === '') {
+          elementText = '{{'+reference+'}}';
+        }
+
+        element.text(elementText);
+
+        if(elementText && elementText.search(/\{\{[^\}]+\}\}/) < 0) {
+          element.removeClass('editable').removeAttr('tabindex');
         }
       });
     }
@@ -230,12 +292,20 @@ function liteOff(x) {
       notification('Saving...');
     });
 
+    var document_workflow_step = $('[data-document-slug]').attr(
+      'data-document-slug');
+    var document_step_type = $('[data-document-step-type]').attr(
+      'data-document-step-type');
+
+    // if(document_step_type == 'start_step') {
+    //   console.log('there', $(".workflow_step:not(#" + document_workflow_step + ")"));
+    //   console.log(".workflow_step:not(#" + document_workflow_step + ")")
+    //   $(".workflow_step:not(#" + document_workflow_step + ")").hide();
+    //   $("#" + document_workflow_step + ".workflow_step").show();
+    // }
+
     $('#tb_save, #tb_share').on('ajax:success', function(event, data, xhr,
       settings) {
-      var document_workflow_step = $('[data-document-slug]').attr(
-        'data-document-slug');
-      var document_step_type = $('[data-document-step-type]').attr(
-        'data-document-step-type');
       if (document_step_type !== "default_step") {
         $(".workflow_step").fadeTo(500, 1)
       }

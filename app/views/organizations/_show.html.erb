@@ -43,12 +43,17 @@
               <th scope="col">
                 Name
               </th>
+              <% if @periods %>
+                <th scope="col" nowrap>
+                  Time Period
+                </th>
+              <% end %>
               <% if @organization.root_org_setting('lms_authentication_source') != nil %>
                 <th scope="col" nowrap>
                   Course ID
                 </th>
               <% end %>
-              <% if @organization.root_org_setting('enable_workflows') != false %>
+              <% if @organization.root_org_setting('enable_workflows') %>
                 <th scope="col" nowrap>
                   User
                 </th>
@@ -77,13 +82,19 @@
                 <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
               </th>
 
+              <% if @periods %>
+                <td>
+                  <%= document.period&.name %>
+                </td>
+              <% end %>
+
               <% if @organization.root_org_setting('lms_authentication_source') != nil %>
                 <td nowrap>
                   <%= document.lms_course_id %>
                 </td>
               <% end %>
 
-              <% if @organization.root_org_setting('enable_workflows') != false %>
+              <% if @organization.root_org_setting('enable_workflows') %>
                 <td nowrap>
                   <%= document.user.name if document.user %>
                 </td>
@@ -154,6 +165,25 @@
                           </li>
                         <% end %>
                       <% end %>
+                    <% end %>
+
+                    <% if @organization.root_org_setting('enable_workflows') != false %>
+                      <% if document.user_id %>
+                        <%= link_to "Workflow",
+                          organization_user_document_workflow_assignments_path(
+                            organization_user_id: document.user_id,
+                            org_path: params[:org_path],
+                            slug: params[:slug],
+                            document_id: document.id,
+                          ) %>
+                        <% end %>
+                    <% end %>
+
+                    <% if @organization.root_org_setting('track_meta_info_from_document') != false %>
+                      <%= link_to "Meta",
+                        document_meta_path(
+                          document_id: document.id,
+                        ) %>
                     <% end %>
 
                   </ul>

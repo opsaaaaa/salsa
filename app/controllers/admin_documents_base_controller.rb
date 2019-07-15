@@ -61,16 +61,14 @@ class AdminDocumentsBaseController < AdminController
   protected
 
   def setup_edit_action document
+    organization_ids = document.organization_id
+    
     if document.organization&.root_org_setting("inherit_workflows_from_parents")
-      @workflow_steps = WorkflowStep.where(organization_id: document.organization.organization_ids + [document.organization_id]).order(step_type: :desc)
-    else
-      @workflow_steps = WorkflowStep.where(organization_id: document.organization_id).order(step_type: :desc)
+      organization_ids = document.organization.root.self_and_descendants.pluck(:id)
     end
-    get_periods document
-  end
 
-  def get_periods document
-    @periods = Period.where(organization_id: document.organization&.parents&.pluck(:id).push(document.organization&.id))
+    @workflow_steps = WorkflowStep.where(organization_id: organization_ids).order(:name)
+    get_periods
   end
 
   def get_document id=params[:id]

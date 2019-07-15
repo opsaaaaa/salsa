@@ -24,7 +24,7 @@ development:
     -----END CERTIFICATE-----
 
 production:
-  MAILER_PREFORM_DELIVERIES: flase
+  MAILER_PREFORM_DELIVERIES: false
   ZIPFILE_FOLDER: zipfiles
   SES_SMTP_FROM:
   SES_SMTP_USERNAME:

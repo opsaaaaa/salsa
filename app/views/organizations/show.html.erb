@@ -54,7 +54,9 @@
           <span class="glyphicon glyphicon-play"></span>
           <div class="link-text">Start Workflow</div>
         </a>
-      <% elsif has_role('organization_admin', get_org) %>
+      <% end %>
+      
+      <% if has_role('organization_admin', get_org) %>
         <a class="btn" href="<%= workflow_steps_path(params[:slug], org_path: params[:org_path]) %>">
           <span class="glyphicon glyphicon-tasks"></span>
           <div class="link-text">Workflow Steps</div>

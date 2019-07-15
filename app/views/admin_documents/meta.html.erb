@@ -1,0 +1,36 @@
+<h1>
+    <%= @document.name %>
+    <br>
+    <small>
+        Document Meta
+    </small>
+
+</h1>
+
+<% if @document_meta.length > 0 %>
+    <table class="table table-responsive table-striped">
+        <thead>
+            <tr>
+                <th>
+                    Key
+                </th>
+                <th>
+                    Value
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <% @document_meta.each do |meta| %>
+                <tr>
+                    <td><%= meta.key %></td>
+                    <td><%= meta.value %></td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+    <%= paginate @document_meta %>
+<% else %>
+    <div class="alert alert-warning">
+        No meta information has been stored on this document.
+    </div>
+<% end %>
