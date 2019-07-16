@@ -110,16 +110,15 @@ class OrganizationsController < AdminController
   end
 
   def delete
+    @export_types = Organization.export_types
     @organization = find_org_by_path params[:slug]
     if @organization.allow_org_deletion?
       @organization.delete 
       
       redirect_to organizations_path( org_path: params[:org_path])
     else
-      redirect_to edit_organization_path(id: @organization[:id], org_path: params[:org_path])
-      
-      @organization.errors.add('delete', ' Cannot delete an organization with sub organizations')
-      flash[:error] = @organization.errors.messages[:delete].first
+      @organization.errors.add('Cannot_delete', 'that organization has sub organizations')
+      render :edit
     end
   end
 
