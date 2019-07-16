@@ -96,4 +96,10 @@ class Organization < ApplicationRecord
   def self.descendants
     ObjectSpace.each_object(Class).select { |klass| klass < self }
   end
+
+  def allow_org_deletion?
+    return false unless self.descendants.blank?
+    return true
+  end
+
 end
