@@ -10,8 +10,8 @@ class OrganizationsController < AdminController
   ]
   before_action :get_export_types, only: [:new, :edit, :create, :update, :delete]
   before_action :get_organizations
-  before_action :get_organization, except: [:orphaned_documents]
-  before_action :get_documents, only: [:orphaned_documents, :index, :show, :edit]
+  before_action :get_organization, except: [:orphaned_documents, :new, :create, :start_workflow_form]
+  before_action :get_documents, only: [:orphaned_documents, :show]
   layout 'admin'
 
   def index
@@ -34,6 +34,7 @@ class OrganizationsController < AdminController
   end
 
   def orphaned_documents
+    
   end
 
   def documents
