@@ -6,7 +6,7 @@ class ComponentsController < ApplicationController
   before_action :require_admin_permissions, only: [:load_components, :export_components, :import_components]
 
   before_action :get_organizations
-  before_action :get_organization
+  # before_action :get_organization
   before_action :get_organization_levels
   before_action :get_roles
 

@@ -10,9 +10,11 @@ class OrganizationsController < AdminController
   ]
   before_action :get_export_types, only: [:new, :edit, :create, :update, :delete]
   before_action :get_organizations
+  before_action :get_organization, except: [:orphaned_documents]
+  before_action :get_documents, only: [:orphaned_documents, :index, :show, :edit]
   layout 'admin'
+
   def index
-    get_documents
     @roots = @organizations.roots
 
     redirectOrg = nil
@@ -32,7 +34,6 @@ class OrganizationsController < AdminController
   end
 
   def orphaned_documents
-    get_documents
   end
 
   def documents
@@ -51,13 +52,10 @@ class OrganizationsController < AdminController
   end
 
   def show
-    get_documents params[:slug]
     get_periods
   end
 
   def edit
-    get_documents params[:slug]
-
     @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
     @organization.default_account_filter = '{"account_filter":""}' unless @organization.default_account_filter
     @organization.default_account_filter = '{"account_filter":""}' if @organization.default_account_filter == ''
@@ -82,8 +80,6 @@ class OrganizationsController < AdminController
   end
 
   def update
-    @organization = find_org_by_path params[:slug]
-
     if has_role('admin') && params['organization']['default_account_filter'] != nil
       if params['organization']['default_account_filter'] != ''
         params['organization']['default_account_filter'] = JSON.parse(params['organization']['default_account_filter'])
@@ -107,7 +103,6 @@ class OrganizationsController < AdminController
   end
 
   def delete
-    @organization = find_org_by_path params[:slug]
     if @organization.allow_org_deletion?
       @organization.delete 
       
@@ -163,15 +158,15 @@ class OrganizationsController < AdminController
 
   private
 
+  def get_organization path=params[:slug]
+    @organization = find_org_by_path path
+  end
+
   def get_documents path=params[:slug], page=params[:page], per=25, key=params[:key]
     if key == 'abandoned'
       operation = '=';
     else
       operation = '!='
-    end
-
-    if path
-      @organization = find_org_by_path path
     end
 
     if @organization
@@ -180,7 +175,6 @@ class OrganizationsController < AdminController
     else
       documents = Document.where("documents.organization_id IS NULL AND documents.updated_at #{operation} documents.created_at")
     end
-
     @documents = documents.order(updated_at: :desc, created_at: :desc).page(page).per(per)
   end
 
