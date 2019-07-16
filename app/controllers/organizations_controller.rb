@@ -34,7 +34,7 @@ class OrganizationsController < AdminController
   end
 
   def orphaned_documents
-    
+
   end
 
   def documents
@@ -157,7 +157,11 @@ class OrganizationsController < AdminController
   end
 
 
-  private
+  private  
+  
+  def get_export_types
+    @export_types = Organization.export_types
+  end
 
   def get_organization path=params[:slug]
     @organization = find_org_by_path path
@@ -218,9 +222,4 @@ class OrganizationsController < AdminController
       :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
     end
   end
-
-  def get_export_types
-    @export_types = Organization.export_types
-  end
-
 end
