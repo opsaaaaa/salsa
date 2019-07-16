@@ -8,6 +8,7 @@ class OrganizationsController < AdminController
       :show,
       :index
   ]
+  before_action :get_export_types, only: [:new, :edit, :create, :update, :delete]
   before_action :get_organizations
   layout 'admin'
   def index
@@ -27,7 +28,6 @@ class OrganizationsController < AdminController
   end
 
   def new
-    @export_types = Organization.export_types
     @organization = Organization.new
   end
 
@@ -56,7 +56,6 @@ class OrganizationsController < AdminController
   end
 
   def edit
-    @export_types = Organization.export_types
     get_documents params[:slug]
 
     @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
@@ -68,7 +67,6 @@ class OrganizationsController < AdminController
 
   # commit actions
   def create
-    @export_types = Organization.export_types
     @organization = Organization.new 
     @organization.assign_attributes organization_params
 
@@ -84,7 +82,6 @@ class OrganizationsController < AdminController
   end
 
   def update
-    @export_types = Organization.export_types
     @organization = find_org_by_path params[:slug]
 
     if has_role('admin') && params['organization']['default_account_filter'] != nil
@@ -110,7 +107,6 @@ class OrganizationsController < AdminController
   end
 
   def delete
-    @export_types = Organization.export_types
     @organization = find_org_by_path params[:slug]
     if @organization.allow_org_deletion?
       @organization.delete 
@@ -227,4 +223,9 @@ class OrganizationsController < AdminController
       :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
     end
   end
+
+  def get_export_types
+    @export_types = Organization.export_types
+  end
+
 end
