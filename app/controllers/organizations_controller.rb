@@ -103,12 +103,10 @@ class OrganizationsController < AdminController
   end
 
   def delete
-    if @organization.allow_org_deletion?
-      @organization.delete 
-      
+    @organization.destroy
+    if @organization.can_delete?
       redirect_to organizations_path( org_path: params[:org_path])
     else
-      @organization.errors.add('Cannot_delete', 'that organization has sub organizations')
       render :edit
     end
   end

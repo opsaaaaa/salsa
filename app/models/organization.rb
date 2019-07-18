@@ -1,4 +1,7 @@
 class Organization < ApplicationRecord
+  before_destroy :allow_destroy
+  # ^ this has to be above act_as_nested_set
+  
   acts_as_nested_set
 
   has_many :documents
@@ -97,9 +100,17 @@ class Organization < ApplicationRecord
     ObjectSpace.each_object(Class).select { |klass| klass < self }
   end
 
-  def allow_org_deletion?
-    return false unless self.descendants.blank?
-    return true
+  def can_delete?
+    self.descendants.blank?
+  end
+
+  private
+
+  def allow_destroy
+    return true if self.can_delete?
+    self.errors.add('Cannot_delete', 'that organization has sub organizations')
+    false
+    throw(:abort)
   end
 
 end
