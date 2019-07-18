@@ -404,3 +404,20 @@ Given(/^I am on the organization (\w+) page$/) do |action|
     visit organizations_path
   end
 end
+
+Given(/^this organization has a child$/) do 
+  FactoryBot.create(:organization, parent_id: @organization.id)
+end
+
+Then(/^(\w+) should be (present|absent)$/) do |obj, state|
+  # result = nil
+  bool = true if state == "present"
+  bool = false if state == "absent"
+
+  case obj
+  when /organization/
+    # expect(Organization.find(@organization.id).blank?).to eq(bool)
+  else
+    # pending
+  end
+end

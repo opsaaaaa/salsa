@@ -50,3 +50,14 @@ I want to create, edit and view organizations
         | default_account_filter | {"account_filter":"SP18"} |
      And I click on "Update Organization"
      Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"
+
+   Scenario: delete organization with children
+      Given there is a organization with a sub organization
+      And i visit the organization delete page.
+      Then the organization should "still" exist 
+
+   Scenario: delete organization without children
+      Given there is a organization
+      And I am on the organization edit page
+      And i click the "Delete" link
+      Then the organization should "not" exist
