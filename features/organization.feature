@@ -14,17 +14,20 @@ I want to create, edit and view organizations
     Then I should be able to see all the organizations
 
   Scenario: create organization
-   #   Then I should see "Add Organization"
-     When I click the "Add Organization" link
+     Given I am on the organization new page
+   #   Then there should be a "Add Organization" button
+   #   When I click the "Add Organization" link
      And I fill in the organization form with:
-        | name | Test Organization |
-        | slug | test_organization |
-        | default_account_filter | {"account_filter":"WI19"} |
+        | name | TestOrganization |
+        | slug | testorganization.com |
      And I click on "Create Organization"
-     Then I should see "Organization was successfully created."
+   #   Then I should see "Organization was successfully created." 
+     Then an organization with a name of TestOrganization should be present
 
   Scenario: create organization see error on invalid slug
-     When I click the "Add Organization" link
+     Given I am on the organization new page
+   #   Given I am on the organization index page
+   #   When I click the "Add Organization" link
      And I fill in the organization form with:
         | name | Test Organization |
         | slug | %$#^!@& SDF SDFH$^%#$^$ |

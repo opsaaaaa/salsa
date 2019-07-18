@@ -61,8 +61,10 @@ Then(/^the (\w+) (\w+) should be (\w+)$/) do |class_name, record_name, value|
 end
 
 Given(/^there is a organization with a sub organization$/) do
-  @organization = create(:organization)
-  @sub_organization = create(:organization, parent_id: @organization.id)
+  @organization = FactoryBot.create(:organization)
+  @sub_organization = FactoryBot.create(:organizations, parent_id: @organization.id)
+  # @organization = create(:organization)
+  # @sub_organization = create(:organization, parent_id: @organization.id)
 end
 
 Given(/^there is a (\w+) with a (\w+) of "(.*?)"$/) do |class_name, field_name, field_value|
@@ -110,6 +112,8 @@ Given(/^there is a (\w+)$/) do |class_name|
   when /document/ || /canvas_document/
     record = create(class_name, organization_id: @organization.id)
     instance_variable_set("@#{class_name}",record)
+  when /organization/
+    @organization = FactoryBot.create(:organization)
   else
     record = create(class_name)
     instance_variable_set("@#{class_name}",record)
@@ -228,7 +232,14 @@ When(/^I click the "(.*?)" link$/) do |string|
 end
 
 When(/^I click on "(.*?)"$/) do |string|
-  click_on(string)
+  case string 
+  when /Create Organization/
+    # raise find("input[value='Create Organization']").inspect
+    find("input[value='Create Organization']").click
+    # click_button(string)
+  else
+    click_on(string)
+  end
 end
 
 Then("I should receive the report file") do
@@ -322,11 +333,17 @@ Then(/^I should be on the (\w+) page$/) do |string|
 end
 
 Then(/^I should see "(.*?)"$/) do |string|
+  # expect(page).to have_content(string)
   expect(page).to have_content(string)
 end
 
 Then(/^I should not see "(.*?)"$/) do |string|
   expect(page).to have_no_content(string)
+end
+
+Then(/^there should be a "(.*?)" button$/) do |string|
+  raise page.current_url.to_yaml
+  expect(page).to have_content(string)
 end
 
 Given("there is a {string}") do |table|
@@ -402,5 +419,15 @@ Given(/^I am on the organization (\w+) page$/) do |action|
     visit organization_path(@organization.slug)
   when /index/
     visit organizations_path
+  when /edit/
+    visit edit_organization_path(id: @organization[:id], org_path: @organization.slug, slug: @organization.slug)
+  when /new/
+    visit new_organization_path(org_path: @organization.slug)
   end
+end
+
+Then(/^an (\w+) with a (\w+) of (\w+) should be (present|absent)$/) do |obj, column, val, should_be|
+  bool = true if should_be == "present"
+  bool = false if should_be == "absent"
+  expect(obj.classify.safe_constantize.where(column => val).present?).to eq(bool)
 end
