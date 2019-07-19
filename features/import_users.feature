@@ -8,7 +8,7 @@ I want to import users into the database
     Given there is a organization
     And the organization enable_workflows option is enabled
     And that I am logged in as a supervisor on the organization
-    And I am on the organization show page
+    And I am on the users index page for the organization
     When I click the "Import Users" link
     And I fill in the users form with:
       | emails | user@test.com, anotheruser@test.com |
@@ -18,7 +18,7 @@ I want to import users into the database
   Scenario: import_users
     Given there is a organization
     And that I am logged in as a organization_admin on the organization
-    And I am on the organization show page
+    And I am on the users index page for the organization
     When I click the "Import Users" link
     And I fill in the users form with:
       | emails | user@test.com, anotheruser@test.com |
