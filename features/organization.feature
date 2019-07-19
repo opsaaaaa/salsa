@@ -52,4 +52,3 @@ I want to create, edit and view organizations
         | default_account_filter | {"account_filter":"SP18"} |
      And I click on "Update Organization"
      Then I should see "Slug is invalid"
-     
