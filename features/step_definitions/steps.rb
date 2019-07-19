@@ -238,6 +238,11 @@ When(/^I click on "(.*?)"$/) do |string|
   end
 end
 
+When(/^I click the "(.*?)" "(.*?)" button$/) do |feild, val|
+  find("input[#{feild}='#{val}']").click
+end
+
+
 Then("I should receive the report file") do
   filename = "#{@organization.slug}"
   page.response_headers['Content-Disposition'].to_s.include?(/filename=\"#{filename}_.*\.zip\"/.to_s)
@@ -256,9 +261,9 @@ Given("the organization enable_workflows option is enabled") do
   org.save
 end
 
-Given("that i am logged in as a supervisor") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
+# Given("that i am logged in as a supervisor") do
+#   pending # Write code here that turns the phrase above into concrete actions
+# end
 
 Given(/^I am on the (\w+) index page for the organization$/) do |controller|
   @controller = controller
@@ -419,12 +424,27 @@ Given(/^I am on the organization (\w+) page$/) do |action|
     visit edit_organization_path(id: @organization[:id], org_path: @organization.slug, slug: @organization.slug)
   when /new/
     visit new_organization_path(org_path: @organization.slug)
+  when /delete/
+    page.driver.delete(organization_path(@organization.slug))
   end
 end
 
-Then(/^an "(.*?)" should be (present|absent) with:$/) do |obj, should_be, table|
-  expect(obj.classify.safe_constantize
+Then(/^an "(.*?)" should be (present|absent) with:$/) do |class_name, should_be, table|
+  expect(class_name.classify.safe_constantize
     .find_by(
       Hash[*table.raw.flatten(1)]).present?)
+      .to eq(should_be == "present")
+end
+
+Given(/^there is a "(.*?)" with:$/) do |class_name, table|
+  instance_variable_set( "@#{class_name}",
+    class_name.classify.safe_constantize
+    .create( Hash[ *table.raw.flatten(1) ] ) )
+end
+
+Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
+  record = instance_variable_get("@#{class_name}")
+  expect(class_name.classify.safe_constantize
+    .find_by(id: record.id).present?)
       .to eq(should_be == "present")
 end
