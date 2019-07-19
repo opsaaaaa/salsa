@@ -230,18 +230,8 @@ When(/^I click the "(.*?)" link$/) do |string|
 end
 
 When(/^I click on "(.*?)"$/) do |string|
-  case string 
-  when /Create Organization/
-    find("input[value='Create Organization']").click
-  else
-    click_on(string)
-  end
+  click_on(string)
 end
-
-When(/^I click the "(.*?)" "(.*?)" button$/) do |feild, val|
-  find("input[#{feild}='#{val}']").click
-end
-
 
 Then("I should receive the report file") do
   filename = "#{@organization.slug}"
