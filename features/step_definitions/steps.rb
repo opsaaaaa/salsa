@@ -1,6 +1,6 @@
 Given(/^that I am logged in as a (\w+) on the organization$/) do |role|
   visit "/admin/login"
-  @current_user = create(:user)
+  @current_user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: @current_user.id, role: role, organization_id: @organization.id)
   fill_in "user_email", :with => @current_user.email
   fill_in "user_password", :with => @current_user.password
@@ -10,7 +10,7 @@ end
 
 Given(/^that I am logged in as a (\w+)$/) do |role|
   visit "/admin/login"
-  @current_user = create(:user)
+  @current_user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: @current_user.id, role: role)
   fill_in "user_email", :with => @current_user.email
   fill_in "user_password", :with => @current_user.password
@@ -62,9 +62,7 @@ end
 
 Given(/^there is a organization with a sub organization$/) do
   @organization = FactoryBot.create(:organization)
-  @sub_organization = FactoryBot.create(:organizations, parent_id: @organization.id)
-  # @organization = create(:organization)
-  # @sub_organization = create(:organization, parent_id: @organization.id)
+  @sub_organization = FactoryBot.create(:organization, parent_id: @organization.id)
 end
 
 Given(/^there is a (\w+) with a (\w+) of "(.*?)"$/) do |class_name, field_name, field_value|
@@ -125,13 +123,13 @@ Given("the user has a document with a workflow_step of {int}") do |int|
 end
 
 Given(/^there is a user with the role of (\w+)$/) do |role|
-  user = create(:user, email: Faker::Internet.free_email)
+  user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: user.id, role: role, organization_id: @organization.id)
   instance_variable_set("@user",user)
 end
 
 Given(/^there is a user with the role of (\w+) on the sub organization$/) do |role|
-  user = create(:user, email: Faker::Internet.free_email)
+  user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: user.id, role: role, organization_id: @sub_organization.id)
   instance_variable_set("@user",user)
 end
@@ -234,9 +232,7 @@ end
 When(/^I click on "(.*?)"$/) do |string|
   case string 
   when /Create Organization/
-    # raise find("input[value='Create Organization']").inspect
     find("input[value='Create Organization']").click
-    # click_button(string)
   else
     click_on(string)
   end
@@ -426,8 +422,9 @@ Given(/^I am on the organization (\w+) page$/) do |action|
   end
 end
 
-Then(/^an (\w+) with a (\w+) of (\w+) should be (present|absent)$/) do |obj, column, val, should_be|
-  bool = true if should_be == "present"
-  bool = false if should_be == "absent"
-  expect(obj.classify.safe_constantize.where(column => val).present?).to eq(bool)
+Then(/^an "(.*?)" should be (present|absent) with:$/) do |obj, should_be, table|
+  expect(obj.classify.safe_constantize
+    .find_by(
+      Hash[*table.raw.flatten(1)]).present?)
+      .to eq(should_be == "present")
 end

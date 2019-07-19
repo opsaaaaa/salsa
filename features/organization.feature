@@ -15,19 +15,17 @@ I want to create, edit and view organizations
 
   Scenario: create organization
      Given I am on the organization new page
-   #   Then there should be a "Add Organization" button
-   #   When I click the "Add Organization" link
      And I fill in the organization form with:
-        | name | TestOrganization |
-        | slug | testorganization.com |
+        | name | TestCreateOrganization |
+        | slug | testcreateorganization |
      And I click on "Create Organization"
-   #   Then I should see "Organization was successfully created." 
-     Then an organization with a name of TestOrganization should be present
+     Then I should see "Organization was successfully created." 
+     And an "organization" should be present with:
+        | name | TestCreateOrganization |
+        | slug | testcreateorganization |
 
   Scenario: create organization see error on invalid slug
      Given I am on the organization new page
-   #   Given I am on the organization index page
-   #   When I click the "Add Organization" link
      And I fill in the organization form with:
         | name | Test Organization |
         | slug | %$#^!@& SDF SDFH$^%#$^$ |
