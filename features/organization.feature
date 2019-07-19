@@ -51,8 +51,8 @@ I want to create, edit and view organizations
         | slug | #@$ @**))~(_+#!@_^_$HDJ ) |
         | default_account_filter | {"account_filter":"SP18"} |
      And I click on "Update Organization"
-<<<<<<< HEAD
-     Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"
+     Then I should see "Slug is invalid"
+   #   Then I should see "Slug must only contain lowercase letters, numbers, periods(.), hyphens(-) and underscores(_)"
 
    Scenario: delete organization with children
       Given there is a organization with a sub organization
@@ -64,7 +64,7 @@ I want to create, edit and view organizations
       And I am on the organization edit page
       And i click the "Delete" link
       Then the organization should "not" exist
-=======
-     Then I should see "Slug is invalid"
+
+
      
->>>>>>> admin
+
