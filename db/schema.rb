@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190712081735) do
+ActiveRecord::Schema.define(version: 20190717175759) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -152,8 +152,8 @@ ActiveRecord::Schema.define(version: 20190712081735) do
     t.string "idp_cert_fingerprint_algorithm"
     t.string "authn_context"
     t.string "lms_account_id"
-    t.string "time_zone"
     t.string "period_meta_key"
+    t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"
@@ -195,7 +195,6 @@ ActiveRecord::Schema.define(version: 20190712081735) do
     t.datetime "updated_at"
     t.json "report_filters"
     t.boolean "is_archived", default: false
-    t.string "archive_url"
     t.index ["organization_id"], name: "index_report_archives_on_organization_id"
   end
 
@@ -285,4 +284,5 @@ ActiveRecord::Schema.define(version: 20190712081735) do
     t.string "step_type", default: "default_step"
   end
 
+  add_foreign_key "organizations", "organizations", column: "parent_id"
 end
