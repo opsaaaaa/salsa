@@ -13,16 +13,18 @@ I want to create, edit and view organizations
     And I am on the organization index page
     Then I should be able to see all the organizations
 
-  Scenario: create organization
-     Given I am on the organization new page
-     And I fill in the organization form with:
-        | name | TestCreateOrganization |
-        | slug | testcreateorganization |
-     And I click on "Create Organization"
-     Then I should see "Organization was successfully created." 
-     And an "organization" should be present with:
-        | name | TestCreateOrganization |
-        | slug | testcreateorganization |
+   Scenario: create organization
+      Given there is a organization
+      And I am on the organization show page
+      And I click the "Add Organization" link
+      And I fill in the organization form with:
+         | name | TestCreateOrganization |
+         | slug | testcreateorganization |
+      And I click on "Create Organization"
+      Then I should see "Organization was successfully created." 
+      And an "organization" should be present with:
+         | name | TestCreateOrganization |
+         | slug | testcreateorganization |
 
   Scenario: create organization see error on invalid slug
      Given I am on the organization new page
@@ -52,4 +54,16 @@ I want to create, edit and view organizations
         | default_account_filter | {"account_filter":"SP18"} |
      And I click on "Update Organization"
      Then I should see "Slug is invalid"
+
+   Scenario: fail on delete organization with children
+      Given there is a organization with a sub organization
+      And I am on the organization delete page
+      Then the "organization" should be present
+
+   Scenario: delete organization without children
+      Given there is a organization
+      And I am on the organization edit page
+      And I click the "Delete " link
+      Then the "organization" should be absent
      
+

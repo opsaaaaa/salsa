@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190712081735) do
+ActiveRecord::Schema.define(version: 20190717175759) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -194,7 +194,6 @@ ActiveRecord::Schema.define(version: 20190712081735) do
     t.datetime "updated_at"
     t.json "report_filters"
     t.boolean "is_archived", default: false
-    t.string "archive_url"
     t.index ["organization_id"], name: "index_report_archives_on_organization_id"
   end
 
@@ -284,4 +283,5 @@ ActiveRecord::Schema.define(version: 20190712081735) do
     t.string "step_type", default: "default_step"
   end
 
+  add_foreign_key "organizations", "organizations", column: "parent_id"
 end
