@@ -74,8 +74,8 @@ class User < ApplicationRecord
   #   super
   # end
 
-  def is_has_global_role?
-    self.user_assignments.where(organization_id: nil).present?
+  def has_global_role?
+    self.user_assignments.find_by(organization_id: nil).present?
   end
 
   def activate
