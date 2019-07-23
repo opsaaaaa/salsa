@@ -1,12 +1,25 @@
 
 <div class="row">
-  <h1 class="col-md-6">
-    Organizations
-  </h1>
-  <% if has_role 'admin' %>
-    <%= link_to 'Add Organization', new_organization_path(org_path: params[:org_path]), class: 'btn btn-success pull-right' %>
-  <% end %>
-  <div class="list-group col-md-12">
+  <div class="col-xs-7">
+    <h1>
+      Organizations
+    </h1>
+  </div>
+
+  <div class="col-xs-5">
+    <% if has_role 'admin' %>
+      <%= link_to 'Add Organization', new_organization_path(org_path: params[:org_path]), class: 'btn btn-success pull-right h1' %>
+    <% end %>
+  </div>
+</div>
+
+
+<div class="row">
+  <form id="org_filter">
+    <label for="org_filter_input">Filter Organizations</label>
+    <input type="text" name="organization" id="org_filter_input" value="<%= get_organization_filter %>">
+  </form>
+  <ul class="list-group col-md-12">
     <% @organizations.each do |org| %>
       <li class="list-group-item depth-<%= org.depth %>">
         <% unless !org.slug? or (org.slug.include? '/' and (org.slug.index('/') > 0)) %>
@@ -19,5 +32,5 @@
         <% end %>
       </li>
     <% end %>
-  </div>
+  </ul>
 </div>

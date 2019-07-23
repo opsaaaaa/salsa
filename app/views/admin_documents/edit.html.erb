@@ -16,12 +16,14 @@
     </div>
   </div>
 
-  <div class="form-group">
-    <%= f.label :organization_id, class: "control-label" %>
-    <div class="controls">
-      <%= f.select(:organization_id, @organizations.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
+  <% if has_role('supervisor', @document.organization) && @organizations.count > 1 %>
+    <div class="form-group">
+      <%= f.label :organization_id, class: "control-label" %>
+      <div class="controls">
+        <%= f.select(:organization_id, @organizations.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, {include_blank: true}, {class: 'form-control'}) %></p>
+      </div>
     </div>
-  </div>
+  <% end %>
 
   <div class="form-group">
     <%= f.label :lms_course_id, class: "control-label" %>
@@ -54,5 +56,63 @@
 <div class="form-group">
   <%= f.submit class: 'btn btn-default' %>
 </div>
+
+<% org = @organization if @organization %>
+<% org = @document.organization unless org %>
+
+<% if org %>
+  <% org_base = "//#{org_slug_parts(org)[0]}#{redirect_port}" %>
+  <% if org.depth > 0 %>
+    <% org_base += "/#{org_slug_parts(org)[1]}"%>
+  <% end %>
+<% else %>
+  <% org_base = '' %>
+<% end %>
+
+<ul class="media-list">
+  <% if @document.lms_published_at %>
+    <% if @document.lms_course_id %>
+      <% if @document.organization && @document.organization[:lms_authentication_source] %>
+        <li>
+          <a href="<%= @document.organization[:lms_authentication_source] + '/courses/' + @document.lms_course_id + '/assignments/syllabus' %>">
+            Published to:
+            <%= @document.organization[:lms_authentication_source] + '/courses/' + @document.lms_course_id + '/assignments/syllabus' %>
+          </a>
+        </li>
+      <% end %>
+
+      <li>
+        <%= link_to "Course Edit Link: #{org_base}#{lms_course_document_path(lms_course_id: @document.lms_course_id, org_path: params[:org_path])}", "#{org_base}#{lms_course_document_path(lms_course_id: @document.lms_course_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
+      </li>
+    <% end %>
+  <% elsif @document.lms_course_id %>
+    <li>
+      LMS Course ID: <%= @document.lms_course_id %>
+      <div class="badge alert-warning">
+        manually set, unpublished
+      </div>
+    </li>
+  <% end %>
+
+
+  <% if !@document.organization&.disable_document_view %>
+    <li>
+      <%= link_to "View: #{org_base}#{document_path(id: @document.view_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: @document.view_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
+    </li>
+  <% end %>
+
+
+  <% if @document.organization && @document.organization.root_org_setting("enable_anonymous_actions") %>
+    <li>
+      <%= link_to "Edit: #{org_base}#{document_path(id: @document.edit_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: @document.edit_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
+    </li>
+    
+    <li>
+      <% if @document.template_id %>
+        <%= link_to "Template: #{org_base}#{document_path(id: @document.template_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: @document.template_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
 
 <% end %>

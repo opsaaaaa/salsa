@@ -1,8 +1,2 @@
 <%- model_class = Document -%>
-<% if !@user_documents.blank? || !@documents.blank? || !@staff_documents.blank? %>
-  <%= render :partial => "list", locals:{ user_documents: @user_documents, documents: @documents, staff_documents: @staff_documents } %>
-<% else %>
-  <div class="alert alert-warning">
-    No documents were found.
-  </div>
-<% end %>
+<%= render :partial => "list", locals:{ user_documents: @user_documents, documents: @documents, staff_documents: @staff_documents } %>

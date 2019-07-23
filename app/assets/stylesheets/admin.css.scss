@@ -5090,18 +5090,31 @@ body {
     z-index: 1000;
     display: block;
     padding: 20px;
-    overflow-x: hidden;
+    overflow: hidden;
     /* Scrollable contents if viewport is shorter than content. */
-    overflow-y: auto;
     background-color: #f5f5f5;
     border-right: 1px solid #eee;
   }
 }
 .nav-sidebar {
+  position: relative;
   /* 20px padding + 1px border */
+  padding-bottom: 20px;
   margin-right: -21px;
-  margin-bottom: 20px;
   margin-left: -20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: calc(100% - 140px);
+}
+
+#org_filter {
+  margin-bottom:20px;
+  input {
+
+    width: 80%;
+    font-size: 1.3em;
+    padding: 5px;
+  }
 }
 .nav-sidebar > li > a {
   padding-right: 20px;
@@ -5175,5 +5188,20 @@ body {
 .nav-sidebar {
   .alert-danger {
     display: none;
+  }
+}
+
+.mt-label {
+  margin-top: 24px;
+}
+
+.horizontal-list {
+  display: flex;
+  list-style: none;
+  justify-content: flex-start;
+  padding: 0;
+
+  li {
+    padding: 0 2em 0 0;
   }
 }

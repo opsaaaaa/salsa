@@ -2,12 +2,17 @@ class Document < ApplicationRecord
   has_paper_trail
 
   before_validation :normalize_blank_values, :ensure_ids
+  before_create :set_default_period
 
   belongs_to :organization
   belongs_to :component, optional: true
   belongs_to :period, optional: true
   belongs_to :workflow_step, optional: true
   belongs_to :user, optional: true
+  
+  def meta
+    DocumentMeta.where("document_id = ? OR (document_id IS NULL AND lms_course_id = ? AND root_organization_id = ?)", self.id, self.lms_course_id, self.organization.root.id)
+  end
 
   validates :lms_course_id, uniqueness: { scope: :organization_id, message: "is already in use for this organization" }, allow_nil: true
   validates_uniqueness_of [:view_id, :edit_id, :template_id]
@@ -21,25 +26,31 @@ class Document < ApplicationRecord
   end
 
   def assignees
-    if self.workflow_step_id
-      component = self.workflow_step&.component
-      return nil if component.blank?
-      if component.role == "staff"
-        User.where(id: self.user_id)
-      elsif component.role == "supervisor" && self.user&.user_assignments&.find_by(organization_id:self.organization_id)&.role == "staff"
-        User.where(id: self.closest_roles("supervisor").pluck(:user_id))
-      elsif component.role == "supervisor"
-        User.where(id: self.closest_roles("supervisor", nil, false).pluck(:user_id))
-      elsif component.role == "approver"
-        user_ids = self.approvers_that_have_not_signed.pluck(:id)
-        User.where(id: self.closest_user_with_role("approver", user_ids)&.id)
-      else
-        []
-      end
-    else
-      []
-    end
+    users = []
 
+    if self.workflow_step_id
+      if self.workflow_step&.step_type == 'end_step'
+        user_ids = self.approvers_that_signed.pluck(:id)
+        user_ids += User.where(id: self.closest_roles("supervisor").pluck(:user_id))
+        users = User.where(id: self.closest_roles("supervisor", nil, false).pluck(:user_id))
+      else
+        component = self.workflow_step&.component
+        return nil if component.blank?
+
+        if component.role == "staff"
+          users = User.where(id: self.user_id)
+        elsif component.role == "supervisor" && self.user&.user_assignments&.find_by(organization_id:self.organization_id)&.role == "staff"
+          users = User.where(id: self.closest_roles("supervisor").pluck(:user_id))
+        elsif component.role == "supervisor"
+          users = User.where(id: self.closest_roles("supervisor", nil, false).pluck(:user_id))
+        elsif component.role == "approver"
+          user_ids = self.approvers_that_have_not_signed.pluck(:id)
+          users = User.where(id: self.closest_user_with_role("approver", user_ids)&.id)
+        end
+      end
+    end
+    
+    return users
   end
 
   #TODO fix approver permissions with assignments
@@ -78,6 +89,16 @@ class Document < ApplicationRecord
   # Find all users on the closest organization with the role
   def closest_users_with_role role, user_ids=nil
     return User.where(id: self.closest_roles(role,user_ids).pluck(:user_id))
+  end
+
+  def closest_period(slug=nil, default=nil)
+    org_ids = self.organization&.self_and_ancestors&.pluck(:id)
+    periods = Period.where(organization_id: org_ids)&.includes(:organization)&.reorder("organizations.depth DESC")
+
+    periods = periods.where(slug: slug) if slug != nil
+    periods = periods.where(is_default: default) if default != nil
+
+    return periods&.first
   end
 
   def approvers
@@ -136,6 +157,29 @@ class Document < ApplicationRecord
     self.edit_id = Document.generate_id
     self.template_id = Document.generate_id
     self.lms_course_id = nil
+  end
+
+  def set_default_period
+    if !self.period_id
+      period = nil
+      
+      # check if there is a matching period via document meta,
+      document_meta_period_key = self.organization.setting('period_meta_key')
+      if document_meta_period_key
+        document_meta_period = self.meta.where(key: document_meta_period_key).first
+
+        if document_meta_period
+          period = Period.where(remote_id: document_meta_period.value).first
+        end
+      end
+
+      if !period
+        # get closes default period
+        period = closest_period nil, true
+      end
+
+      self.period_id = period.id if period
+    end
   end
 
   protected

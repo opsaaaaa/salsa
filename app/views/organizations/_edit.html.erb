@@ -11,13 +11,13 @@
   <% end %>
 
   <% if !@organization.new_record? %>
-    <% form_action = organization_path slug: full_org_path(@organization), org_path: params[:org_path] %>
+    <% form_action = organization_path slug: full_org_path(find_org_by_path params[:slug]), org_path: params[:org_path] %>
   <% else %>
     <% form_action = organization_path slug: '', org_path: params[:org_path] %>
   <% end %>
 
   <%= form_for(@organization, url: form_action, :html => { :class => "form-horizontal col-md-9" } ) do |f| %>
-    <% if has_role 'admin' %>
+    <% if has_role 'organization_admin' %>
         <fieldset>
           <legend>Organization</legend>
 
@@ -35,12 +35,17 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <%= f.label :parent_id, class: "control-label" %>
+          <% if has_role 'admin' or @organization.new_record? or @organization.parent_id_was %>
+            <div class="form-group">
+              <%= f.label :parent_id, class: "control-label" %>
 
-              <%= f.select :parent_id, @organizations.where.not(id: params[:id]).collect { |org| [ org.slug + ' - ' + org.name, org.id ] }, { include_blank: '-- top level organization --'}, { class: 'form-control' } %>
-
-          </div>          
+              <% if has_role 'admin' %>
+                <%= f.select :parent_id, @organizations.where.not(id: params[:id]).collect { |org| [ org.slug + ' - ' + org.name, org.id ] }, { include_blank: '-- top level organization --'}, { class: 'form-control' } %>
+              <% else %>
+                <%= f.select :parent_id, @organizations.where.not(id: params[:id]).collect { |org| [ org.slug + ' - ' + org.name, org.id ] }, { include_blank: ''}, { class: 'form-control' } %>
+              <% end %>
+            </div>          
+          <% end %>
         
           <div class="form-group">
             <%= f.label :time_zone, class: "control-label" %>
@@ -52,6 +57,7 @@
                 { class: 'form-control' } 
               %>
           </div>          
+          
         </fieldset>
 
         <fieldset class="default_account_filter">

@@ -10,8 +10,14 @@ module FileHelper
   end
 
   def self.remote_file_exists(file_path)
+    bucket_name = ENV['AWS_BUCKET']
+
+    unless bucket_name
+      return false
+    end
+
     s3 = Aws::S3::Resource.new(region: ENV['AWS_REGION'])
-    bucket =  s3.bucket(ENV['AWS_BUCKET'])
+    bucket =  s3.bucket(bucket_name)
 
     if bucket.object(file_path).exists?
       return true

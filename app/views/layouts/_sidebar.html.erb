@@ -4,13 +4,19 @@
       <%= Document.where('documents.updated_at != documents.created_at').count %> documents<br>
       <%= Document.where('documents.updated_at = documents.created_at').count %> abandoned
     </div>
+  <% end %>
 
+  <% if has_role 'organization_admin' %>
     <%= link_to 'Add Organization', new_organization_path(org_path: params[:org_path]), class: 'btn btn-success' %>
 
     <hr>
   <% end %>
   <% if @organizations %>
-    <ul class="nav nav-sidebar">
+    <form id="org_filter">
+      <label for="org_filter_input">Filter Organizations</label>
+      <input type="text" name="organization" id="org_filter_input" value="<%= get_organization_filter %>">
+    </form>
+    <ul class="nav nav-sidebar" id="org_list">
       <% if has_role 'admin' %>
         <li class="nav-header clearfix">
           <%= link_to 'Orphaned SALSAs', orphaned_documents_path(org_path: params[:org_path]) %>

@@ -1,5 +1,7 @@
 <%= form_for(@document, url: workflow_document_path(org_path: params[:org_path]), html: { class: "form-horizontal col-md-9" } ) do |f| %>
 
+<h1 class="h2 mt-4">Edit Document</h2>
+
 <% if @document.errors.any? %>
   <div class="alert alert-danger">
     <ul>
@@ -17,12 +19,14 @@
     </div>
   </div>
 
-  <div class="form-group">
-    <%= f.label :lms_course_id, class: "control-label" %>
-    <div class="controls">
-      <%= f.text_field :lms_course_id, class: 'form-control input-xxlarge' %>
+  <% if @organization.setting('lms_authentication_source') %>
+    <div class="form-group">
+      <%= f.label :lms_course_id, class: "control-label" %>
+      <div class="controls">
+        <%= f.text_field :lms_course_id, class: 'form-control input-xxlarge' %>
+      </div>
     </div>
-  </div>
+  <% end %>
   <% if @workflow_steps && @document.organization.root_org_setting("enable_workflows") %>
     <div class="form-group">
       <%= f.label :workflow_step_id, class: "control-label" %>
@@ -47,7 +51,7 @@
   </div>
 
 <div class="form-group">
-  <%= f.submit class: 'btn btn-default' %>
+  <%= f.submit class: 'btn btn-primary' %>
 </div>
 
 <% end %>

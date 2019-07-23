@@ -8,7 +8,23 @@ var batch_token = "";
 
 
 $(function(){
+  if($(".active-org").length) {
+    $('.nav-sidebar').scrollTop($(".active-org").offset().top-254)
+  }
 
+  $('#org_filter :input').on('keyup change', function(){
+    var target = $(this).closest('#org_filter').next('ul');
+    var orgFilter = new RegExp($(this).val(), 'i');
+    var orgElements = $('li', target);
+
+    var matched = $.grep(orgElements, function(item){
+      return $(item).text().search(orgFilter) >= 0;
+    });
+
+    $(matched).show();
+    orgElements.not(matched).hide();
+  }).trigger('change');
+  
   $('#toggleChecked').on('click', function() {
     var isChecked = $('#salsaDocuments :checkbox:first').is(':checked');
 

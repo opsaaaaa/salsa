@@ -19,12 +19,28 @@ Given(/^that I am logged in as a (\w+)$/) do |role|
 end
 
 Given(/^there is a (\w+) on the organization$/) do |class_name|
-  record = create(class_name, organization_id: @organization.id)
+  case class_name
+  when /user/
+    record = create(class_name.singularize)
+    record_assignment = create('user_assignment', user: record, organization: @organization)
+  when /component/
+    record = create(class_name, organization_id: @organization.id, user_role: "admin")
+  else
+    record = create(class_name, organization_id: @organization.id)
+  end
   instance_variable_set("@#{class_name}",record)
 end
 
 Given(/^there are (\d+) (\w+) for the organization/) do | number, class_name|
-  record = create(class_name.singularize, organization: @organization)
+  case class_name
+  when /users/
+    record = create(class_name.singularize)
+    record_assignment = create('user_assignment', user: record, organization: @organization)
+  when /components/
+    record = create(class_name.singularize, organization: @organization, user_role: "admin")
+  else
+    record = create(class_name.singularize, organization: @organization)
+  end
   instance_variable_set("@#{class_name}",record)
 end
 
@@ -53,24 +69,41 @@ Given(/^there is a (\w+) with a (\w+) of "(.*?)"$/) do |class_name, field_name, 
   instance_variable_set("@#{class_name}", create(class_name, field_name => field_value))
 end
 
+When /^S3 uploads are stubbed out$/ do
+  Aws.config[:s3] = {
+    stub_responses: {
+      list_buckets: { buckets: [{name: ENV["AWS_BUCKET"] }] },
+      get_object: { body: 'data' }
+    }
+  }
+end
+
 Given(/^there is a (\w+)$/) do |class_name|
   case class_name
   when /workflow/
-    recordA = create(:workflow_step, slug: "final_step", step_type: "end_step", organization_id: @organization.id)
+    recordA = create(:workflow_step, slug: "step_5", step_type: "end_step", organization_id: @organization.id)
+    componentA = recordA.component
+    componentA.user_role = "admin"
+    componentA.role = nil
+    componentA.save
     recordB = create(:workflow_step, slug: "step_4", next_workflow_step_id:recordA.id, organization_id: @organization.id)
     componentB = recordB.component
+    componentA.user_role = "admin"
     componentB.role = "approver"
     componentB.save
     recordC = create(:workflow_step, slug: "step_3", next_workflow_step_id: recordB.id, organization_id: @organization.id)
     componentC = recordC.component
+    componentA.user_role = "admin"
     componentC.role = "supervisor"
     componentC.save
     recordD = create(:workflow_step, slug: "step_2", next_workflow_step_id: recordC.id, organization_id: @organization.id)
     componentD = recordD.component
+    componentA.user_role = "admin"
     componentD.role = "supervisor"
     componentD.save
     recordE = create(:workflow_step, slug: "step_1", next_workflow_step_id: recordD.id, step_type: "start_step", organization_id: @organization.id)
     componentE = recordE.component
+    componentA.user_role = "admin"
     componentE.role = "staff"
     componentE.save
     @workflows = WorkflowStep.workflows(@organization.id)
@@ -187,6 +220,8 @@ When(/^I click the "(.*?)" link$/) do |string|
     click_on("edit_#{@component.slug}")
   when /#edit_document/
     find(string).click
+  when /#show_user/
+    find(string+"_#{@user.id}").click
   else
     click_link(string)
   end
@@ -209,8 +244,9 @@ Then("the Report zip file should have documents in it") do
 end
 
 Given("the organization enable_workflows option is enabled") do
-  @organization.root_org_setting("enable_workflows") = true
-  @organization.save
+  org = @organization.self_and_ancestors.reorder(depth: :asc).first
+  org.enable_workflows = true
+  org.save
 end
 
 Given("that i am logged in as a supervisor") do
@@ -249,6 +285,8 @@ Then(/^I should be able to see all the (\w+) for the organization$/) do |class_n
     slugs = Component.where(organization_id: @organization.id).map(&:slug)
   when /workflow/
     slugs = WorkflowStep.where(organization_id: @organization.id).map(&:slug)
+  when /periods/
+    slugs = Period.where(organization_id: @organization.id).map(&:slug)
   end
   slugs.each do |slug|
     expect(page).to have_content(slug)
@@ -256,7 +294,12 @@ Then(/^I should be able to see all the (\w+) for the organization$/) do |class_n
 end
 
 Given(/^I am on the "(.*?)" page$/) do |page|
-  visit page
+  case page
+  when /edit_workflow_document/
+    visit edit_document
+  else
+    visit page
+  end
 end
 
 Then(/^I should see "(.*?)" in the url$/) do |string|
@@ -315,14 +358,6 @@ Then("I should not be able to edit the employee section") do
   pending
 end
 
-When("I fill in the form with:") do |table|
-  # table is a Cucumber::MultilineArgument::DataTable
-  pending # Write code here that turns the phrase above into concrete actions
-end
-
-When("I click the complete review button") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
 Then("I should see a new document edit url") do
   expect(page.current_url).not_to have_content(@document.view_id)
 end
@@ -341,8 +376,31 @@ Given(/^I am on the (\w*document\b) (\w+) page$/) do |document_type, page_path|
   end
 end
 
-
+Given(/^I am the (\w+) of the user$/) do |role|
+  Assignment.create(user_id: @current_user.id, team_member_id: @user.id, role: role)
+end
 
 Then("I should see a saved document") do
   @document
+end
+
+Given(/^there are (\w+) (\w+)$/) do |amount, class_name|
+  record = create_list(class_name, amount.to_i)
+  instance_variable_set("@#{class_name.pluralize}",record)
+end
+
+Then(/^I should be able to see all the organizations$/) do
+  slugs = Organization.all.map(&:name)
+  slugs.each do |slug|
+    expect(page).to have_content(slug)
+  end
+end
+
+Given(/^I am on the organization (\w+) page$/) do |action|
+  case action
+  when /show/
+    visit organization_path(@organization.slug)
+  when /index/
+    visit organizations_path
+  end
 end

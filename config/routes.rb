@@ -9,7 +9,9 @@ Rails.application.routes.draw do
             post '/auth/shibboleth', to: 'users/saml_sessions#create'
         end
         resources :documents, path: 'SALSA', constraints: { slug: /.*/ }
+        get 'documents/:document_id/meta', to: 'admin_documents#meta', as: 'document_meta', constraints: { slug: /.*/ }
         scope 'workflow' do
+            get 'documents/assignments', as: 'workflow_document_assignments', to: 'workflow_documents#assignments'
             resources :documents, as: 'workflow_document', controller: 'workflow_documents'
             get 'documents/:id/versions', as: 'workflow_document_versions', to: 'workflow_documents#versions'
             post 'documents/:id/revert_document/:version_id', as: 'workflow_revert_document', to: 'workflow_documents#revert_document'
@@ -87,6 +89,8 @@ Rails.application.routes.draw do
                 resources :users, as: 'organization_users', controller: 'organization_users' do
                     post 'archive'
                     post 'restore'
+                    get 'workflows', to: 'assignments#workflows', as: 'workflow_assignments'
+                    get 'workflows/:document_id', to: 'assignments#workflows', as: 'document_workflow_assignments'
                     resources :assignments, as: 'team_assignments', controller: 'assignments'
                 end
 

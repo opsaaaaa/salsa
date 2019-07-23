@@ -88,19 +88,20 @@ end
 
 namespace :swap do
   swap = fetch(:swap) != 'false'
+  swap_size = fetch(:swap_size)
 
   # untested
 	# desc 'Create swap'
-  # task :create do
-  #   on roles(:all) do
-  #     info "Creating SWAP space"
-  #     execute :sudo, "fallocate -l #{swap}G /swapfile"
-  #     execute :sudo, "chmod 600 /swapfile"
-  #     execute :sudo, "mkswap /swapfile"
-  #     # echo vm.swappiness=0 >> /etc/sysctl.conf
-  #     info "SWAP memory successfully created"
-  #   end
-  # end
+  task :create do
+    on roles(:all) do
+      info "Creating SWAP space"
+      execute :sudo, "fallocate -l #{swap_size}G /swapfile"
+      execute :sudo, "chmod 600 /swapfile"
+      execute :sudo, "mkswap /swapfile"
+      # echo vm.swappiness=0 >> /etc/sysctl.conf
+      info "SWAP memory successfully created"
+    end
+  end
 
   desc 'enable swap'
   task :enable do
