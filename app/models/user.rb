@@ -74,8 +74,8 @@ class User < ApplicationRecord
   #   super
   # end
 
-  def is_admin?
-    self.user_assignments.pluck(:organization_id).map.include?(nil)
+  def is_has_global_role?
+    self.user_assignments.where(organization_id: nil).present?
   end
 
   def activate

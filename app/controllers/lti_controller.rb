@@ -99,7 +99,7 @@ class LtiController < ApplicationController
         } )
 
         return nil unless users.count == 1 
-        return nil if users.first.is_admin?
+        return nil if users.first.is_has_global_role?
         users.first
     end
 
