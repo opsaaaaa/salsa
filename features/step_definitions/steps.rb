@@ -1,6 +1,6 @@
 Given(/^that I am logged in as a (\w+) on the organization$/) do |role|
   visit "/admin/login"
-  @current_user = create(:user)
+  @current_user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: @current_user.id, role: role, organization_id: @organization.id)
   fill_in "user_email", :with => @current_user.email
   fill_in "user_password", :with => @current_user.password
@@ -10,7 +10,7 @@ end
 
 Given(/^that I am logged in as a (\w+)$/) do |role|
   visit "/admin/login"
-  @current_user = create(:user)
+  @current_user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: @current_user.id, role: role)
   fill_in "user_email", :with => @current_user.email
   fill_in "user_password", :with => @current_user.password
@@ -61,8 +61,8 @@ Then(/^the (\w+) (\w+) should be (\w+)$/) do |class_name, record_name, value|
 end
 
 Given(/^there is a organization with a sub organization$/) do
-  @organization = create(:organization)
-  @sub_organization = create(:organization, parent_id: @organization.id)
+  @organization = FactoryBot.create(:organization)
+  @sub_organization = FactoryBot.create(:organization, parent_id: @organization.id)
 end
 
 Given(/^there is a (\w+) with a (\w+) of "(.*?)"$/) do |class_name, field_name, field_value|
@@ -110,6 +110,8 @@ Given(/^there is a (\w+)$/) do |class_name|
   when /document/ || /canvas_document/
     record = create(class_name, organization_id: @organization.id)
     instance_variable_set("@#{class_name}",record)
+  when /organization/
+    @organization = FactoryBot.create(:organization)
   else
     record = create(class_name)
     instance_variable_set("@#{class_name}",record)
@@ -121,13 +123,13 @@ Given("the user has a document with a workflow_step of {int}") do |int|
 end
 
 Given(/^there is a user with the role of (\w+)$/) do |role|
-  user = create(:user, email: Faker::Internet.free_email)
+  user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: user.id, role: role, organization_id: @organization.id)
   instance_variable_set("@user",user)
 end
 
 Given(/^there is a user with the role of (\w+) on the sub organization$/) do |role|
-  user = create(:user, email: Faker::Internet.free_email)
+  user = FactoryBot.create(:user)
   user_assignment = create(:user_assignment, user_id: user.id, role: role, organization_id: @sub_organization.id)
   instance_variable_set("@user",user)
 end
@@ -220,8 +222,8 @@ When(/^I click the "(.*?)" link$/) do |string|
     click_on("edit_#{@component.slug}")
   when /#edit_document/
     find(string).click
-  when /#show_user/
-    find(string+"_#{@user.id}").click
+  when /#show_user/ 
+    click_link("#{@user.name}")
   else
     click_link(string)
   end
@@ -249,9 +251,9 @@ Given("the organization enable_workflows option is enabled") do
   org.save
 end
 
-Given("that i am logged in as a supervisor") do
-  pending # Write code here that turns the phrase above into concrete actions
-end
+# Given("that i am logged in as a supervisor") do
+#   pending # Write code here that turns the phrase above into concrete actions
+# end
 
 Given(/^I am on the (\w+) index page for the organization$/) do |controller|
   @controller = controller
@@ -322,11 +324,17 @@ Then(/^I should be on the (\w+) page$/) do |string|
 end
 
 Then(/^I should see "(.*?)"$/) do |string|
+  # expect(page).to have_content(string)
   expect(page).to have_content(string)
 end
 
 Then(/^I should not see "(.*?)"$/) do |string|
   expect(page).to have_no_content(string)
+end
+
+Then(/^there should be a "(.*?)" button$/) do |string|
+  raise page.current_url.to_yaml
+  expect(page).to have_content(string)
 end
 
 Given("there is a {string}") do |table|
@@ -402,5 +410,31 @@ Given(/^I am on the organization (\w+) page$/) do |action|
     visit organization_path(@organization.slug)
   when /index/
     visit organizations_path
+  when /edit/
+    visit edit_organization_path(id: @organization[:id], org_path: @organization.slug, slug: @organization.slug)
+  when /new/
+    visit new_organization_path(org_path: @organization.slug)
+  when /delete/
+    page.driver.delete(organization_path(@organization.slug))
   end
+end
+
+Then(/^an "(.*?)" should be (present|absent) with:$/) do |class_name, should_be, table|
+  expect(class_name.classify.safe_constantize
+    .find_by(
+      Hash[*table.raw.flatten(1)]).present?)
+      .to eq(should_be == "present")
+end
+
+Given(/^there is a "(.*?)" with:$/) do |class_name, table|
+  instance_variable_set( "@#{class_name}",
+    class_name.classify.safe_constantize
+    .create( Hash[ *table.raw.flatten(1) ] ) )
+end
+
+Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
+  record = instance_variable_get("@#{class_name}")
+  expect(class_name.classify.safe_constantize
+    .find_by(id: record.id).present?)
+      .to eq(should_be == "present")
 end

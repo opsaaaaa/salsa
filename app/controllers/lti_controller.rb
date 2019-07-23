@@ -34,7 +34,7 @@ class LtiController < ApplicationController
                 # logout any current user
                 session[:authenticated_user] = false
                 user = current_user
-
+                
                 if user
                     # login the new user
                     session[:authenticated_user] = user.id

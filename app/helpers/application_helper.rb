@@ -172,7 +172,7 @@ module ApplicationHelper
   end
 
   def get_user_assignment_org user_id, role
-    if user_id != nil
+    if user_id != nil && user_id != false 
       current_user = User.find(user_id)
       if current_assignment = current_user.user_assignments.find_by(role: role)
         return current_assignment.organization

@@ -4,15 +4,16 @@ class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
   before_action :require_organization_admin_permissions, except: [:show, :index, :start_workflow_form, :start_workflow]
   before_action :require_supervisor_permissions, only: [:start_workflow_form, :start_workflow]
-  before_action :require_designer_permissions, only: [
-      :show,
-      :index
-  ]
+  before_action :require_designer_permissions, only: [:show, :index]
+
+  before_action :get_export_types, only: [:new, :edit, :create, :update, :delete]
   before_action :get_organizations
+  before_action :get_organization, except: [:orphaned_documents, :new, :create, :start_workflow_form]
+  before_action :get_documents, only: [:orphaned_documents, :show, :index]
+  
   layout 'admin'
 
   def index
-    get_documents
     @roots = @organizations.roots
 
     redirectOrg = nil
@@ -28,12 +29,11 @@ class OrganizationsController < AdminController
   end
 
   def new
-    @export_types = Organization.export_types
     @organization = Organization.new
   end
 
   def orphaned_documents
-    get_documents
+
   end
 
   def documents
@@ -52,14 +52,10 @@ class OrganizationsController < AdminController
   end
 
   def show
-    get_documents params[:slug]
     get_periods
   end
 
   def edit
-    @export_types = Organization.export_types
-    get_documents params[:slug]
-
     @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
     @organization.default_account_filter = '{"account_filter":""}' unless @organization.default_account_filter
     @organization.default_account_filter = '{"account_filter":""}' if @organization.default_account_filter == ''
@@ -69,7 +65,6 @@ class OrganizationsController < AdminController
 
   # commit actions
   def create
-    @export_types = Organization.export_types
     @organization = Organization.new 
     @organization.assign_attributes organization_params
 
@@ -85,9 +80,6 @@ class OrganizationsController < AdminController
   end
 
   def update
-    @export_types = Organization.export_types
-    @organization = find_org_by_path params[:slug]
-
     if has_role('admin') && params['organization']['default_account_filter'] != nil
       if params['organization']['default_account_filter'] != ''
         params['organization']['default_account_filter'] = JSON.parse(params['organization']['default_account_filter'])
@@ -111,10 +103,12 @@ class OrganizationsController < AdminController
   end
 
   def delete
-    @organization = find_org_by_path params[:slug]
-    @organization.delete
-
-    redirect_to organizations_path( org_path: params[:org_path])
+    @organization.destroy
+    if @organization.can_delete?
+      redirect_to organizations_path( org_path: params[:org_path])
+    else
+      render :edit
+    end
   end
 
   def import
@@ -160,7 +154,15 @@ class OrganizationsController < AdminController
   end
 
 
-  private
+  private  
+  
+  def get_export_types
+    @export_types = Organization.export_types
+  end
+
+  def get_organization path=params[:slug]
+    @organization = find_org_by_path path
+  end
 
   def get_documents path=params[:slug], page=params[:page], per=25, key=params[:key]
     if key == 'abandoned'
@@ -169,17 +171,12 @@ class OrganizationsController < AdminController
       operation = '!='
     end
 
-    if path
-      @organization = find_org_by_path path
-    end
-
     if @organization
       organization_ids = @organization.id
       documents = Document.where("documents.organization_id IN (?) AND documents.updated_at #{operation} documents.created_at", organization_ids)
     else
       documents = Document.where("documents.organization_id IS NULL AND documents.updated_at #{operation} documents.created_at")
     end
-
     @documents = documents.order(updated_at: :desc, created_at: :desc).page(page).per(per)
   end
 
