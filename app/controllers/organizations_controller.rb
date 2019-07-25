@@ -4,7 +4,7 @@ class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
   before_action :require_organization_admin_permissions, except: [:show, :index, :start_workflow_form, :start_workflow]
   before_action :require_supervisor_permissions, only: [:start_workflow_form, :start_workflow]
-  before_action :require_designer_permissions, only: [
+  before_action :require_designer_or_supervisor_permissions, only: [
       :show,
       :index
   ]
