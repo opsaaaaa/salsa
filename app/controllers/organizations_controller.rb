@@ -12,12 +12,9 @@ class OrganizationsController < AdminController
   layout 'admin'
   def index
     get_documents
-    @roots = @organizations.roots
 
     redirectOrg = nil
-    if @roots.count == 1
-      redirectOrg = @roots[0]
-    elsif @organizations.size == 1
+    if @organizations.size == 1
       redirectOrg = @organizations[0]
     end
 
