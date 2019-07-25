@@ -92,6 +92,7 @@ class Admin::AuditorController < ApplicationController
       end
     end
 
+    # ReportHelper.generate_report @org.slug, account_filter, params, @report
     if !@report || rebuild
 
       jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
@@ -109,7 +110,6 @@ class Admin::AuditorController < ApplicationController
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
-
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end

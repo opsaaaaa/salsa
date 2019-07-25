@@ -154,7 +154,7 @@ ActiveRecord::Schema.define(version: 20190724202733) do
     t.string "lms_account_id"
     t.string "period_meta_key"
     t.string "time_zone"
-    t.boolean "reports_include_lms", default: false, null: false
+    t.boolean "reports_use_document_meta", default: false, null: false
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"

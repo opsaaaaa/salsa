@@ -34,49 +34,22 @@
 </div>
 
 <% if @report_data %>
-  <div class="row">
-    <div class="col-lg-6 col-md-6 well">
-      <div class="row">
-        <div class="col-lg-6 col-md-6">
-          <div id="canvasUse" style="height: 300px;"></div>
-        </div><!-- .col-XXX-6 -->
-        <div class="col-lg-6 col-md-6">
-          <a href="#" class="btn btn-default btn-block usingSalsaBtn">
-            Using Salsa<br>
-            <span class="label label-primary"><span class="usingSalsaTotal">0</span> / <span class="grandTotal">0</span></span>
-            <span class="label label-primary salsaUsagePercent">0%</span>
-          </a>
-          <a href="#" class="btn btn-default btn-block notUsingSalsaBtn">
-            Not Using Salsa<br>
-            <span class="label label-default"><span class="notUsingSalsaTotal">0</span> / <span class="grandTotal">0</span></span>
-            <span class="label label-default notUsingSalsaPercent">0%</span>
-          </a>
-        </div><!-- .col-XXX-6 -->
-      </div><!-- .row -->
-    </div><!-- .well -->
-    <div class="col-lg-6 col-md-6 well">
-      <div class="row">
-        <div class="col-lg-6 col-md-6">
-          <div id="syllabusState" style="height: 300px;"></div>
-        </div><!-- .col-XXX-6 -->
-        <div class="col-lg-6 col-md-6">
-          <a href="#" class="btn btn-default btn-block hasSyllabusBtn">
-            Published to Canvas<br>
-            <span class="label label-success"><span class="hasSyllabusTotal">0</span> / <span class="usingSalsaTotal">0</span></span>
-            <span class="label label-success hasSyllabusPer">0%</span>
-          </a>
-          <a href="#" class="btn btn-default btn-block noSyllabusBtn">
-            Not Published to Canvas<br>
-            <span class="label label-danger"><span class="noSyllabusTotal">0</span> / <span class="usingSalsaTotal">0</span></span>
-            <span class="label label-danger noSyllabusPer">0%</span>
-          </a>
-        </div><!-- .col-XXX-6 -->
-      </div><!-- .row -->
-    </div><!-- .well -->
-  </div><!-- .row -->
-  <div class="row">
-    <div id="collegeCount" class="well" style="height:800px;"></div>
-  </div><!-- .row -->
+  <% if @org.setting("reports_use_document_meta") %>
+    
+    <div class="row">
+      <%= render 'salsa_usage_stats' %>
+      <%= render 'canvas_published_stats' %>
+    </div><!-- .row -->
+
+    <div class="row">
+      <div id="collegeCount" class="well" style="height:800px;"></div>
+    </div><!-- .row -->
+
+  <% else %>
+
+    <%# render 'orgs_document_count' %>
+
+  <% end %>
 
   <div class="row">
     <div class="panel-group courses" id="accordion">

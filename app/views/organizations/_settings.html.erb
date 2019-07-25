@@ -76,8 +76,8 @@
 
     <div class="form-group">
       <div class="controls">
-        <%= f.check_box :reports_include_lms, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true %>
-        <%= f.label :reports_inclide_lms, "Include LMS documents in Reports #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
+        <%= f.check_box :reports_use_document_meta, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true %>
+        <%= f.label :reports_use_document_meta, "Use documents meta for the Reports #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
       </div>
     </div>
 
