@@ -190,6 +190,7 @@ class AssignmentsController < AdminController
   end
 
   def set_users
+    get_organizations
     user_id = params[params.keys.detect { |k| k.to_s =~ /user_id/ }.to_sym].to_i
 
     @user = User.find(user_id)
@@ -197,6 +198,10 @@ class AssignmentsController < AdminController
     @assignments = @user.assignments
     @assignees = @user.assignees
 
+    # todo - verify role for user
+    if (@organizations.pluck(:id) & @user.user_assignments.pluck(:organization_id)).empty?
+      raise ActionController::RoutingError.new('Not Authorized')
+    end
 
     descendant_ua_ids = []
     find_org_by_path(params[:slug]).self_and_descendants.each do |org|
