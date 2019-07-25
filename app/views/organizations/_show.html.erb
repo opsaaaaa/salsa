@@ -179,7 +179,7 @@
                         <% end %>
                     <% end %>
 
-                    <% if @organization.root_org_setting('track_meta_info_from_document') != false %>
+                    <% if has_role('designer') @organization.root_org_setting('track_meta_info_from_document') != false %>
                       <%= link_to "Meta",
                         document_meta_path(
                           document_id: document.id,
