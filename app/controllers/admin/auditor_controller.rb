@@ -4,6 +4,7 @@ require 'zip'
 class Admin::AuditorController < ApplicationController
 
   before_action :require_auditor_role
+  before_action -> { @org = get_org }, olny: [:report, :reports]
 
   def download
     redirect_to FileHelper.presigned_url(ReportHelper.remote_file_location(get_org, params['report']))
@@ -28,12 +29,9 @@ class Admin::AuditorController < ApplicationController
   end
 
   def reports
-    @org = get_org
-    if params[:show_archived]
-      @reports = ReportArchive.where(organization_id: @org.id, is_archived: true).order(updated_at: :desc ).all
-    else
-      @reports = ReportArchive.where(organization_id: @org.id, is_archived: false).order(updated_at: :desc ).all
-    end
+    @reports = ReportArchive.where(
+      organization_id: @org.id, 
+      is_archived: params[:show_archived].present?).order(updated_at: :desc )
     if @reports.blank? && !params[:show_archived]
       params_hash = params.permit(:account_filter, :controller, :action).to_hash
       params_hash[:account_filter] = @org.default_account_filter
@@ -52,47 +50,22 @@ class Admin::AuditorController < ApplicationController
   end
 
   def report
-    @org = get_org
+    @reports = ReportArchive.where(organization_id: @org.id)
+    
     params_hash = params.permit(:account_filter, :controller, :action).to_hash
     rebuild = params[:rebuild]
-    #Remove unneeded params
-    params.delete :authenticity_token
-    params.delete :utf8
-    params.delete :commit
-    params.delete :rebuild
+    
+    remove_unneeded_params
 
-    if params[:account_filter] && params[:account_filter] != ""
-      account_filter = params[:account_filter]
-    else
-      if @org.default_account_filter
-        account_filter = @org.default_account_filter
-        params[:account_filter] = account_filter
-      else
-        # jump 2 weeks ahead to allow staff to review things for upcoming semester
-        date = Date.today + 2.weeks
-        semester = ['SP','SU','FL'][((date.month - 1) / 4)]
-        account_filter = "#{semester}#{date.strftime("%y")}"
-        params[:account_filter] = account_filter
-      end
-    end
+    account_filter = get_account_filter
+    params[:account_filter] = account_filter
 
-    if params[:report]
-      @report = ReportArchive.where(id: params[:report]).first
-      params.delete :report
-    else
-      #start by saving the report (add check to see if there is a report)
-      @reports = ReportArchive.where(organization_id: @org.id).all
+    get_report
 
-      if !@reports.empty?
-        if @reports.count == 1
-          @report = @reports.first;
-        else
-          return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
-        end
-      end
-    end
+    # report_status
+    ReportHelper.generate_report @org.slug, account_filter, params, @report
+    # if !@report || rebuild ||!report.payload
 
-    # ReportHelper.generate_report @org.slug, account_filter, params, @report
     if !@report || rebuild
 
       jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
@@ -110,10 +83,56 @@ class Admin::AuditorController < ApplicationController
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
+      raise @report_data.first.to_yaml
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
 
   private
+
+  def get_account_filter
+    if params[:account_filter] && params[:account_filter] != ""
+      return params[:account_filter]
+    else
+      if @org.default_account_filter
+        return @org.default_account_filter
+      else
+        # jump 2 weeks ahead to allow staff to review things for upcoming semester
+        date = Date.today + 2.weeks
+        semester = ['SP','SU','FL'][((date.month - 1) / 4)]
+        return "#{semester}#{date.strftime("%y")}"
+      end
+    end
+  end
+
+  def get_report
+    if params[:report]
+      @report = ReportArchive.where(id: params[:report]).first
+      params.delete :report
+    else
+      #start by saving the report (add check to see if there is a report)
+      if !@reports.empty?
+        if @reports.count == 1
+          @report = @reports.first;
+        else
+          return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
+        end
+      end
+    end
+  end
+
+  def remove_unneeded_params
+    params.delete :authenticity_token
+    params.delete :utf8
+    params.delete :commit
+    params.delete :rebuild
+  end
+  
+  # def report_clean_up
+  #   @reports.each do |rep|
+  #     rep[:is_archived] = true if rep.id > 8
+  #     rep.save
+  #   end
+  # end
 
 end

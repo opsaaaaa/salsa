@@ -32,13 +32,20 @@ module ReportHelper
       docs = Document.where(workflow_step_id: WorkflowStep.where(organization_id: @organization.parents.push(@organization.id), step_type: "end_step").pluck(:id), organization_id: @organization.id).where('updated_at != created_at').all
     end
     # get the report data (slow process... only should run one at a time)
-    puts 'Getting Document Meta'
-    if @organization.root_org_setting("enable_workflow_report")
-      @report_data = self.get_workflow_document_meta docs&.pluck(:id)
+    if @organization.setting("reports_use_document_meta")
+      puts 'Getting Document Meta'
+      if @organization.root_org_setting("enable_workflow_report")
+        @report_data = self.get_workflow_document_meta docs&.pluck(:id)
+      else
+        @report_data = self.get_document_meta org_slug, account_filter, params
+      end
+      puts 'Retrieved Document Meta'
     else
-      @report_data = self.get_document_meta org_slug, account_filter, params
+      puts 'Getting local report data'
+      # @report_data = get_local_report_data
+      documents = @organization.documents.where('documents.updated_at != documents.created_at')
+      raise documents.count.to_yaml
     end
-    puts 'Retrieved Document Meta'
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
       docs = Document.where(organization_id: @organization.id, id: @report_data.map(&:document_id)).where('updated_at != created_at').all
