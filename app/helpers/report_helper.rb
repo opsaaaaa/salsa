@@ -33,13 +33,13 @@ module ReportHelper
     end
     # get the report data (slow process... only should run one at a time)
     if @organization.setting("reports_use_document_meta")
-      puts 'Getting Document Meta'
-      if @organization.root_org_setting("enable_workflow_report")
-        @report_data = self.get_workflow_document_meta docs&.pluck(:id)
-      else
-        @report_data = self.get_document_meta org_slug, account_filter, params
-      end
-      puts 'Retrieved Document Meta'
+    puts 'Getting Document Meta'
+    if @organization.root_org_setting("enable_workflow_report")
+      @report_data = self.get_workflow_document_meta docs&.pluck(:id)
+    else
+      @report_data = self.get_document_meta org_slug, account_filter, params
+    end
+    puts 'Retrieved Document Meta'
     else
       puts 'Getting local report data'
       # @report_data = get_local_report_data
