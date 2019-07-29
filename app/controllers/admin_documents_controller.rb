@@ -1,6 +1,6 @@
 class AdminDocumentsController < AdminDocumentsBaseController
   before_action :get_organizations, only: [:new, :edit, :update, :index, :versions, :meta]
-  before_action :require_designer_permissions
+  before_action :require_designer_or_supervisor_permissions
   before_action :require_admin_permissions, only: [:index]
   before_action :set_paper_trail_whodunnit
 
