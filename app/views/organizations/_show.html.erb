@@ -133,7 +133,7 @@
 
                 <div>
                   <ul class="horizontal-list">
-                    <% if document.organization && document.organization.root_org_setting('disable_document_view') %>
+                    <% if document.organization && !document.organization.root_org_setting('disable_document_view') %>
                       <li>
                         <%= link_to "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                       </li>
