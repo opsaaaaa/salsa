@@ -173,21 +173,21 @@
 
                     <% if @organization.root_org_setting('enable_workflows') != false %>
                       <% if document.user_id %>
-                        <%= link_to "Workflow",
+                        <li><%= link_to "Workflow",
                           organization_user_document_workflow_assignments_path(
                             organization_user_id: document.user_id,
                             org_path: params[:org_path],
                             slug: params[:slug],
                             document_id: document.id,
-                          ) %>
+                          ) %></li>
                         <% end %>
                     <% end %>
 
                     <% if has_role('designer') && @organization.root_org_setting('track_meta_info_from_document') != false %>
-                      <%= link_to "Meta",
+                      <li><%= link_to "Meta",
                         document_meta_path(
                           document_id: document.id,
-                        ) %>
+                        ) %></li>
                     <% end %>
 
                   </ul>
