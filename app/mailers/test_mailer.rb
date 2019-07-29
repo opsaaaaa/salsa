@@ -1,6 +1,9 @@
-class TestMailer < ActionMailer::Base
-  def send_test email, subject
-    @send_test = '<h1>TEST</h1>This is a test email from Salsa'
-    send_email(to: email, subject: subject)
+class TestMailer < ApplicationMailer
+  default from: ENV['SES_SMTP_FROM']
+  layout 'mailer'
+
+  def test_email email, subject
+    @test_email = '<h1>TEST</h1>This is a test email from Salsa'
+    mail(to: email, subject: subject)
   end
 end
