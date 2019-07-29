@@ -35,7 +35,7 @@ class AdminDocumentsController < AdminDocumentsBaseController
     get_document params[:id].to_i
     @document.destroy
 
-    redirect_back(fallback_location: admin_documents_path)
+    redirect_back(fallback_location: admin_document_index_path)
   end
 
   private
