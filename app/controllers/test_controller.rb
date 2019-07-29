@@ -4,7 +4,7 @@ class TestController < ApplicationController
     def email
         user = User.find params[:organization_user_id]
 
-        UserMailer.send_test(user.email, 'test')
+        TestMailer.send_test(user.email, 'test')
         redirect_back(fallback_location: organizations_path)
     end
 end
