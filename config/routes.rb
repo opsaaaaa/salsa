@@ -92,6 +92,7 @@ Rails.application.routes.draw do
                     get 'workflows', to: 'assignments#workflows', as: 'workflow_assignments'
                     get 'workflows/:document_id', to: 'assignments#workflows', as: 'document_workflow_assignments'
                     resources :assignments, as: 'team_assignments', controller: 'assignments'
+                    get 'test-email/:organization_user_id', to: 'test#email', as: 'test_email'
                 end
 
                 get 'users_search', to: 'organization_users#users_search', as: 'organization_users_search'

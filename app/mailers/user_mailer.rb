@@ -24,4 +24,8 @@ class UserMailer < ApplicationMailer
       send_email(to: mail_users_emails, subject: @subject)
     end
   end
+
+  def send_test email, subject
+    send_email(to: email, subject: subject)
+  end
 end

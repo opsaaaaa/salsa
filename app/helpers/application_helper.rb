@@ -337,8 +337,8 @@ module ApplicationHelper
     email_override = APP_CONFIG['email_override']
 
     if email_override
-      config[:to] = email_override
       config[:subject] = "#{config[:to]} - #{config[:subject]}"
+      config[:to] = email_override
     end
 
     mail(to: config[:to], subject: config[:subject])
