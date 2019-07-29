@@ -79,11 +79,15 @@
               <% end %>
 
               <th scope="row" nowrap width="50%">
-                <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
+                <% if has_role('supervisor') || has_role('designer') %>
+                  <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
+                <% else %>
+                  <%= document.name %>
+                <% end %>
               </th>
 
               <% if @periods %>
-                <td>
+                <td nowrap>
                   <%= document.period&.name %>
                 </td>
               <% end %>
