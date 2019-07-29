@@ -34,6 +34,8 @@ class AdminDocumentsController < AdminDocumentsBaseController
   def destroy
     get_document params[:document_id]
     @document.destroy
+
+    redirect_back(fallback_location: admin_documents_path)
   end
 
   private
