@@ -73,10 +73,8 @@ class AdminDocumentsBaseController < AdminController
 
   def get_document id=params[:id]
     @document = Document.find(id)
-    if params[:controller] == 'admin_documents'
-      raise('Insufficent permissions for this document') unless has_role('designer', @document.organization)
-    else
-      raise('Insufficent permissions for this document') unless has_role('supervisor', @document.organization)
+    unless has_role('designer', @document.organization) || has_role('supervisor', @document.organization)
+      raise('Insufficent permissions for this document')
     end
   end
 
