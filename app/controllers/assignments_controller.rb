@@ -75,7 +75,7 @@ class AssignmentsController < AdminController
           break
         end
 
-        step = WorkflowStep.find step.next_workflow_step_id
+        step = WorkflowStep.includes(:component).find step.next_workflow_step_id
 
         if step.id == document.workflow_step_id
           current_step_index = workflow_step_index
@@ -117,7 +117,7 @@ class AssignmentsController < AdminController
         end
       end
 
-      @workflow_steps[document.id] = workflow_steps.where(component: {role: ['supervisor', 'approver']})
+      @workflow_steps[document.id] = workflow_steps.select { |step| ['supervisor', 'approver'].include?(step.component.role) }
     end
 
     render 'workflows'
