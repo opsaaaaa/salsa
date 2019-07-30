@@ -57,8 +57,8 @@ class Admin::AuditorController < ApplicationController
     
     remove_unneeded_params
 
-    # account_filter = get_account_filter
-    account_filter = "FL17"
+    account_filter = get_account_filter
+    # account_filter = "FL17"
     params[:account_filter] = account_filter
     # raise account_filter.to_s
     # raise get_account_filter[:account_filter]
@@ -101,7 +101,7 @@ class Admin::AuditorController < ApplicationController
       return params[:account_filter]
     else
       if @org.default_account_filter
-        return @org.default_account_filter
+        return @org.default_account_filter[:account_filter]
       
       else
         # jump 2 weeks ahead to allow staff to review things for upcoming semester
