@@ -79,14 +79,10 @@ class AdminDocumentsBaseController < AdminController
   end
 
   def document_params
-    if has_role("admin")
-      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :organization_id, :user_id, :period_id)
-    elsif has_role("organization_admin")
-      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :organization_id, :user_id, :period_id)
-    elsif has_role("supervisor")
-      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :user_id, :period_id)
-    elsif has_role("designer")
-      params.require(:document).permit(:name, :lms_course_id, :workflow_step_id, :user_id, :period_id)
+    if has_role("admin") || has_role("organization_admin")
+      params.require(:document).permit(:name, :remote_identifier, :view_id, :lms_course_id, :workflow_step_id, :organization_id, :user_id, :period_id)
+    elsif has_role("supervisor") || has_role("designer")
+      params.require(:document).permit(:name, :remote_identifier, :view_id, :lms_course_id, :workflow_step_id, :user_id, :period_id)
     end
   end
 end
