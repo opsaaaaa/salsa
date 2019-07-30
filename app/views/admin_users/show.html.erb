@@ -12,7 +12,7 @@
   <small><%= @user[:email] %></span>
 </h1>
 
-<% if has_role('admin') %>
+<% if has_role('admin') && params[:org_path] %>
   <%= link_to "Send TEST Email", polymorphic_path([params[:controller].singularize,:test_email],"#{params[:controller].singularize}_id".to_sym => @user.id, org_path: params[:org_path]), class:"btn btn-primary" %>
 <% end %>
 
