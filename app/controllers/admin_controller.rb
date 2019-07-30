@@ -47,8 +47,8 @@ class AdminController < ApplicationController
   end
 
   def login
-  	@organization = find_org_by_path params[:slug]
-    if @organization&.setting("enable_shibboleth")
+    @organization = find_org_by_path params[:slug]
+    if @organization&.root_org_setting("enable_shibboleth")
       return redirect_to new_user_session_path(org_path: params[:org_path])
     end
   	if @organization and @organization.setting("lms_authentication_source") != nil
