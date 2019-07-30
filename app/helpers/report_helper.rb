@@ -33,18 +33,19 @@ module ReportHelper
     end
     # get the report data (slow process... only should run one at a time)
     if @organization.setting("reports_use_document_meta")
-    puts 'Getting Document Meta'
-    if @organization.root_org_setting("enable_workflow_report")
-      @report_data = self.get_workflow_document_meta docs&.pluck(:id)
-    else
-      @report_data = self.get_document_meta org_slug, account_filter, params
-    end
-    puts 'Retrieved Document Meta'
+      puts 'Getting Document Meta'
+      if false && @organization.root_org_setting("enable_workflow_report")
+        @report_data = self.get_workflow_document_meta docs&.pluck(:id)
+      else
+        @report_data = self.get_document_meta org_slug, {"account_filter"=>"FL17"}, params
+      end
+        raise @report_data.to_yaml
+      puts 'Retrieved Document Meta'
     else
       puts 'Getting local report data'
       # @report_data = get_local_report_data
       documents = @organization.documents.where('documents.updated_at != documents.created_at')
-      raise documents.count.to_yaml
+      # raise documents.count.to_yaml
     end
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
@@ -110,7 +111,7 @@ module ReportHelper
       end
     end
 
-    FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id))
+    # FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id))
   end
 
   def self.remote_file_location(org, report_id)
@@ -161,6 +162,7 @@ module ReportHelper
   end
 
   def self.get_document_meta org_slug, account_filter, params
+    # raise account_filter.to_yaml
     query_parameters = {}
     
     org = Organization.find_by slug: org_slug
@@ -188,10 +190,13 @@ module ReportHelper
         limit_sql = 'offset :offset limit :limit'
     end
 
+    # query_parameters[:account_filter] = "%#{"FL17"}%"
     query_parameters[:org_id] = org[:id]
     query_parameters[:org_id_string] = org[:id].to_s
-
+    # raise query_parameters.inspect
     DocumentMeta.find_by_sql([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters])
+    raise DocumentMeta.find_by_sql([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters]).to_yaml
+    raise ([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters]).to_s
   end
 
   def self.document_meta_query_sql account_filter_sql, limit_sql, start_filter
@@ -215,10 +220,8 @@ module ReportHelper
         d.view_id as view_id,
         d.lms_published_at as published_at
 
-
       -- prefilter the account id and course id meta information so joins will be faster (maybe...?)
       FROM document_meta as a
-
 
       -- join the name meta information
       LEFT JOIN
@@ -318,7 +321,7 @@ module ReportHelper
         )
 
       WHERE
-        a.root_organization_id = :org_id_string
+        a.root_organization_id = :org_id
         #{account_filter_sql}
 
       ORDER BY pn.value, acn.value, n.value, a.lms_course_id

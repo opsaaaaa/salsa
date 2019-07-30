@@ -57,13 +57,19 @@ class Admin::AuditorController < ApplicationController
     
     remove_unneeded_params
 
-    account_filter = get_account_filter
+    # account_filter = get_account_filter
+    account_filter = "FL17"
     params[:account_filter] = account_filter
+    # raise account_filter.to_s
+    # raise get_account_filter[:account_filter]
 
     get_report
+    # raise @report.to_yaml
+    # raise @report.to_yaml
 
     # report_status
-    ReportHelper.generate_report @org.slug, account_filter, params, @report
+    # raise @report.id.to_yaml
+    ReportHelper.generate_report @org.slug, account_filter, params, @report.id
     # if !@report || rebuild ||!report.payload
 
     if !@report || rebuild
@@ -96,6 +102,7 @@ class Admin::AuditorController < ApplicationController
     else
       if @org.default_account_filter
         return @org.default_account_filter
+      
       else
         # jump 2 weeks ahead to allow staff to review things for upcoming semester
         date = Date.today + 2.weeks
@@ -128,11 +135,13 @@ class Admin::AuditorController < ApplicationController
     params.delete :rebuild
   end
   
-  # def report_clean_up
-  #   @reports.each do |rep|
-  #     rep[:is_archived] = true if rep.id > 8
-  #     rep.save
-  #   end
-  # end
+  def report_clean_up(val = nil)
+    ReportArchive.all.each do |rep|
+      # rep[:is_archived] = true if rep.id > 10
+      # rep[:report_filters] = {"account_filter"=>"FL17"}
+      rep.delete
+      rep.save
+    end
+  end
 
 end
