@@ -27,7 +27,7 @@
 <div id="editor_view"
     data-lms-course="<% if @lms_course %><%= @lms_course.to_json %><% elsif @document[:lms_course_id] %>{&quot;id&quot;:<%= @document[:lms_course_id] %>, &quot;name&quot;: &quot;Course: <%= @document[:lms_course_id] %>&quot;}<% end %>"
     <% if @document.component %>data-org-config="<%= "{\"css\":\"https://s3-us-west-2.amazonaws.com/salsa.assets/#{@organization.slug}/#{@document.component.slug}/css/salsa-#{@document.component_version}.css\"}" %>"<% end %>
-    data-document="<%= @document.to_json(only: [:id, :name, :published_at, :created_at, :updated_at]) %>"
+    data-document="<%= @document.to_json(only: [:id, :lms_course_id, :remote_id, :view_id, :name, :published_at, :created_at, :updated_at]) %>"
     data-organization="<%= @document.organization.to_json(only: [:id, :name]) %>"
     data-user="<%= @document.user.to_json(only: [:id, :name]) %>"
     data-period="<%= @document.period.to_json(only: [:id, :name, :slug, :alias]) %>"
