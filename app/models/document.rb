@@ -10,6 +10,14 @@ class Document < ApplicationRecord
   belongs_to :workflow_step, optional: true
   belongs_to :user, optional: true
   
+  def self.abandoned()
+    return 'documents.updated_at = documents.created_at'
+  end
+
+  def self.not_abandoned()
+    return 'documents.updated_at != documents.created_at'
+  end
+
   def meta
     DocumentMeta.where("document_id = ? OR (document_id IS NULL AND lms_course_id = ? AND root_organization_id = ?)", self.id, self.lms_course_id, self.organization.root.id)
   end

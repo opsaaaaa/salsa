@@ -44,7 +44,7 @@ module ReportHelper
     else
       puts 'Getting local report data'
       # @report_data = get_local_report_data
-      documents = @organization.documents.where('documents.updated_at != documents.created_at')
+      documents = @organization.documents.where(Document.not_abandoned)
       raise documents.count.to_yaml
     end
 
