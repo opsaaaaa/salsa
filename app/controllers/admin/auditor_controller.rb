@@ -52,49 +52,53 @@ class Admin::AuditorController < ApplicationController
   def report
     @reports = ReportArchive.where(organization_id: @org.id)
     
-    params_hash = params.permit(:account_filter, :controller, :action).to_hash
+    @params_hash = params.permit(:account_filter, :controller, :action).to_hash
     rebuild = params[:rebuild]
     
     remove_unneeded_params
 
-    account_filter = get_account_filter
-    # account_filter = "FL17"
-    params[:account_filter] = account_filter
-    # raise account_filter.to_s
-    # raise get_account_filter[:account_filter]
+    @account_filter = get_account_filter
+    params[:account_filter] = @account_filter
 
     get_report
-    # raise @report.to_yaml
-    # raise @report.to_yaml
 
-    # report_status
-    # raise @report.id.to_yaml
-    ReportHelper.generate_report @org.slug, account_filter, params, @report.id
+    ReportHelper.generate_report @org.slug, @account_filter, params, @report.id
     # if !@report || rebuild ||!report.payload
 
     if !@report || rebuild
-
-      jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
-      args = [ @org.id, account_filter, params ]
-      jobs.each do |job|
-        if job['args'] == args
-          return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-        end
+      if @org.setting("reports_use_document_meta")
+        report_with_doc_meta
+      else
+        report_with_records
       end
-      @queued = ReportHelper.generate_report_as_job @org.id, account_filter, params_hash
-
       redirect_to admin_auditor_report_path(org_path:params[:org_path])
     else
       if !@report.payload
-        return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+        # return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
-      raise @report_data.first.to_yaml
+      # raise @report_data.first.to_yaml
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
 
   private
+
+  def report_with_records
+    report    
+  end
+
+  def report_with_doc_meta
+    jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
+    args = [ @org.id, @account_filter, params ]
+    jobs.each do |job|
+      if job['args'] == args
+        return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+      end
+    end
+    @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash
+
+  end
 
   def get_account_filter
     if params[:account_filter] && params[:account_filter] != ""

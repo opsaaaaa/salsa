@@ -39,13 +39,11 @@ module ReportHelper
       else
         @report_data = self.get_document_meta org_slug, account_filter, params
       end
-        raise @report_data.to_yaml
       puts 'Retrieved Document Meta'
     else
       puts 'Getting local report data'
-      # @report_data = get_local_report_data
-      documents = @organization.documents.where(Document.not_abandoned)
-      raise documents.count.to_yaml
+      @report_data = ActiveRecord::Base.connection.execute(document_record_query_sql(@organization.self_and_descendants))
+      puts 'Retrieved local report data'
     end
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
@@ -103,14 +101,15 @@ module ReportHelper
         # - The original file, including the path to find it
         #rendered_doc = render_to_string :layout => "archive", :template => "documents/content"
         rendered_doc = ApplicationController.new.render_to_string(layout: 'archive',partial: 'documents/content', locals: {doc: doc, organization: @organization, :@organization => @organization})
-
+        # raise rendered_doc.inspect
         zipfile.get_output_stream("#{folder}#{identifier}_#{doc.id}.html") { |os| os.write rendered_doc }
       end
       if @organization.root_org_setting("track_meta_info_from_document") && document_metas != {}
         zipfile.get_output_stream("document_meta.json"){ |os| os.write document_metas.to_json  }
       end
-    end
-
+      # raise zipfile.inspect
+    end 
+    raise zipfile_path(org_slug, report_id).to_s
     # FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id))
   end
 
@@ -192,6 +191,64 @@ module ReportHelper
     query_parameters[:org_id] = org[:id]
     query_parameters[:org_id_string] = org[:id].to_s
     DocumentMeta.find_by_sql([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters])
+  end
+
+  def self.document_record_query_sql orgs = false, period_id = false, name_by = 'docs.name', limit = false
+    name_by = name_by.gsub("document","docs")
+    period_id = period_id.to_s unless period_id.nil? || period_id == false
+    org_ids = orgs.pluck(:id).to_s.gsub(/\[|\]/,"") if orgs
+    <<-SQL.gsub(/^ {4}/, '')
+      SELECT DISTINCT
+        docs.lms_course_id as course_id,
+        orgs.lms_account_id as account_id, 
+        -- root_org.name as account,
+        orgs.parent_id as parent_id,
+        docs.id as document_id,
+        -- {docs.name | docs.lms_course_id} as name,
+        #{name_by} as name,
+        -- cc.value as course_code,
+        -- et.value as enrollment_term_id,
+        -- sis.value as sis_course_id,
+        pd.start_date as start_at,
+        pd.duration as duration,
+        -- pd.end_date asend_at,
+        p_org.name as parent_account_name,
+        ws.name as workflow_state, 
+        -- ts.value as total_students,
+        docs.edit_id as edit_id,
+        docs.view_id as view_id,
+        docs.lms_published_at as published_at,
+        orgs.id as organization_id,
+        pd.id as period_id
+
+      FROM documents as docs
+
+      LEFT JOIN organizations as orgs
+        ON docs.organization_id = orgs.id
+        AND docs.updated_at != docs.created_at
+
+      LEFT JOIN organizations as p_org
+        ON orgs.parent_id = p_org.id
+
+      -- LEFT JOIN organization as root_org
+      -- AND root_org.parent_id = nil
+      -- AND root_org.depth = 0
+
+      LEFT JOIN workflow_steps as ws
+        ON docs.workflow_step_id = ws.id
+
+      LEFT JOIN periods as pd
+        ON docs.period_id = pd.id
+
+      WHERE docs.created_at != docs.updated_at         
+        #{"AND ( docs.period_id =" + period_id + ")" if period_id}
+        #{"AND docs.period_id IS NULL" if period_id.nil?}
+        #{"AND docs.organization_id IN (" + org_ids + ")" if orgs}
+
+      ORDER BY docs.lms_published_at, orgs.id
+
+      #{"LIMIT " + limit if limit}
+    SQL
   end
 
   def self.document_meta_query_sql account_filter_sql, limit_sql, start_filter
