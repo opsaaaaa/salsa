@@ -29,9 +29,6 @@
       </div>
     </div>
 
-    <%= debug(@organization.setting("name_reports_by")) %>
-    <%# sean don't forget to remove this line %>
-            
     <div class="form-group">
       <% if has_role 'admin' %>
         <%= f.label :name_reports_by, class: "control-label" %>
