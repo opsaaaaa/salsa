@@ -121,7 +121,7 @@ module ReportHelper
     "#{ENV["ZIPFILE_FOLDER"]}/#{org_slug}_#{report_id}.zip"
   end
 
-  def name_by_options
+  def self.name_by_options
     [
       "document.name",
       "document.lms_course_id"

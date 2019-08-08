@@ -8,6 +8,8 @@ class Organization < ApplicationRecord
   has_many :users, through: :user_assignments
   has_many :workflow_steps
 
+  before_validation :use_nil_for_blank_name_reports_by
+
   SLUG_FORMAT = /(\/?([a-z0-9][a-z0-9.-]+)?[a-z0-9]+)/
 
   default_scope { order('lft, rgt') }
@@ -65,6 +67,10 @@ class Organization < ApplicationRecord
     end
 
     org_slug
+  end
+  
+  def use_nil_for_blank_name_reports_by
+    self.name_reports_by = nil if name_reports_by.blank?
   end
 
   # force null save so setting can cascade up the tree (most settings should probably be this way)
