@@ -11,7 +11,6 @@ module FileHelper
   end
 
   def self.remote_file_exists(file_path)
-    validate_aws_env
     bucket_name = ENV['AWS_BUCKET']
 
     unless bucket_name
@@ -47,7 +46,7 @@ module FileHelper
   private
   
   def self.validate_aws_env
-    raise "can't use Amazon s3, AWS ENV's are missing." if !should_use_aws_s3?
+    raise "can't use Amazon s3, AWS ENV's are missing." unless should_use_aws_s3?
   end
 
 end

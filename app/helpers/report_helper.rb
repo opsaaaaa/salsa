@@ -74,10 +74,7 @@ module ReportHelper
     @organization = Organization.find_by slug: org_slug
     FileUtils.rm zipfile_path(org_slug, report_id), :force => true   # never raises exception
 
-    # raise "#{ENV["APP_HOME"]}#{zipfile_path(org_slug, report_id)}".inspect
-    Zip::File.open("#{ENV["APP_HOME"]}/storage#{zipfile_path(org_slug, report_id)}", Zip::File::CREATE) do |zipfile|
-
-    # Zip::File.open(zipfile_path(org_slug, report_id), Zip::File::CREATE) do |zipfile|
+    Zip::File.open(zipfile_path(org_slug, report_id), Zip::File::CREATE) do |zipfile|
       zipfile.get_output_stream('content.css'){ |os| os.write CompassRails.sprockets.find_asset('application.css').to_s }
       if @organization.root_org_setting("export_type")== "Program Outcomes"
         document_metas = []
@@ -101,16 +98,11 @@ module ReportHelper
         rendered_doc = ApplicationController.new.render_to_string(layout: 'archive',partial: 'documents/content', locals: {doc: doc, organization: @organization, :@organization => @organization})
         # raise rendered_doc.inspect
         zipfile.get_output_stream("#{folder}#{identifier}_#{doc.id}.html") { |os| os.write rendered_doc }
-        raise "#{ENV["APP_HOME"]}#{folder}#{identifier}_#{doc.id}_document_meta.json"
       end
       if @organization.root_org_setting("track_meta_info_from_document") && document_metas != {}
         zipfile.get_output_stream("document_meta.json"){ |os| os.write document_metas.to_json  }
       end
-      # zipfile.get_output_stream("_test_zip.html.zip") { |os| os.write "test content" }
-      # raise "#{ENV["APP_HOME"]}#{folder}#{identifier}_#{doc.id}.html".inspect
     end 
-    # raise @organization.get_name_reports_by.inspect
-    # raise zipfile_path(org_slug, report_id).to_s
     FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id)) if FileHelper::should_use_aws_s3?
   end
         
@@ -132,7 +124,8 @@ module ReportHelper
   end
 
   def self.zipfile_path (org_slug, report_id)
-    "#{ENV["ZIPFILE_FOLDER"]}/#{org_slug}_#{report_id}.zip"
+    return "#{ENV['ZIPFILE_FOLDER']}/#{org_slug}_#{report_id}.zip" if FileHelper::should_use_aws_s3?
+    "#{ENV['APP_HOME']}/storage/#{ENV['ZIPFILE_FOLDER']}/#{org_slug.gsub(/\//,'')}_#{report_id}.zip"
   end
 
   def self.name_by_options
