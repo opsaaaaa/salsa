@@ -73,6 +73,12 @@ class Organization < ApplicationRecord
     self.name_reports_by = nil if name_reports_by.blank?
   end
 
+  def name_reports_by
+    setting = self.setting("name_reports_by")
+    return ReportHelper::name_by_options.first unless setting
+    return setting
+  end
+
   # force null save so setting can cascade up the tree (most settings should probably be this way)
   def lms_authentication_source=(val)
     super(val == "" ? nil : val)

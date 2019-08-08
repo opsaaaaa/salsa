@@ -32,7 +32,7 @@
     <div class="form-group">
       <% if has_role 'admin' %>
         <%= f.label :name_reports_by, class: "control-label" %>
-        <%= f.select :name_reports_by, ReportHelper::name_by_options, { include_blank: '-- use parent or default setting --'}, { class: 'form-control' } %>
+        <%= f.select :name_reports_by, ReportHelper::name_by_options.values, { include_blank: '-- use parent or default setting --'}, { class: 'form-control' } %>
       <% end %>
     </div>
 

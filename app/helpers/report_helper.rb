@@ -82,13 +82,9 @@ module ReportHelper
         document_metas = {}
       end
       docs.each do |doc|
-        identifier = doc.id
-        folder = nil
-        folder = "#{doc.period&.slug}/" if @organization.root_org_setting("enable_workflow_report")
-        identifier = doc.name.gsub(/[^A-Za-z0-9]+/, '_') if doc.name
-        if doc.lms_course_id
-          identifier = "#{doc.lms_course_id}".gsub(/[^A-Za-z0-9]+/, '_')
-        end
+        folder = zip_folder(doc)
+        identifier = zipfile_name(doc)
+    
         if @organization.root_org_setting("track_meta_info_from_document") && @organization.root_org_setting("export_type")== "Program Outcomes"
           program_outcomes_format(doc, document_metas)
         elsif @organization.root_org_setting("track_meta_info_from_document") && dm = "#{DocumentMeta.where("key LIKE :prefix AND document_id IN (:document_id)", prefix: "salsa_%", document_id: doc.id).select(:key, :value).to_json(:except => :id)}" != "[]"
@@ -109,10 +105,24 @@ module ReportHelper
       end
       # raise zipfile.inspect
     end 
+    raise @organization.name_reports_by.inspect
     raise zipfile_path(org_slug, report_id).to_s
     # FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id))
   end
+        
+  def self.zip_folder doc
+    folder = nil
+    folder = "#{doc.period&.slug}/" if @organization.root_org_setting("enable_workflow_report")
+  end
 
+  def self.zipfile_name
+    identifier = doc.id
+    identifier = doc.name.gsub(/[^A-Za-z0-9]+/, '_') if doc.name
+    if doc.lms_course_id
+      identifier = "#{doc.lms_course_id}".gsub(/[^A-Za-z0-9]+/, '_')
+    end
+  end
+  
   def self.remote_file_location(org, report_id)
     org.self_and_ancestors.pluck('slug').join('/') + "/#{org.slug}_#{report_id}.zip"
   end
@@ -122,10 +132,11 @@ module ReportHelper
   end
 
   def self.name_by_options
-    [
-      "document.name",
-      "document.lms_course_id"
-    ]
+    {
+      default: "document.name",
+      # name: "document.name",
+      lms_course_id: "document.lms_course_id"
+    }
   end
 
   def self.program_outcomes_format doc, document_metas
