@@ -72,7 +72,6 @@ module ReportHelper
   def self.archive (org_slug, report_id, report_data, account_filter=nil, docs)
     report = ReportArchive.find_by id: report_id
     @organization = Organization.find_by slug: org_slug
-
     FileUtils.rm zipfile_path(org_slug, report_id), :force => true   # never raises exception
 
     Zip::File.open(zipfile_path(org_slug, report_id), Zip::File::CREATE) do |zipfile|
@@ -94,7 +93,7 @@ module ReportHelper
           program_outcomes_format(doc, document_metas)
         elsif @organization.root_org_setting("track_meta_info_from_document") && dm = "#{DocumentMeta.where("key LIKE :prefix AND document_id IN (:document_id)", prefix: "salsa_%", document_id: doc.id).select(:key, :value).to_json(:except => :id)}" != "[]"
           document_metas["lms_course-#{doc.lms_course_id}"] = JSON.parse(dm)
-          zipfile.get_output_stream("#{folder}#{identifier}_#{doc.id}_document_meta.json"){ |os| os.write JSON.pretty_generate(JSON.parse(dm)) }
+          zipfile.get_output_stream("#{ENV["APP_HOME"]}#{folder}#{identifier}_#{doc.id}_document_meta.json"){ |os| os.write JSON.pretty_generate(JSON.parse(dm)) }
         end
         # Two arguments:
         # - The name of the file as it will appear in the archive
@@ -103,6 +102,7 @@ module ReportHelper
         rendered_doc = ApplicationController.new.render_to_string(layout: 'archive',partial: 'documents/content', locals: {doc: doc, organization: @organization, :@organization => @organization})
         # raise rendered_doc.inspect
         zipfile.get_output_stream("#{folder}#{identifier}_#{doc.id}.html") { |os| os.write rendered_doc }
+        raise "#{ENV["APP_HOME"]}#{folder}#{identifier}_#{doc.id}_document_meta.json"
       end
       if @organization.root_org_setting("track_meta_info_from_document") && document_metas != {}
         zipfile.get_output_stream("document_meta.json"){ |os| os.write document_metas.to_json  }
@@ -121,6 +121,12 @@ module ReportHelper
     "#{ENV["ZIPFILE_FOLDER"]}/#{org_slug}_#{report_id}.zip"
   end
 
+  def name_by_options
+    [
+      "document.name",
+      "document.lms_course_id"
+    ]
+  end
 
   def self.program_outcomes_format doc, document_metas
     dms = DocumentMeta.where("key LIKE :prefix AND document_id IN (:document_id)", prefix: "salsa_%", document_id: doc.id)
