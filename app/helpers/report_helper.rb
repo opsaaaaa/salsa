@@ -42,7 +42,8 @@ module ReportHelper
       puts 'Retrieved Document Meta'
     else
       puts 'Getting local report data'
-      @report_data = ActiveRecord::Base.connection.execute(document_record_query_sql(@organization.self_and_descendants))
+      @report_data = ActiveRecord::Base.connection.execute(document_record_query_sql(@organization.self_and_descendants, @organization.get_name_reports_by))
+      # raise ActiveRecord::Base.connection.execute(document_record_query_sql(@organization.self_and_descendants)).inspect
       puts 'Retrieved local report data'
     end
 
@@ -70,53 +71,65 @@ module ReportHelper
   end
 
   def self.archive (org_slug, report_id, report_data, account_filter=nil, docs)
+    raise report_data.inspect
     report = ReportArchive.find_by id: report_id
     @organization = Organization.find_by slug: org_slug
     FileUtils.rm zipfile_path(org_slug, report_id), :force => true   # never raises exception
 
     Zip::File.open(zipfile_path(org_slug, report_id), Zip::File::CREATE) do |zipfile|
       zipfile.get_output_stream('content.css'){ |os| os.write CompassRails.sprockets.find_asset('application.css').to_s }
+      
       if @organization.root_org_setting("export_type")== "Program Outcomes"
         document_metas = []
       else
         document_metas = {}
       end
+
       docs.each do |doc|
-        folder = zip_folder(doc)
-        identifier = zipfile_name(doc)
-    
+        doc_path = "#{doc_folder(doc)}#{doc_file_name(doc)}"
+
         if @organization.root_org_setting("track_meta_info_from_document") && @organization.root_org_setting("export_type")== "Program Outcomes"
           program_outcomes_format(doc, document_metas)
         elsif @organization.root_org_setting("track_meta_info_from_document") && dm = "#{DocumentMeta.where("key LIKE :prefix AND document_id IN (:document_id)", prefix: "salsa_%", document_id: doc.id).select(:key, :value).to_json(:except => :id)}" != "[]"
           document_metas["lms_course-#{doc.lms_course_id}"] = JSON.parse(dm)
-          zipfile.get_output_stream("#{ENV["APP_HOME"]}#{folder}#{identifier}_#{doc.id}_document_meta.json"){ |os| os.write JSON.pretty_generate(JSON.parse(dm)) }
+          zipfile.get_output_stream("#{doc_path}_document_meta.json"){ |os| os.write JSON.pretty_generate(JSON.parse(dm)) }
         end
         # Two arguments:
         # - The name of the file as it will appear in the archive
         # - The original file, including the path to find it
-        #rendered_doc = render_to_string :layout => "archive", :template => "documents/content"
+        # rendered_doc = render_to_string :layout => "archive", :template => "documents/content"
         rendered_doc = ApplicationController.new.render_to_string(layout: 'archive',partial: 'documents/content', locals: {doc: doc, organization: @organization, :@organization => @organization})
-        # raise rendered_doc.inspect
-        zipfile.get_output_stream("#{folder}#{identifier}_#{doc.id}.html") { |os| os.write rendered_doc }
+        zipfile.get_output_stream("#{doc_path}.html") { |os| os.write rendered_doc }
       end
       if @organization.root_org_setting("track_meta_info_from_document") && document_metas != {}
         zipfile.get_output_stream("document_meta.json"){ |os| os.write document_metas.to_json  }
       end
-    end 
+    end
     FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id)) if FileHelper::should_use_aws_s3?
   end
         
-  def self.zip_folder doc
+  def self.doc_folder doc
     folder = nil
     folder = "#{doc.period&.slug}/" if @organization.root_org_setting("enable_workflow_report")
   end
 
-  def self.zipfile_name(doc)
-    identifier = doc.id
-    identifier = doc.name.gsub(/[^A-Za-z0-9]+/, '_') if doc.name
-    if doc.lms_course_id
-      identifier = "#{doc.lms_course_id}".gsub(/[^A-Za-z0-9]+/, '_')
+  def self.doc_file_name(doc)
+    # raise @report_data.inspect
+    # raise "report_archive".classify.constantize.all.sample.inspect
+    # instance_variable_get(
+    pat = /\w+/
+    test_name_by = "document.name"
+    # raise test_name_by.scan(pat).inspect 
+    name_by = @organization.get_name_reports_by.split(".")
+    # raise local_variable_get("name_by").inspect
+    # raise name_by[0].classify.constantize.find(2)[name_by[1]].to_s
+
+    if name_by.include?("document") && name_by.count == 2
+      file_name = doc[name_by[1]] 
+    else
+      file_name = doc.name
     end
+    "#{file_name.gsub(/[^A-Za-z0-9]+/, '_')}_#{doc.id}"
   end
   
   def self.remote_file_location(org, report_id)
@@ -133,6 +146,7 @@ module ReportHelper
       # default: "document.name",
       name: "document.name",
       lms_course_id: "document.lms_course_id"
+      # id: "document.id"
     }
   end
 
@@ -207,8 +221,12 @@ module ReportHelper
     DocumentMeta.find_by_sql([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters])
   end
 
-  def self.document_record_query_sql orgs = false, period_id = false, name_by = 'docs.name', limit = false
-    name_by = name_by.gsub("document","docs")
+  def self.document_record_query_sql orgs = false, name_by = 'docs.name', period_id = false, limit = false
+    name_by = name_by
+      .sub("document","docs")
+        .sub("organization","orgs")
+          .sub("workflow_step","ws")
+            .sub("periods","pd")
     period_id = period_id.to_s unless period_id.nil? || period_id == false
     org_ids = orgs.pluck(:id).to_s.gsub(/\[|\]/,"") if orgs
     <<-SQL.gsub(/^ {4}/, '')

@@ -51,7 +51,6 @@ class Admin::AuditorController < ApplicationController
 
   def report
     @reports = ReportArchive.where(organization_id: @org.id)
-    
     @params_hash = params.permit(:account_filter, :controller, :action).to_hash
     rebuild = params[:rebuild]
     
@@ -77,7 +76,7 @@ class Admin::AuditorController < ApplicationController
         # return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
-      # raise @report_data.first.to_yaml
+      # raise @report_data.first.keys.to_yaml
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
