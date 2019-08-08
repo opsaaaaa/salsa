@@ -71,7 +71,7 @@ module ReportHelper
   end
 
   def self.archive (org_slug, report_id, report_data, account_filter=nil, docs)
-    raise report_data.inspect
+    # raise report_data.id.inspect
     report = ReportArchive.find_by id: report_id
     @organization = Organization.find_by slug: org_slug
     FileUtils.rm zipfile_path(org_slug, report_id), :force => true   # never raises exception
@@ -84,8 +84,9 @@ module ReportHelper
       else
         document_metas = {}
       end
-
+      i = 0
       docs.each do |doc|
+        i += 1
         doc_path = "#{doc_folder(doc)}#{doc_file_name(doc)}"
 
         if @organization.root_org_setting("track_meta_info_from_document") && @organization.root_org_setting("export_type")== "Program Outcomes"
@@ -114,11 +115,6 @@ module ReportHelper
   end
 
   def self.doc_file_name(doc)
-    # raise @report_data.inspect
-    # raise "report_archive".classify.constantize.all.sample.inspect
-    # instance_variable_get(
-    pat = /\w+/
-    test_name_by = "document.name"
     # raise test_name_by.scan(pat).inspect 
     name_by = @organization.get_name_reports_by.split(".")
     # raise local_variable_get("name_by").inspect
