@@ -74,7 +74,10 @@ module ReportHelper
     @organization = Organization.find_by slug: org_slug
     FileUtils.rm zipfile_path(org_slug, report_id), :force => true   # never raises exception
 
-    Zip::File.open(zipfile_path(org_slug, report_id), Zip::File::CREATE) do |zipfile|
+    # raise "#{ENV["APP_HOME"]}#{zipfile_path(org_slug, report_id)}".inspect
+    Zip::File.open("#{ENV["APP_HOME"]}/storage#{zipfile_path(org_slug, report_id)}", Zip::File::CREATE) do |zipfile|
+
+    # Zip::File.open(zipfile_path(org_slug, report_id), Zip::File::CREATE) do |zipfile|
       zipfile.get_output_stream('content.css'){ |os| os.write CompassRails.sprockets.find_asset('application.css').to_s }
       if @organization.root_org_setting("export_type")== "Program Outcomes"
         document_metas = []
@@ -103,11 +106,12 @@ module ReportHelper
       if @organization.root_org_setting("track_meta_info_from_document") && document_metas != {}
         zipfile.get_output_stream("document_meta.json"){ |os| os.write document_metas.to_json  }
       end
-      # raise zipfile.inspect
+      # zipfile.get_output_stream("_test_zip.html.zip") { |os| os.write "test content" }
+      # raise "#{ENV["APP_HOME"]}#{folder}#{identifier}_#{doc.id}.html".inspect
     end 
-    raise @organization.name_reports_by.inspect
-    raise zipfile_path(org_slug, report_id).to_s
-    # FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id))
+    # raise @organization.get_name_reports_by.inspect
+    # raise zipfile_path(org_slug, report_id).to_s
+    FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id)) if FileHelper::should_use_aws_s3?
   end
         
   def self.zip_folder doc
@@ -115,7 +119,7 @@ module ReportHelper
     folder = "#{doc.period&.slug}/" if @organization.root_org_setting("enable_workflow_report")
   end
 
-  def self.zipfile_name
+  def self.zipfile_name(doc)
     identifier = doc.id
     identifier = doc.name.gsub(/[^A-Za-z0-9]+/, '_') if doc.name
     if doc.lms_course_id
@@ -133,8 +137,8 @@ module ReportHelper
 
   def self.name_by_options
     {
-      default: "document.name",
-      # name: "document.name",
+      # default: "document.name",
+      name: "document.name",
       lms_course_id: "document.lms_course_id"
     }
   end

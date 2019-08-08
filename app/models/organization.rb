@@ -71,11 +71,13 @@ class Organization < ApplicationRecord
   
   def use_nil_for_blank_name_reports_by
     self.name_reports_by = nil if name_reports_by.blank?
+    # raise self.name_reports_by.inspect
+    # raise setting = self.setting("name_reports_by").inspect
   end
 
-  def name_reports_by
+  def get_name_reports_by
     setting = self.setting("name_reports_by")
-    return ReportHelper::name_by_options.first unless setting
+    return ReportHelper::name_by_options[:name] unless setting
     return setting
   end
 
