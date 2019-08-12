@@ -24,6 +24,16 @@ class Organization < ApplicationRecord
     ["default","Program Outcomes"]
   end
   validates :export_type, :inclusion=> { :in => self.export_types }
+  
+  def self.name_reports_by_options
+    {
+      # id: "document.id",
+      # workflow_state: "report_data.workflow_state",
+      name: "document.name",
+      lms_course_id: "document.lms_course_id"
+    }
+  end
+  validates :name_reports_by, :inclusion=> { :in => self.name_reports_by_options.values }
 
   def full_slug
     if self.slug.start_with?("/")
@@ -77,7 +87,7 @@ class Organization < ApplicationRecord
 
   def get_name_reports_by
     setting = self.setting("name_reports_by")
-    return ReportHelper::name_by_options[:name] unless setting
+    return self.name_reports_by_options[:name] unless setting
     return setting
   end
 

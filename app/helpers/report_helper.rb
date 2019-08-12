@@ -33,6 +33,7 @@ module ReportHelper
     end
     # get the report data (slow process... only should run one at a time)
     if @organization.setting("reports_use_document_meta")
+      org_ids = @organization.id
       puts 'Getting Document Meta'
       if false && @organization.root_org_setting("enable_workflow_report")
         @report_data = self.get_workflow_document_meta docs&.pluck(:id)
@@ -41,16 +42,16 @@ module ReportHelper
       end
       puts 'Retrieved Document Meta'
     else
+      org_ids = @organization.self_and_descendants.pluck(:id)
       puts 'Getting local report data'
-      @report_data = ActiveRecord::Base.connection.execute(document_record_query_sql(@organization.self_and_descendants, @organization.get_name_reports_by))
-      # raise ActiveRecord::Base.connection.execute(document_record_query_sql(@organization.self_and_descendants)).inspect
+      @report_data = DocumentMeta.find_by_sql(document_record_query_sql(@organization.self_and_descendants, @organization.get_name_reports_by))
       puts 'Retrieved local report data'
     end
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
-      docs = Document.where(organization_id: @organization.id, id: @report_data.map(&:document_id)).where('updated_at != created_at').all
+      docs = Document.where(organization_id: org_ids, id: @report_data.map(&:document_id)).where('updated_at != created_at').all
     elsif !@organization.root_org_setting("enable_workflow_report")
-      docs = Document.where(organization_id: @organization.id).where('updated_at != created_at').all
+      docs = Document.where(organization_id: org_ids).where('updated_at != created_at').all
     end
 
     #store it
@@ -71,7 +72,6 @@ module ReportHelper
   end
 
   def self.archive (org_slug, report_id, report_data, account_filter=nil, docs)
-    # raise report_data.id.inspect
     report = ReportArchive.find_by id: report_id
     @organization = Organization.find_by slug: org_slug
     FileUtils.rm zipfile_path(org_slug, report_id), :force => true   # never raises exception
@@ -84,10 +84,11 @@ module ReportHelper
       else
         document_metas = {}
       end
-      i = 0
       docs.each do |doc|
-        i += 1
-        doc_path = "#{doc_folder(doc)}#{doc_file_name(doc)}"
+        # raise report_data.to_yaml
+        # raise (report_data.select {|rep| rep["document_id"] == doc.id }).first.inspect
+        doc_report_data = (report_data.select {|rep| rep["document_id"] == doc.id }).first
+        doc_path = "#{doc_folder(doc)}#{doc_file_name(doc,doc_report_data)}"
 
         if @organization.root_org_setting("track_meta_info_from_document") && @organization.root_org_setting("export_type")== "Program Outcomes"
           program_outcomes_format(doc, document_metas)
@@ -110,22 +111,17 @@ module ReportHelper
   end
         
   def self.doc_folder doc
-    folder = nil
-    folder = "#{doc.period&.slug}/" if @organization.root_org_setting("enable_workflow_report")
+    folder = "#{doc.organization.path}/"
+    folder.push("#{doc.period&.slug}/") if @organization.root_org_setting("enable_workflow_report")
+    folder = nil if folder == "/"
+    folder
   end
 
-  def self.doc_file_name(doc)
-    # raise test_name_by.scan(pat).inspect 
+  def self.doc_file_name(document,report_data)
     name_by = @organization.get_name_reports_by.split(".")
-    # raise local_variable_get("name_by").inspect
-    # raise name_by[0].classify.constantize.find(2)[name_by[1]].to_s
-
-    if name_by.include?("document") && name_by.count == 2
-      file_name = doc[name_by[1]] 
-    else
-      file_name = doc.name
-    end
-    "#{file_name.gsub(/[^A-Za-z0-9]+/, '_')}_#{doc.id}"
+    file_name = binding.local_variable_get(name_by[0])[name_by[1]].to_s
+    file_name = document.name if file_name.blank?
+    "#{file_name.gsub(/[^A-Za-z0-9]+/, '_')}_#{document.id}"
   end
   
   def self.remote_file_location(org, report_id)
@@ -135,15 +131,6 @@ module ReportHelper
   def self.zipfile_path (org_slug, report_id)
     return "#{ENV['ZIPFILE_FOLDER']}/#{org_slug}_#{report_id}.zip" if FileHelper::should_use_aws_s3?
     "#{ENV['APP_HOME']}/storage/#{ENV['ZIPFILE_FOLDER']}/#{org_slug.gsub(/\//,'')}_#{report_id}.zip"
-  end
-
-  def self.name_by_options
-    {
-      # default: "document.name",
-      name: "document.name",
-      lms_course_id: "document.lms_course_id"
-      # id: "document.id"
-    }
   end
 
   def self.program_outcomes_format doc, document_metas

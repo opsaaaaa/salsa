@@ -10,6 +10,7 @@ class OrganizationsController < AdminController
   ]
   before_action :get_organizations
   layout 'admin'
+  
   def index
     get_documents
     @roots = @organizations.roots
