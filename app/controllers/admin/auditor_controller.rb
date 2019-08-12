@@ -61,6 +61,8 @@ class Admin::AuditorController < ApplicationController
 
     get_report
 
+    get_record_chart_data    
+    
     ReportHelper.generate_report @org.slug, @account_filter, params, @report.id
     # if !@report || rebuild ||!report.payload
 
@@ -82,6 +84,14 @@ class Admin::AuditorController < ApplicationController
   end
 
   private
+
+  def get_record_chart_data
+    @org_chart_data = []
+    @org.self_and_descendants.each do |o|
+      @org_chart_data.push(name: o.name, doc_count: o.documents.count, depth: o.depth)
+    end
+    # raise @org_chart_data.to_yaml
+  end
 
   def report_with_records
     report    
