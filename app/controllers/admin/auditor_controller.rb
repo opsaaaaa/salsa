@@ -7,7 +7,11 @@ class Admin::AuditorController < ApplicationController
   before_action -> { @org = get_org }, olny: [:report, :reports]
 
   def download
-    redirect_to FileHelper.presigned_url(ReportHelper.remote_file_location(get_org, params['report']))
+    if FileHelper::should_use_aws_s3?
+      redirect_to FileHelper.presigned_url(ReportHelper.remote_file_location(get_org, params['report'])) 
+    else
+      send_file(ReportHelper.local_file_location(get_org, params['report']))
+    end
   end
 
   def reportStatus
