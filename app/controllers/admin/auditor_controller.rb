@@ -86,10 +86,7 @@ class Admin::AuditorController < ApplicationController
   private
 
   def get_record_chart_data
-    @org_chart_data = []
-    @org.self_and_descendants.each do |o|
-      @org_chart_data.push(name: o.name, doc_count: o.documents.count, depth: o.depth)
-    end
+    @org_chart_data = (@org.self_and_descendants.collect {|o| [name: o.name, doc_count: o.documents.count, depth: o.depth]}).to_yaml
     # raise @org_chart_data.to_yaml
   end
 
