@@ -37,9 +37,10 @@ class Admin::AuditorController < ApplicationController
       organization_id: @org.id, 
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
     if @reports.blank? && !params[:show_archived]
-      params_hash = params.permit(:account_filter, :controller, :action).to_hash
-      params_hash[:account_filter] = @org.default_account_filter
-      ReportHelper.generate_report_as_job @org.id, @org.default_account_filter, params_hash
+      @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+      @params_hash[:account_filter] = @org.default_account_filter
+
+      ReportHelper.generate_report_as_job @org.id, @org.default_account_filter, @params_hash
       return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
     end
 
@@ -65,40 +66,35 @@ class Admin::AuditorController < ApplicationController
 
     get_report
 
-    get_org_chart_data    
-    
-    ReportHelper.generate_report @org.slug, @account_filter, params, @report.id
-    # if !@report || rebuild ||!report.payload
+    org_chart_data = get_org_chart_data    
+
+    raise Que.job_stats.to_yaml
 
     if !@report || rebuild
-      if @org.setting("reports_use_document_meta")
-        report_with_doc_meta
-      else
-        report_with_records
-      end
+      redirect_if_job_incomplete
+      generate_report
       redirect_to admin_auditor_report_path(org_path:params[:org_path])
     else
-      if !@report.payload
-        # return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+      if !@report.payload && !@queued
+        generate_report
+        return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
-      # raise @report_data.first.keys.to_yaml
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
 
   private
 
+  def generate_report
+    @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash
+  end
+
   def get_org_chart_data
-    @org_chart_data = (@org.self_and_descendants.collect {|o| [name: o.name, doc_count: o.documents.count, depth: o.depth]}).to_yaml
-    # raise @org_chart_data.to_yaml
+    @org.self_and_descendants.collect {|o| [name: o.name, doc_count: o.documents.count, depth: o.depth]}
   end
 
-  def report_with_records
-    report    
-  end
-
-  def report_with_doc_meta
+  def redirect_if_job_incomplete
     jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
     args = [ @org.id, @account_filter, params ]
     jobs.each do |job|
@@ -106,8 +102,6 @@ class Admin::AuditorController < ApplicationController
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
     end
-    @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash
-
   end
 
   def get_account_filter
@@ -149,13 +143,13 @@ class Admin::AuditorController < ApplicationController
     params.delete :rebuild
   end
   
-  def report_clean_up(val = nil)
-    ReportArchive.all.each do |rep|
-      # rep[:is_archived] = true if rep.id > 10
-      # rep[:report_filters] = {"account_filter"=>"FL17"}
-      rep.delete
-      rep.save
-    end
-  end
+  # def report_clean_up(val = nil)
+  #   ReportArchive.all.each do |rep|
+  #     # rep[:is_archived] = true if rep.id > 10
+  #     # rep[:report_filters] = {"account_filter"=>"FL17"}
+  #     rep.delete
+  #     rep.save
+  #   end
+  # end
 
 end

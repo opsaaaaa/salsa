@@ -19,6 +19,7 @@ module ReportHelper
     end
     @report.generating_at = Time.now
     @report.save!(touch:false)
+
     ReportGenerator.enqueue(org_id, account_filter, params, @report.id)
   end
 
