@@ -85,8 +85,6 @@ module ReportHelper
         document_metas = {}
       end
       docs.each do |doc|
-        # raise report_data.to_yaml
-        # raise (report_data.select {|rep| rep["document_id"] == doc.id }).first.inspect
         doc_report_data = (report_data.select {|rep| rep["document_id"] == doc.id }).first
         doc_path = "#{doc_folder(doc)}#{doc_file_name(doc,doc_report_data)}"
 
@@ -128,9 +126,13 @@ module ReportHelper
     org.self_and_ancestors.pluck('slug').join('/') + "/#{org.slug}_#{report_id}.zip"
   end
 
+  def self.local_file_location(org, report_id)
+    zipfile_path org.slug, report_id
+  end
+
   def self.zipfile_path (org_slug, report_id)
     return "#{ENV['ZIPFILE_FOLDER']}/#{org_slug}_#{report_id}.zip" if FileHelper::should_use_aws_s3?
-    "#{ENV['APP_HOME']}/storage/#{ENV['ZIPFILE_FOLDER']}/#{org_slug.gsub(/\//,'')}_#{report_id}.zip"
+    "#{ENV['APP_HOME']}/storage/#{ENV['ZIPFILE_FOLDER']}/#{org_slug.gsub(/\//,'')}_#{report_id}.zip".sub('//','/')
   end
 
   def self.program_outcomes_format doc, document_metas
