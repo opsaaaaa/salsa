@@ -3,7 +3,6 @@
       <% course_id = ''%>
       <% account = ''%>
       <% parent_account = 0 %>
-
       <% @report_data.each_with_index do |record, i| %>
 
         <% if (course_id != record['course_id']) and (i > 1) %>
@@ -47,7 +46,7 @@
             <ul class="course-list" data-account="<%= record['account'] %>">
         <% end %>
 
-        <% if true | course_id != record['course_id'] %>
+        <% if course_id != record['course_id'] %>
           <% course_id = record['course_id'] %>
           <% li_classes, status_icon, syllabus_link = '', '', false %>
           <% if record['edit_id'] and !record['published_at'] %>

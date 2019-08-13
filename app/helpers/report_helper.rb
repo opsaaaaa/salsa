@@ -2,14 +2,16 @@ require 'tempfile'
 require 'zip'
 
 module ReportHelper
-  def self.generate_report_as_job (org_id, account_filter, params, report_id)
+  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil)
     @report = ReportArchive.find(report_id) if report_id
+    @report = ReportArchive.create({organization_id: @org_id, report_filters: params}) unless report_id
+
     org = Organization.find(org_id)
     @report.generating_at = Time.now
     @report.save!(touch:false)
 
-    ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
-    # ReportGenerator.enqueue org_id, account_filter, params, @report.id 
+    # ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
+    ReportGenerator.enqueue org_id, account_filter, params, @report.id 
   end
 
   def self.generate_report (org_slug, account_filter, params, report_id)
@@ -211,7 +213,8 @@ module ReportHelper
         -- root_org.name as account,
         orgs.parent_id as parent_id,
         docs.id as document_id,
-        -- {docs.name | docs.lms_course_id} as name,
+        docs.id as id,
+        -- docs.name docs.lms_course_id as name,
         #{name_by} as name,
         -- cc.value as course_code,
         -- et.value as enrollment_term_id,

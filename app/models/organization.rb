@@ -33,7 +33,7 @@ class Organization < ApplicationRecord
       lms_course_id: "document.lms_course_id"
     }
   end
-  validates :name_reports_by, :inclusion=> { :in => self.name_reports_by_options.values }
+  validates :name_reports_by, :inclusion=> { :in => self.name_reports_by_options.values.push(nil) }
 
   def full_slug
     if self.slug.start_with?("/")
@@ -81,13 +81,11 @@ class Organization < ApplicationRecord
   
   def use_nil_for_blank_name_reports_by
     self.name_reports_by = nil if name_reports_by.blank?
-    # raise self.name_reports_by.inspect
-    # raise setting = self.setting("name_reports_by").inspect
   end
 
   def get_name_reports_by
     setting = self.setting("name_reports_by")
-    return self.name_reports_by_options[:name] unless setting
+    setting = Organization.name_reports_by_options.values.first if setting.blank?
     return setting
   end
 

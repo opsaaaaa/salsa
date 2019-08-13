@@ -153,7 +153,6 @@ ActiveRecord::Schema.define(version: 20190808164738) do
     t.string "authn_context"
     t.string "lms_account_id"
     t.string "period_meta_key"
-    t.string "time_zone"
     t.boolean "reports_use_document_meta", default: false, null: false
     t.string "name_reports_by"
     t.index ["depth"], name: "index_organizations_on_depth"
@@ -286,5 +285,4 @@ ActiveRecord::Schema.define(version: 20190808164738) do
     t.string "step_type", default: "default_step"
   end
 
-  add_foreign_key "organizations", "organizations", column: "parent_id"
 end

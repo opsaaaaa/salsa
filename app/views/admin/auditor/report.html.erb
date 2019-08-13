@@ -34,7 +34,6 @@
 </div>
 
 <% if true || @report_data %>
-  <%= debug(@report_data) %>
   <% if @org.setting("reports_use_document_meta") %>
     
     <div class="row">
@@ -46,14 +45,11 @@
       <div id="collegeCount" class="well" style="height:800px;"></div>
     </div><!-- .row -->
   
-    <%= render 'report_document_list' %>
-  
   <% else %>
-    potato
-    <%= render 'report_document_list' %>
-    <%# render 'orgs_document_count' %>
-
+    <div id="orgDocCountChart" class="well" style="height:800px;"></div>
   <% end %>
+
+  <%= render 'report_document_list' %>
 
 <% else %>
   <div class="alert alert-warning" role="alert">No data for the selected term</div>

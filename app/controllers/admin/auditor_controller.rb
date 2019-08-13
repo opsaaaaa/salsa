@@ -4,7 +4,7 @@ require 'zip'
 class Admin::AuditorController < ApplicationController
 
   before_action :require_auditor_role
-  before_action -> { @org = get_org }, olny: [:report, :reports]
+  before_action -> { @org = get_org }, olny: [:report, :reports, :data]
 
   def download
     if FileHelper::should_use_aws_s3?
@@ -39,8 +39,6 @@ class Admin::AuditorController < ApplicationController
     
     if @reports.blank? && !params[:show_archived]
       @params_hash = params.permit(:account_filter, :controller, :action).to_hash
-      @account_filter = @org.default_account_filter[:account_filter]
-      @params_hash[:account_filter] = @account_filter
 
       report = ReportArchive.create({organization_id: @org.id, report_filters: @params_hash})
       generate_report(report.id)
@@ -69,8 +67,6 @@ class Admin::AuditorController < ApplicationController
 
     get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
-    
-    org_chart_data = get_org_chart_data    
 
     if !@report || rebuild
       redirect_if_job_incomplete
@@ -86,14 +82,29 @@ class Admin::AuditorController < ApplicationController
     end
   end
 
+  def data
+    render json: get_chart_data.to_json
+  end
+
   private
 
   def generate_report(id = nil)
     @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash, id
   end
 
-  def get_org_chart_data
-    @org.self_and_descendants.collect {|o| [name: o.name, doc_count: o.documents.count, depth: o.depth]}
+  def get_chart_data
+    org_doc_pub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NOT NULL').count}
+    org_doc_unpub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NULL').count}
+    org_doc_counts = @org.self_and_descendants.collect {|o| o.documents.count}
+    {
+      base_org_name: @org.name,
+      use_metas: @org.setting("reports_use_document_meta"),
+      org_doc_total: org_doc_counts.sum,
+      org_names: @org.self_and_descendants.pluck(:name), 
+      org_doc_counts: org_doc_counts,
+      org_doc_pub_counts: org_doc_pub_counts,
+      org_doc_unpub_counts: org_doc_unpub_counts
+    }
   end
 
   def redirect_if_job_incomplete
@@ -122,6 +133,7 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_report
+    @account_filter = get_account_filter unless @account_filter.blank?
     if params[:report]
       @report = ReportArchive.where(id: params[:report]).first
       params.delete :report
@@ -130,9 +142,9 @@ class Admin::AuditorController < ApplicationController
       reports = ReportArchive.where(organization_id: @org.id) 
       if !reports.blank?
         if reports.count == 1
-          report = @reports.first;
+          @report = reports.first;
         else
-          report = nil
+          @report = nil
         end
       end
     end
