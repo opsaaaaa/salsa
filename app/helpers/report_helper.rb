@@ -2,25 +2,14 @@ require 'tempfile'
 require 'zip'
 
 module ReportHelper
-  def self.generate_report_as_job (org_id, account_filter, params)
-    @reports = ReportArchive.where(organization_id: org_id).all
-    @report = nil;
+  def self.generate_report_as_job (org_id, account_filter, params, report_id)
+    @report = ReportArchive.find(report_id) if report_id
     org = Organization.find(org_id)
-    if account_filter.blank?
-      account_filter = org.default_account_filter
-    end
-    @reports.each do |report|
-      if report.report_filters && report.report_filters == params
-        @report = report
-      end
-    end
-    if !@report
-      @report = ReportArchive.create({organization_id: org_id, report_filters: params})
-    end
     @report.generating_at = Time.now
     @report.save!(touch:false)
 
-    ReportGenerator.enqueue(org_id, account_filter, params, @report.id)
+    ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
+    # ReportGenerator.enqueue org_id, account_filter, params, @report.id 
   end
 
   def self.generate_report (org_slug, account_filter, params, report_id)

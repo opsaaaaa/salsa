@@ -34,7 +34,6 @@ module FileHelper
   end
 
   def self.should_use_aws_s3?
-    # raise "#{ENV['AWS_ACCESS_KEY']} #{ENV['AWS_SECRET_ACCESS_KEY']} #{ENV['AWS_BUCKET']} #{ENV['AWS_REGION']}"
     ( (
       ENV['AWS_ACCESS_KEY'].present? || 
       ENV['AWS_SECRET_ACCESS_KEY'].present? ) &&
