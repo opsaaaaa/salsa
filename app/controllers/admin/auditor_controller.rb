@@ -68,8 +68,8 @@ class Admin::AuditorController < ApplicationController
     params[:account_filter] = @account_filter
     # @account_filter = {"account_filter":"FL17"}
 
-    # ReportHelper.get_document_meta @org.slug, @account_filter, @params_hash
-    # ReportHelper.get_local_report_data @org.self_and_descendants.pluck(:id), "potato", @account_filter, @params_hash
+    raise ReportHelper.get_document_meta(@org.slug, @account_filter, @params_hash).to_yaml
+    raise ReportHelper.get_local_report_data(@org.self_and_descendants.pluck(:id), "potato", @account_filter, @params_hash).to_yaml
     get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
 
