@@ -57,6 +57,7 @@ class Admin::AuditorController < ApplicationController
   end
 
   def report
+    # raise @org.setting('default_account_filter')['account_filter'].inspect
     @params_hash = params.permit(:account_filter, :controller, :action).to_hash
     rebuild = params[:rebuild]
     
@@ -64,6 +65,7 @@ class Admin::AuditorController < ApplicationController
 
     @account_filter = get_account_filter
     params[:account_filter] = @account_filter
+    # @account_filter = {"account_filter":"FL17"}
 
     get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
@@ -78,6 +80,7 @@ class Admin::AuditorController < ApplicationController
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
+      # raise @report_data.inspect
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
@@ -93,8 +96,8 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_chart_data
-    org_doc_pub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NOT NULL').count}
-    org_doc_unpub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NULL').count}
+    org_doc_pub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NULL').count}
+    org_doc_unpub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NOT NULL').count}
     org_doc_counts = @org.self_and_descendants.collect {|o| o.documents.count}
     {
       base_org_name: @org.name,
@@ -118,11 +121,17 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_account_filter
+    # raise @account_filter
+    # {"account_filter"=>"FL17"} {"account_filter":"FL17"} "{\"account_filter\":\"FL17\"}" '{"account_filter":"FL17"}'
+    # raise @org.setting('default_account_filter').inspect
+    # raise JSON.parse({"account_filter":"FL17"}.to_json)['account_filter'].inspect
+    # raise JSON.parse(@org.setting('default_account_filter').to_s)['account_filter'].inspect
+    raise params[:account_filter].inspect
     if params[:account_filter] && params[:account_filter] != ""
       return params[:account_filter]
     else
-      if @org.default_account_filter
-        return @org.default_account_filter[:account_filter]
+      if @org.setting('default_account_filter')
+        return @org.setting('default_account_filter')['account_filter']
       else
         # jump 2 weeks ahead to allow staff to review things for upcoming semester
         date = Date.today + 2.weeks

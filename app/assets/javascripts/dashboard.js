@@ -252,7 +252,7 @@ $(function () {
       $('#orgDocCountChart').highcharts({
         chart: {type: 'bar'},
         title: {
-          text: data.base_org_name + " - Document Total: " + data.org_doc_total 
+          text: data.base_org_name + " - Total Documents: " + data.org_doc_total 
         },
         subtitle: {
           text: 'Number of document for each organization and department'
