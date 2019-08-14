@@ -246,13 +246,13 @@ $(function () {
     accountFilter.append('<option value="' + account.id + '">' + styling + account.name + '</option>');
   });
 
-  $.get('report/data', function(data){
+  $.get('report-data', function(data){
     if(data.use_metas == false) {
       // datas = data
       $('#orgDocCountChart').highcharts({
         chart: {type: 'bar'},
         title: {
-          text: data.base_org_name + " - Total Documents: " + data.org_doc_total 
+          text: data.base_org_name + " - Total SALSAs: " + data.org_doc_total 
         },
         subtitle: {
           text: 'Number of document for each organization and department'
@@ -292,11 +292,11 @@ $(function () {
           enabled: false
         },
         series: [{
-          name: 'Published Document Count',
+          name: 'Published SALSAs',
           data: data.org_doc_pub_counts
          }
          ,{
-          name: 'Unpublished Document Count',
+          name: 'Unpublished SALSAs',
           data: data.org_doc_unpub_counts
          }
         ]

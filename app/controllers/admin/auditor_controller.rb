@@ -59,6 +59,7 @@ class Admin::AuditorController < ApplicationController
   def report
     # raise @org.setting('default_account_filter')['account_filter'].inspect
     @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+    @params_hash[:name_by] = "document.potart" 
     rebuild = params[:rebuild]
     
     remove_unneeded_params
@@ -67,6 +68,8 @@ class Admin::AuditorController < ApplicationController
     params[:account_filter] = @account_filter
     # @account_filter = {"account_filter":"FL17"}
 
+    # ReportHelper.get_document_meta @org.slug, @account_filter, @params_hash
+    # ReportHelper.get_local_report_data @org.self_and_descendants.pluck(:id), "potato", @account_filter, @params_hash
     get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
 
@@ -121,17 +124,12 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_account_filter
-    # raise @account_filter
-    # {"account_filter"=>"FL17"} {"account_filter":"FL17"} "{\"account_filter\":\"FL17\"}" '{"account_filter":"FL17"}'
-    # raise @org.setting('default_account_filter').inspect
-    # raise JSON.parse({"account_filter":"FL17"}.to_json)['account_filter'].inspect
-    # raise JSON.parse(@org.setting('default_account_filter').to_s)['account_filter'].inspect
-    raise params[:account_filter].inspect
     if params[:account_filter] && params[:account_filter] != ""
       return params[:account_filter]
     else
-      if @org.setting('default_account_filter')
-        return @org.setting('default_account_filter')['account_filter']
+      default_account_filter = @org.setting('default_account_filter')
+      if default_account_filter.present?
+        return @org.setting('default_account_filter')
       else
         # jump 2 weeks ahead to allow staff to review things for upcoming semester
         date = Date.today + 2.weeks

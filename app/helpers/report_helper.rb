@@ -36,7 +36,8 @@ module ReportHelper
     else
       org_ids = @organization.self_and_descendants.pluck(:id)
       puts 'Getting local report data'
-      @report_data = DocumentMeta.find_by_sql(document_record_query_sql(@organization.self_and_descendants, @organization.get_name_reports_by))
+      # @report_data = DocumentMeta.find_by_sql(document_record_query_sql(@organization.self_and_descendants, @organization.get_name_reports_by))
+      @report_data = self.get_local_report_data(@organization.self_and_descendants, @organization.get_name_reports_by, account_filter, params)
       puts 'Retrieved local report data'
     end
 
@@ -56,11 +57,7 @@ module ReportHelper
   end
 
   def self.account_filter_blank? account_filter
-    result = false
-    if account_filter.blank? || account_filter == {"account_filter"=>""}
-      result = true
-    end
-    result
+    return (account_filter.blank? || account_filter == {"account_filter"=>""})
   end
 
   def self.archive (org_slug, report_id, report_data, account_filter=nil, docs)
@@ -195,17 +192,60 @@ module ReportHelper
 
     query_parameters[:org_id] = org[:id]
     query_parameters[:org_id_string] = org[:id].to_s
+    raise query_parameters.inspect
     DocumentMeta.find_by_sql([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters])
   end
 
-  def self.document_record_query_sql orgs = false, name_by = 'docs.name', period_id = false, limit = false
-    name_by = name_by
-      .sub("document","docs")
-        .sub("organization","orgs")
-          .sub("workflow_step","ws")
-            .sub("periods","pd")
-    period_id = period_id.to_s unless period_id.nil? || period_id == false
-    org_ids = orgs.pluck(:id).to_s.gsub(/\[|\]/,"") if orgs
+  def self.collect_query_settings params, query_options
+    query_strings = {}
+    query_parameters = {}
+    query_keys = query_options.keys
+
+    params.each {|k,v| query_parameters[k] = v if query_keys.include?(k) }
+    query_options.each_key do |k| 
+      if query_parameters[k].present?
+        query_strings[k] = query_options[k]
+      else
+        query_strings[k] = nil
+      end
+    end
+    { params: query_parameters, strings: query_strings }
+  end
+
+  def self.get_local_report_data org_ids, name_by = 'docs.name', account_filter = nil, params = nil
+    query_options = { 
+      :account_filter=>"AND n.value LIKE :account_filter AND a.key = 'account_id'", 
+      :start=>"AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)", 
+      :limit=>"offset :offset limit :limit", 
+      :name_by=>":name_by as name,", 
+      :period_id=>"AND ( docs.period_id = :period_id )", 
+      :org_ids=>"AND docs.organization_id IN ( :org_ids )",
+      :limit=>nil,
+      :offset=>nil
+    }
+    subs = {
+      document: :docs, 
+      organization: :orgs, 
+      workflow_step: :ws,
+      period: :pd  
+    }
+    # params[:name_by] = @organization.get_name_reports_by
+    params[:name_by] = 'document.lms_course_id'
+    subs.each { |k, v| params[:name_by][k.to_s] &&= v.to_s }
+    params[:org_ids] = org_ids
+    params[:account_filter] = "%#{account_filter}%" unless account_filter_blank?(account_filter)
+    params[:offset] = (params[:page] || 1).to_i if params[:page]
+    params[:limit] = (params[:per] || 1).to_i if params[:page]
+
+    query_settings = collect_query_settings params, query_options
+
+    # raise query_settings.inspect
+    
+    DocumentMeta.find_by_sql([document_report_data_query_sql(query_settings[:strings]), query_settings[:params]])
+  end
+
+  # def self.document_report_data_query_sql orgs = false, name_by = 'docs.name', period_id = false, limit = false
+  def self.document_report_data_query_sql sql_strings
     <<-SQL.gsub(/^ {4}/, '')
       SELECT DISTINCT
         docs.lms_course_id as course_id,
@@ -215,7 +255,7 @@ module ReportHelper
         docs.id as document_id,
         docs.id as id,
         -- docs.name docs.lms_course_id as name,
-        #{name_by} as name,
+        #{sql_strings[:name_by]}
         -- cc.value as course_code,
         -- et.value as enrollment_term_id,
         -- sis.value as sis_course_id,
@@ -251,13 +291,12 @@ module ReportHelper
         ON docs.period_id = pd.id
 
       WHERE docs.created_at != docs.updated_at         
-        #{"AND ( docs.period_id =" + period_id + ")" if period_id}
-        #{"AND docs.period_id IS NULL" if period_id.nil?}
-        #{"AND docs.organization_id IN (" + org_ids + ")" if orgs}
+        #{sql_strings[:period_id]}
+        #{sql_strings[:org_ids]}
 
       ORDER BY docs.lms_published_at, orgs.id
 
-      #{"LIMIT " + limit if limit}
+      #{sql_strings[:limit]}
     SQL
   end
 
