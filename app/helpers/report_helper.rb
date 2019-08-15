@@ -163,60 +163,19 @@ module ReportHelper
   end
 
   def self.get_document_meta org_slug, account_filter, params
-    # raise params.inspect
-    # query_parameters = {}
-    
-    # org = Organization.find_by slug: org_slug
-
-    # if !account_filter_blank?(account_filter)
-    #   query_parameters[:account_filter] = "%#{account_filter}%"
-    #   account_filter_sql = "AND n.value LIKE :account_filter AND a.key = 'account_id'"
-    # else
-    #   account_filter_sql = nil
-    # end
-
-    # start_filter = ''
-    # if params[:start]
-    #   start = params[:start] = params[:start].gsub(/[^\d-]/, '')
-    #   if start != ''
-    #     query_parameters[:start] = params[:start]
-    #     start_filter = "AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)"
-    #   end
-    # end
-
-    # limit_sql = nil
-    # if params[:page]
-    #     query_parameters[:offset] = (params[:page] || 1).to_i
-    #     query_parameters[:limit] = (params[:per] || 1).to_i
-    #     limit_sql = 'offset :offset limit :limit'
-    # end
-
-    # query_parameters[:org_id] = org[:id]
-    # query_parameters[:org_id_string] = org[:id].to_s
-    # raise [account_filter_sql, limit_sql, start_filter, query_parameters].inspect
-    # # ["AND n.value LIKE :account_filter AND a.key = 'account_id'", nil, "", {:account_filter=>"%{\"account_filter\"=>\"FL17\"}%", :org_id=>1, :org_id_string=>"1"}]
-    # DocumentMeta.find_by_sql([document_meta_query_sql(account_filter_sql, limit_sql, start_filter), query_parameters])
-
-
     query_options = { 
       :start => "AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)",
       :account_filter=>"AND n.value LIKE :account_filter AND a.key = 'account_id'", 
       :limit=>"offset :offset limit :limit", 
       :offset=>nil,
-      :org_id=>"AND d.organization_id IN ( :org_id )",
-      :org_id_string=>"a.root_organization_id = :org_id_string"
+      :org_id=>nil,
+      :org_id_string=>nil
     }
-    # params[:start] = ''
-    # if params[:start]
-    #   if (params[:start] = params[:start].gsub(/[^\d-]/, '')) == ''
-    #     query_options[:start] = "AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)" 
-    #   end
-    # end
 
     org_id = Organization.find_by(slug: org_slug).id
+
     params[:org_id_string] = org_id.to_s
     params[:org_id] = org_id
-    # # raise params[:start].inspect
     params[:account_filter] = "%#{account_filter}%" unless account_filter_blank?(account_filter)
     params[:offset] = (params[:page] || 1).to_i if params[:page]
     params[:limit] = (params[:per] || 1).to_i if params[:page]
@@ -226,73 +185,13 @@ module ReportHelper
     if query_settings[:params][:start].nil? || (query_settings[:params][:start] = query_settings[:params][:start].gsub(/[^\d-]/, '')) == ''
       query_settings[:strings][:start] = ''
     end
-    # # query_settings[:strings][:start] = ''
-    # # if params[:start]
-    # #   start = params[:start] = params[:start].gsub(/[^\d-]/, '')
-    # #   if start != ''
-    # #     query_settings[:params][:start] = params[:start]
-    # #     query_settings[:strings][:start] = "AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)"
-    # #   end
-    # # end
-    # # query_settings[:params][:org_id] = org_id.to_s
-    query_strings = query_settings[:strings]
-    # # raise query_settings[:strings].inspect
-    # # raise ([
-    # # raise ([
-    # # raise [
-    # #     query_strings[:account_filter], 
-    # #     query_strings[:limit], 
-    # #     query_strings[:start] , query_settings[:params] ].inspect
-    # raise ([[
-    #     query_strings[:account_filter], 
-    #     query_strings[:limit], 
-    #     query_strings[:start] 
-    # ],
-    #   query_settings[:params]
-    # ]).inspect
-    # [["AND n.value LIKE :account_filter AND a.key = 'account_id'", nil, ""], {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}]
-    # raise ([
-    #   ([account_filter_sql, limit_sql, start_filter]),
-    #   query_parameters
-    # ]).inspect
-    # [["AND n.value LIKE :account_filter AND a.key = 'account_id'", nil, ""], {:account_filter=>"%{\"account_filter\"=>\"FL17\"}%", :org_id=>1, :org_id_string=>"1"}]
-    # DocumentMeta.find_by_sql([
-    #   document_meta_query_sql(account_filter_sql, limit_sql, start_filter),
-    #   query_parameters
-    # ])
-    # DocumentMeta.find_by_sql([
-    #   document_meta_query_sql("AND n.value LIKE :account_filter AND a.key = 'account_id'",nil, ""), 
-    #   {:account_filter=>"%{\"account_filter\"=>\"FL17\"}%", :org_id=>1, :org_id_string=>"1"}
-    # ])
-    # DocumentMeta.find_by_sql([
-    #   document_meta_query_sql("AND n.value LIKE :account_filter AND a.key = 'account_id'",nil, ""), 
-    #   {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}
-    # ])
-    # ["AND n.value LIKE :account_filter AND a.key = 'account_id'", nil, "", {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}]
-    query_parameters = Hash.new
-    # [query_settings[:params]]
-    query_settings[:params].each {|k,v| query_parameters[k] = v}
-    # query_parameters = {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}
-    # raise JSON.parse(query_parameters.to_json).inspect
-    # {"controller":"admin/auditor","action":"reports","org_id_string":"1","org_id":1}
-    # {"controller":"admin/auditor","action":"reports","org_id_string":"1","org_id":1}
-    # raise ({:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}).inspect
-    DocumentMeta.find_by_sql([document_meta_query_sql(
-        query_strings[:account_filter], 
-        query_strings[:limit], 
-        query_strings[:start] 
-      ),
-      # query_parameters
-      query_settings[:params]
-      # {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}
-      # {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}
-    ])
-    # ["AND n.value LIKE :account_filter AND a.key = 'account_id'", nil, "", {:org_id_string=>"1", :org_id=>1, :account_filter=>"%{\"account_filter\"=>\"FL17\"}%"}]
-    # ["AND n.value LIKE :account_filter AND a.key = 'account_id'", nil, "", {:account_filter=>"%{\"account_filter\"=>\"FL17\"}%", :org_id=>1, :org_id_string=>"1"}]
 
-    # raise query_settings.inspect
-    # DocumentMeta.find_by_sql([document_meta_query_sql( query_settings[:strings] ), query_settings[:params] ])
-    # DocumentMeta.find_by_sql([document_report_data_query_sql(query_settings[:strings]), query_settings[:params]])
+    query_strings = query_settings[:strings]
+
+    DocumentMeta.find_by_sql([
+      document_meta_query_sql(query_strings[:account_filter], query_strings[:limit], query_strings[:start]),
+      query_settings[:params]
+    ])
   end
 
   def self.collect_query_settings params, query_options
@@ -321,7 +220,7 @@ module ReportHelper
       workflow_step: :ws,
       period: :pd  
     }
-    # params[:name_by] = @organization.get_name_reports_by
+
     params[:name_by] = 'document.lms_course_id'
     subs.each { |k, v| params[:name_by][k.to_s] &&= v.to_s }
     params[:org_ids] = org_ids
@@ -330,7 +229,7 @@ module ReportHelper
     params[:limit] = (params[:per] || 1).to_i if params[:page]
 
     query_settings = collect_query_settings params, query_options
-    # raise query_settings[:params].inspect
+
     DocumentMeta.find_by_sql([document_report_data_query_sql(query_settings[:strings]), query_settings[:params]])
   end
 
