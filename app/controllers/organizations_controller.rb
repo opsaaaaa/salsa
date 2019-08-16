@@ -216,7 +216,7 @@ class OrganizationsController < AdminController
 
     if has_role 'organization_admin'
       org_params.permit(:name, :export_type, :slug, :period_meta_key, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
-      :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
+      :force_https, :time_zone, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
     end
   end
 end

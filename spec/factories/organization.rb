@@ -1,14 +1,14 @@
 FactoryBot.define do
   factory :organization do
     name {
-      if Organization.pluck(:name).include?("example")
+      if Organization.find_by(name: "example").present?
         Faker::Company.unique.name
       else
         "example"
       end
     }
     slug {
-      if Organization.pluck(:slug).include?("localhost")
+      if Organization.find_by(slug: "localhost").present?
         Faker::Internet.unique.domain_name 
       else
         "localhost"

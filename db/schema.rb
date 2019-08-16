@@ -153,6 +153,7 @@ ActiveRecord::Schema.define(version: 20190717175759) do
     t.string "authn_context"
     t.string "lms_account_id"
     t.string "period_meta_key"
+    t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"
