@@ -1,7 +1,7 @@
 class AdminDocumentsController < AdminDocumentsBaseController
   before_action :get_organizations, only: [:new, :edit, :update, :index, :versions, :meta]
-  before_action :require_designer_permissions
-  before_action :require_admin_permissions, only: [:index]
+  before_action :require_designer_or_supervisor_permissions
+  before_action :require_admin_permissions, only: [:index, :destroy]
   before_action :set_paper_trail_whodunnit
 
   layout 'admin'
@@ -29,6 +29,13 @@ class AdminDocumentsController < AdminDocumentsBaseController
     get_document params[:document_id]
     @organization = get_org
     @document_meta = @document.meta.order(:key).page(params[:page]).per(params[:per])
+  end
+
+  def destroy
+    get_document params[:id].to_i
+    @document.destroy
+
+    redirect_back(fallback_location: admin_document_index_path)
   end
 
   private

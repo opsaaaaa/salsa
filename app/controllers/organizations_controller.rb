@@ -4,9 +4,11 @@ class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
   before_action :require_organization_admin_permissions, except: [:show, :index, :start_workflow_form, :start_workflow]
   before_action :require_supervisor_permissions, only: [:start_workflow_form, :start_workflow]
-  before_action :require_designer_permissions, only: [:show, :index]
-
   before_action :get_export_types, only: [:new, :edit, :create, :update, :delete]
+  before_action :require_designer_or_supervisor_permissions, only: [
+      :show,
+      :index
+  ]
   before_action :get_organizations
   before_action :get_organization, except: [:orphaned_documents, :new, :create, :start_workflow_form]
   before_action :get_documents, only: [:orphaned_documents, :show, :index]
@@ -15,11 +17,10 @@ class OrganizationsController < AdminController
 
   def index
     @roots = @organizations.roots
+    get_documents
 
     redirectOrg = nil
-    if @roots.count == 1
-      redirectOrg = @roots[0]
-    elsif @organizations.size == 1
+    if @organizations.size == 1
       redirectOrg = @organizations[0]
     end
 

@@ -161,6 +161,7 @@ class AdminUsersController < AdminController
       flash[:notice] = "Users successfully created."
       redirect_to polymorphic_path([params[:controller].singularize], id: @user.id, org_path: params[:org_path])
     else
+      get_organizations
       flash[:error] = 'Error creating user'
       render action: :new
     end
@@ -172,6 +173,7 @@ class AdminUsersController < AdminController
       flash[:notice] = "User successfully updated."
       redirect_to polymorphic_path([params[:controller].singularize], id: @user.id, org_path: params[:org_path])
     else
+      get_organizations
       return render action: :edit, params: params
     end
   end
