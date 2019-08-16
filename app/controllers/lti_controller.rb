@@ -20,11 +20,12 @@ class LtiController < ApplicationController
 
         if authenticator.valid_signature?
             if params[:launch_presentation_return_url]
-                lti_info = {
+                @lti_info = {
                     course_title: params['context_title'],
                     course_id: params['context_label'],
                     login_id: params['user_id'],
                     roles: params['roles'],
+                    email: params['tool_consumer_instance_contact_email']
                 }
 
                 session['institution'] = request.env['SERVER_NAME']
@@ -33,19 +34,21 @@ class LtiController < ApplicationController
 
                 # logout any current user
                 session[:authenticated_user] = false
-                user = current_user
-                
-                if user
+                @user = current_user
+
+                populate_remote_user
+
+                if @user
                     # login the new user
-                    session[:authenticated_user] = user.id
+                    session[:authenticated_user] = @user.id
                 end
 
-                if lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
-                    session[:lti_info] = lti_info
+                if @lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
+                    session[:lti_info] = @lti_info
 
-                    redirect_to lms_course_document_path(lti_info[:course_id])
+                    redirect_to lms_course_document_path(@lti_info[:course_id])
                 else
-                    document = @organization.documents.find_by_lms_course_id lti_info[:course_id]
+                    document = @organization.documents.find_by_lms_course_id @lti_info[:course_id]
 
                     if document
                         redirect_to document_path(document[:view_id])
@@ -53,6 +56,8 @@ class LtiController < ApplicationController
                         return render :file => "public/404.html", :status => :not_found, :layout => false
                     end
                 end
+
+
             else
                 render :json => params
             end
@@ -62,6 +67,41 @@ class LtiController < ApplicationController
     end
 
     private
+
+    def populate_remote_user
+        unless @user
+            assignment = find_remote_user_assignment
+            user_by_email = find_lti_user_by_eamil
+            if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
+                # in the data base remote_user_id is username
+                assignment.set(:username => @lti_info[:login_id])
+                @user = user_by_email
+            end
+        end
+    end
+
+    def find_remote_user_assignment
+
+        assignments = UserAssignment.joins(:user).where( {
+            :user_assignments => { :organization_id => @organization.self_and_descendants}, 
+            :users => { :email => @lti_info[:email] }
+        } )
+
+        return nil unless assignments.count == 1
+        assignments.first
+    end
+
+    def find_lti_user_by_eamil
+        
+        users = User.joins(:user_assignments).where( {
+            :user_assignments => { :organization_id => @organization.self_and_descendants }, 
+            :users => { :email => @lti_info[:email] }
+        } )
+
+        return nil unless users.count == 1 
+        return nil if users.first.has_global_role?
+        users.first
+    end
 
     def get_consumer_key(obj)
         key = nil

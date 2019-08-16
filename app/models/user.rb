@@ -16,6 +16,7 @@ class User < ApplicationRecord
   has_many :assignees, class_name: 'Assignment', foreign_key: :team_member_id
   has_many :managers, through: :assignees, source: :user
   has_many :team_members, :class_name => 'User', through: :assignments, source: "team_member"
+  has_many :organizations, through: :user_assignments
 
   has_secure_password validations: false
   validates_presence_of :password, on: :create
@@ -72,6 +73,10 @@ class User < ApplicationRecord
   # def self.authenticate_with_saml(saml_response, relay_state)
   #   super
   # end
+
+  def has_global_role?
+    self.user_assignments.find_by(organization_id: nil).present?
+  end
 
   def activate
     if !self.activated
