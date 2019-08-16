@@ -34,6 +34,7 @@
 </div>
 
 <% if true || @report_data %>
+  <%= debug(@report_data)%>
   <% if @org.setting("reports_use_document_meta") %>
     
     <div class="row">

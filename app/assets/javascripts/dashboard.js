@@ -21,7 +21,8 @@ noSyllabusPer = 0,
 hasSyllabusTotal = 0,
 hasSyllabusPer = 0,
 usedWizardTotal = 0,
-usedWizardPer = 0;
+usedWizardPer = 0,
+bar = barbar.bar;
 
 function checkTotals() {
   'use strict';
@@ -294,10 +295,12 @@ $(function () {
         series: [{
           name: 'Published SALSAs',
           data: data.org_doc_pub_counts
-         }
-         ,{
+         },{
           name: 'Unpublished SALSAs',
           data: data.org_doc_unpub_counts
+         },{
+          name: 'bar',
+          data: bar
          }
         ]
       });

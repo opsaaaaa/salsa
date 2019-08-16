@@ -64,6 +64,8 @@ class Admin::AuditorController < ApplicationController
     
     remove_unneeded_params
 
+
+
     @account_filter = get_account_filter
     params[:account_filter] = @account_filter
     # @account_filter = {"account_filter":"FL17"}
@@ -71,6 +73,8 @@ class Admin::AuditorController < ApplicationController
     # raise ReportHelper.get_document_meta(@org.slug, @account_filter, @params_hash).to_yaml
     # raise ReportHelper.get_local_report_data(@org.self_and_descendants.pluck(:id), "potato", @account_filter, @params_hash).to_yaml
     get_report
+
+
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
 
     if !@report || rebuild
@@ -83,12 +87,16 @@ class Admin::AuditorController < ApplicationController
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
       @report_data = JSON.parse(@report.payload)
+      @chart_data = get_chart_data(@report_data)
+      # raise @chart_data.inspect
       # raise @report_data.inspect
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
 
   def data
+    # render json @report_data.payload
+    # render json session[:report_id].to_json
     render json: get_chart_data.to_json
   end
 
@@ -98,7 +106,21 @@ class Admin::AuditorController < ApplicationController
     @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash, id
   end
 
-  def get_chart_data
+  def get_chart_data(report_data)
+      # raise report_data.to_yaml
+      raise ((report_data.uniq {|ri| ri['organization_id'] }).collect {|ri| ri['organization_name']}).inspect
+    {
+      base_org_name: @report.organization.name,
+      use_metas: @org.setting("reports_use_document_meta"),
+      org_doc_total: report_data.count,
+      org_names: @report_data.select {|rep|}, 
+      org_doc_counts: 0,
+      org_doc_pub_counts: 0,
+      org_doc_unpub_counts: 0
+    }
+  end
+
+  def get_chart_data_old
     org_doc_pub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NULL').count}
     org_doc_unpub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NOT NULL').count}
     org_doc_counts = @org.self_and_descendants.collect {|o| o.documents.count}

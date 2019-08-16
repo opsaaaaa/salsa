@@ -37,7 +37,7 @@ module ReportHelper
       org_ids = @organization.self_and_descendants.pluck(:id)
       puts 'Getting local report data'
       # @report_data = DocumentMeta.find_by_sql(document_record_query_sql(@organization.self_and_descendants, @organization.get_name_reports_by))
-      @report_data = self.get_local_report_data(@organization.self_and_descendants, @organization.get_name_reports_by, account_filter, params)
+      @report_data = self.get_local_report_data(@organization.self_and_descendants.pluck(:id), @organization.get_name_reports_by, account_filter, params)
       puts 'Retrieved local report data'
     end
 
@@ -214,6 +214,7 @@ module ReportHelper
       :org_ids=>"AND docs.organization_id IN ( :org_ids )",
       :offset=>nil
     }
+    # raise org_ids.inspect
     subs = {
       document: :docs, 
       organization: :orgs, 
@@ -230,7 +231,7 @@ module ReportHelper
 
     query_settings = collect_query_settings params, query_options
 
-    DocumentMeta.find_by_sql([document_report_data_query_sql(query_settings[:strings]), query_settings[:params]])
+    Document.find_by_sql([document_report_data_query_sql(query_settings[:strings]), query_settings[:params]])
   end
 
   # def self.document_report_data_query_sql orgs = false, name_by = 'docs.name', period_id = false, limit = false
@@ -258,9 +259,13 @@ module ReportHelper
         docs.view_id as view_id,
         docs.lms_published_at as published_at,
         orgs.id as organization_id,
+        orgs.name as organization_name,
         pd.id as period_id
 
       FROM documents as docs
+
+      LEFT JOIN documents as c
+        ON c.id = docs.id
 
       LEFT JOIN organizations as orgs
         ON docs.organization_id = orgs.id
