@@ -27,13 +27,11 @@ class AdminController < ApplicationController
       :canvas_accounts,
       :canvas_courses
   ]
-
   force_ssl only:[:canvas_courses, :canvas_accounts,:canvas_courses,:canvas_accounts_sync]
 
   def landing
     if current_user&.archived
       return redirect_to admin_unassigned_user_path
-
     end
     if has_role 'designer' or has_role 'supervisor'
       redirect_to organizations_path, notice: flash[:notice]

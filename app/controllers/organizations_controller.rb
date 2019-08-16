@@ -4,13 +4,19 @@ class OrganizationsController < AdminController
   before_action :redirect_to_sub_org, only:[:index,:start_workflow_form,:new,:show,:edit]
   before_action :require_organization_admin_permissions, except: [:show, :index, :start_workflow_form, :start_workflow]
   before_action :require_supervisor_permissions, only: [:start_workflow_form, :start_workflow]
+  before_action :get_export_types, only: [:new, :edit, :create, :update, :delete]
   before_action :require_designer_or_supervisor_permissions, only: [
       :show,
       :index
   ]
   before_action :get_organizations
+  before_action :get_organization, except: [:orphaned_documents, :new, :create, :start_workflow_form]
+  before_action :get_documents, only: [:orphaned_documents, :show, :index]
+  
   layout 'admin'
+
   def index
+    @roots = @organizations.roots
     get_documents
 
     redirectOrg = nil
@@ -24,12 +30,11 @@ class OrganizationsController < AdminController
   end
 
   def new
-    @export_types = Organization.export_types
     @organization = Organization.new
   end
 
   def orphaned_documents
-    get_documents
+
   end
 
   def documents
@@ -48,14 +53,10 @@ class OrganizationsController < AdminController
   end
 
   def show
-    get_documents params[:slug]
     get_periods
   end
 
   def edit
-    @export_types = Organization.export_types
-    get_documents params[:slug]
-
     @workflow_steps = WorkflowStep.where(organization_id: @organization.organization_ids+[@organization.id])
     @organization.default_account_filter = '{"account_filter":""}' unless @organization.default_account_filter
     @organization.default_account_filter = '{"account_filter":""}' if @organization.default_account_filter == ''
@@ -65,7 +66,6 @@ class OrganizationsController < AdminController
 
   # commit actions
   def create
-    @export_types = Organization.export_types
     @organization = Organization.new 
     @organization.assign_attributes organization_params
 
@@ -81,9 +81,6 @@ class OrganizationsController < AdminController
   end
 
   def update
-    @export_types = Organization.export_types
-    @organization = find_org_by_path params[:slug]
-
     if has_role('admin') && params['organization']['default_account_filter'] != nil
       if params['organization']['default_account_filter'] != ''
         params['organization']['default_account_filter'] = JSON.parse(params['organization']['default_account_filter'])
@@ -107,10 +104,12 @@ class OrganizationsController < AdminController
   end
 
   def delete
-    @organization = find_org_by_path params[:slug]
-    @organization.delete
-
-    redirect_to organizations_path( org_path: params[:org_path])
+    @organization.destroy
+    if @organization.can_delete?
+      redirect_to organizations_path( org_path: params[:org_path])
+    else
+      render :edit
+    end
   end
 
   def import
@@ -156,7 +155,15 @@ class OrganizationsController < AdminController
   end
 
 
-  private
+  private  
+  
+  def get_export_types
+    @export_types = Organization.export_types
+  end
+
+  def get_organization path=params[:slug]
+    @organization = find_org_by_path path
+  end
 
   def get_documents path=params[:slug], page=params[:page], per=25, key=params[:key]
     if key == 'abandoned'
@@ -165,17 +172,12 @@ class OrganizationsController < AdminController
       operation = '!='
     end
 
-    if path
-      @organization = find_org_by_path path
-    end
-
     if @organization
       organization_ids = @organization.id
       documents = Document.where("documents.organization_id IN (?) AND documents.updated_at #{operation} documents.created_at", organization_ids)
     else
       documents = Document.where("documents.organization_id IS NULL AND documents.updated_at #{operation} documents.created_at")
     end
-
     @documents = documents.order(updated_at: :desc, created_at: :desc).page(page).per(per)
   end
 
@@ -215,7 +217,7 @@ class OrganizationsController < AdminController
 
     if has_role 'organization_admin'
       org_params.permit(:name, :export_type, :slug, :period_meta_key, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
-      :force_https, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
+      :force_https, :time_zone, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
     end
   end
 end

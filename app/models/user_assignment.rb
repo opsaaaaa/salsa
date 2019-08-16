@@ -2,6 +2,7 @@ class UserAssignment < ApplicationRecord
   def self.roles
     {'Global Administrator'=>'admin', 'Organization Administrator'=>'organization_admin', 'Auditor'=>'auditor', 'Designer'=>'designer', 'Supervisor'=>'supervisor','Staff'=>'staff','Approver'=>'approver'}
   end
+  
 
   belongs_to :user
   belongs_to :organization, optional: true
@@ -19,6 +20,7 @@ class UserAssignment < ApplicationRecord
     message: "already has a role for the specified organization"
   }
   validates :organization_id, presence: true, unless: Proc.new { |ua| ua.role == 'admin' }
+  
 
   def approvers
     ids = []
@@ -51,4 +53,17 @@ class UserAssignment < ApplicationRecord
     end
 
   end
+  
+  def should_lti_populate_remote_user?
+    # in the data base remote_user_id is username
+    self.username.blank?
+  end
+
+  def set(values)
+    values.each do |feild, val|
+      self[feild] = val
+    end
+    self.save
+  end
+
 end

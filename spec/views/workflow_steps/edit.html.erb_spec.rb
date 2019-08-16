@@ -10,8 +10,8 @@ RSpec.describe "workflow_steps/edit", type: :view do
   it "renders the edit workflow_step form" do
     render
 
-    assert_select "form[action=?][method=?]", workflow_step_path(params[:slug]@workflow_step), "post" do
-
+    assert_select "form[action=?][method=?]", workflow_step_path(params[:slug], @workflow_step), "post" do
+    
       assert_select "input[name=?]", "workflow_step[slug]"
     end
   end

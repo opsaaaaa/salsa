@@ -155,7 +155,7 @@ module ReportHelper
 
   def self.get_document_meta org_slug, account_filter, params
     query_parameters = {}
-
+    
     org = Organization.find_by slug: org_slug
 
     if !account_filter_blank?(account_filter)

@@ -37,7 +37,7 @@ I want to have a defined set of workflow steps to go thrugh
   Scenario: update workflow step
      Given there is a workflow_step on the organization
      And I am on the workflow_steps index page for the organization
-    When I click the "Edit" link
+     When I click the "Edit" link
      When I fill in the workflow_step form with:
         | slug | step_54|
         | name | Step 54 |

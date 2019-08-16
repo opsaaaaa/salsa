@@ -178,7 +178,7 @@ module ApplicationHelper
   end
 
   def get_user_assignment_org user_id, role
-    if user_id != nil
+    if user_id != nil && user_id != false 
       current_user = User.find(user_id)
       if current_assignment = current_user.user_assignments.find_by(role: role)
         return current_assignment.organization
@@ -333,6 +333,33 @@ module ApplicationHelper
     ReportHelper.get_document_meta org_slug, nil, params
   end
 
+  def get_country_time_zones(country = 'US')
+    ActiveSupport::TimeZone.country_zones(country)
+    # ActiveSupport::TimeZone.us_zones
+  end
+
+  def formatted_date (time, org_id = nil)
+    unless org_id
+      org = find_org_by_path params[:slug] 
+    else
+      org = Organization.find(org_id)
+    end
+    zone = org.setting("time_zone")
+    zone = Time.zone.name if zone === nil
+    return time.in_time_zone(zone).strftime("%m/%d/%Y")
+  end
+
+  def send_email config
+    email_override = APP_CONFIG['email_override']
+
+    if email_override
+      to = email_override
+      subject = "#{config[:to]} - #{config[:subject]}"
+    end
+
+    mail(to: config[:to], subject: config[:subject])
+  end
+
   def get_document id=nil
     id = params[:id] unless id
     @document = Document.find(id)
@@ -355,3 +382,4 @@ module ApplicationHelper
     end
   end
 end
+

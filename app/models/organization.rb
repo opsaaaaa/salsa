@@ -1,4 +1,7 @@
 class Organization < ApplicationRecord
+  before_destroy :allow_destroy
+  # ^ this has to be above act_as_nested_set
+  
   acts_as_nested_set
 
   has_many :documents
@@ -7,6 +10,8 @@ class Organization < ApplicationRecord
   has_many :user_assignments
   has_many :users, through: :user_assignments
   has_many :workflow_steps
+
+  before_validation :use_nil_for_blank_time_zone
 
   SLUG_FORMAT = /(\/?([a-z0-9][a-z0-9.-]+)?[a-z0-9]+)/
 
@@ -78,7 +83,6 @@ class Organization < ApplicationRecord
     if org
       value = org[setting]
     end
-
     return value
   end
 
@@ -96,4 +100,22 @@ class Organization < ApplicationRecord
   def self.descendants
     ObjectSpace.each_object(Class).select { |klass| klass < self }
   end
+  
+  def can_delete?
+    self.descendants.blank?
+  end
+
+  private
+  
+  def use_nil_for_blank_time_zone
+    self.time_zone = nil if time_zone.blank?
+  end
+
+  def allow_destroy
+    return true if self.can_delete?
+    self.errors.add('Cannot_delete', 'that organization has sub organizations')
+    false
+    throw(:abort)
+  end
+
 end
