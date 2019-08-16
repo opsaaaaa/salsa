@@ -39,7 +39,6 @@ class LtiController < ApplicationController
 
                 @user = find_lti_user_by_assignmnet_username
                 raise @user.name.inspect
-                populate_remote_user
 
                 if @user
                     # login the new user
@@ -71,17 +70,17 @@ class LtiController < ApplicationController
 
     private
 
-    def populate_remote_user
-        unless @user
-            assignment = find_remote_user_assignment
-            user_by_email = find_lti_user_by_eamil
-            if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
-                # in the data base remote_user_id is username
-                assignment.set(:username => @lti_info[:login_id])
-                @user = user_by_email
-            end
-        end
-    end
+    # def populate_remote_user
+    #     unless @user
+    #         assignment = find_remote_user_assignment
+    #         user_by_email = find_lti_user_by_eamil
+    #         if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
+    #             # in the data base remote_user_id is username
+    #             assignment.set(:username => @lti_info[:login_id])
+    #             @user = user_by_email
+    #         end
+    #     end
+    # end
 
     # assignments = @org.user_assignments
 
@@ -100,15 +99,15 @@ class LtiController < ApplicationController
         user
     end
 
-    def find_lti_user_by_eamil        
-        users = User.joins(:user_assignments).where( {
-            :user_assignments => { :organization_id => @organization.self_and_descendants }, 
-            :users => { :email => @lti_info[:email] }
-        } )
+    # def find_lti_user_by_eamil        
+        # users = User.joins(:user_assignments).where( {
+    #         :user_assignments => { :organization_id => @organization.self_and_descendants }, 
+    #         :users => { :email => @lti_info[:email] }
+    #     } )
 
-        return nil unless users.count == 1 
-        users.first
-    end
+    #     return nil unless users.count == 1 
+    #     users.first
+    # end
 
     def get_consumer_key(obj)
         key = nil
@@ -119,9 +118,9 @@ class LtiController < ApplicationController
         end
     end
 
-    def get_user_assignment
+    # def get_user_assignment
         
-    end
+    # end
 
     def find_remote_user_assignment(remote_username)
         assignments = UserAssignment.where( 
@@ -142,30 +141,30 @@ class LtiController < ApplicationController
     #     assignments.first
     # end
 
-    def find_lti_user_by_eamil
+    # def find_lti_user_by_eamil
         
-        users = User.joins(:user_assignments).where( {
-            :user_assignments => { :organization_id => @organization.self_and_descendants }, 
-            :users => { :email => @lti_info[:email] }
-        } )
+    #     users = User.joins(:user_assignments).where( {
+    #         :user_assignments => { :organization_id => @organization.self_and_descendants }, 
+    #         :users => { :email => @lti_info[:email] }
+    #     } )
 
-        return nil unless users.count == 1 
-        return nil if users.first.has_global_role?
-        users.first
-    end
+    #     return nil unless users.count == 1 
+    #     return nil if users.first.has_global_role?
+    #     users.first
+    # end
 
-    def get_consumer_key(obj)
-        key = nil
+    # def get_consumer_key(obj)
+    #     key = nil
 
-        # check for key in request, if found, return it
-        if obj[:oauth_consumer_key]
-            key = obj[:oauth_consumer_key]
-        else
-            raise "consumer key not found"
-        end
+    #     # check for key in request, if found, return it
+    #     if obj[:oauth_consumer_key]
+    #         key = obj[:oauth_consumer_key]
+    #     else
+    #         raise "consumer key not found"
+    #     end
 
-        return key
-    end
+    #     return key
+    # end
 
     def get_consumer_secret key
         temp_secrets = {}
