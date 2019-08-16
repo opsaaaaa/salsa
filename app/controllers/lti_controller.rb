@@ -25,7 +25,8 @@ class LtiController < ApplicationController
                     course_id: params['context_label'],
                     login_id: params['user_id'],
                     roles: params['roles'],
-                    email: params['tool_consumer_instance_contact_email']
+                    person_sourcedid: params['lis_person_sourcedid']
+                    # email: params['tool_consumer_instance_contact_email']
                 }
 
                 session['institution'] = request.env['SERVER_NAME']
@@ -34,8 +35,10 @@ class LtiController < ApplicationController
 
                 # logout any current user
                 session[:authenticated_user] = false
-                @user = current_user
+                # @user = current_user
 
+                @user = find_lti_user_by_assignmnet_username
+                raise @user.name.inspect
                 populate_remote_user
 
                 if @user
@@ -80,16 +83,64 @@ class LtiController < ApplicationController
         end
     end
 
-    def find_remote_user_assignment
+    # assignments = @org.user_assignments
 
-        assignments = UserAssignment.joins(:user).where( {
-            :user_assignments => { :organization_id => @organization.self_and_descendants}, 
+    # UserAssignment.where( 
+    #     :organization_id => self.self_and_descendants,
+    #     :username => val
+    # )
+
+    def find_lti_user_by_assignmnet_username
+        assignment = find_remote_user_assignment([@lti_info[:person_sourcedid],@lti_info[:login_id]])
+        # assignment = find_remote_user_assignment(@lti_info[:person_sourcedid])
+        # assignment = find_remote_user_assignment(@lti_info[:login_id]) if assignment.blank?
+        return nil unless assignment.present?
+        user = assignment.user
+        return nil if user.has_global_role?
+        user
+    end
+
+    def find_lti_user_by_eamil        
+        users = User.joins(:user_assignments).where( {
+            :user_assignments => { :organization_id => @organization.self_and_descendants }, 
             :users => { :email => @lti_info[:email] }
         } )
 
+        return nil unless users.count == 1 
+        users.first
+    end
+
+    def get_consumer_key(obj)
+        key = nil
+
+        # check for key in request, if found, return it
+        if obj[:oauth_consumer_key]
+            key = obj[:oauth_consumer_key]
+        end
+    end
+
+    def get_user_assignment
+        
+    end
+
+    def find_remote_user_assignment(remote_username)
+        assignments = UserAssignment.where( 
+            :organization_id => @organization.self_and_descendants, 
+            :username => remote_username
+        )
         return nil unless assignments.count == 1
         assignments.first
     end
+    # def find_remote_user_assignment
+
+    #     assignments = UserAssignment.joins(:user).where( {
+    #         :user_assignments => { :organization_id => @organization.self_and_descendants}, 
+    #         :users => { :email => @lti_info[:person_sourcedid] }
+    #     } )
+
+    #     return nil unless assignments.count == 1
+    #     assignments.first
+    # end
 
     def find_lti_user_by_eamil
         
