@@ -35,10 +35,7 @@ class LtiController < ApplicationController
 
                 # logout any current user
                 session[:authenticated_user] = false
-                # @user = current_user
-
                 @user = find_lti_user_by_assignmnet_username
-                raise @user.name.inspect
 
                 if @user
                     # login the new user
@@ -70,59 +67,18 @@ class LtiController < ApplicationController
 
     private
 
-    # def populate_remote_user
-    #     unless @user
-    #         assignment = find_remote_user_assignment
-    #         user_by_email = find_lti_user_by_eamil
-    #         if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
-    #             # in the data base remote_user_id is username
-    #             assignment.set(:username => @lti_info[:login_id])
-    #             @user = user_by_email
-    #         end
-    #     end
-    # end
-
-    # assignments = @org.user_assignments
-
-    # UserAssignment.where( 
-    #     :organization_id => self.self_and_descendants,
-    #     :username => val
-    # )
-
     def find_lti_user_by_assignmnet_username
-        assignment = find_remote_user_assignment([@lti_info[:person_sourcedid],@lti_info[:login_id]])
-        # assignment = find_remote_user_assignment(@lti_info[:person_sourcedid])
-        # assignment = find_remote_user_assignment(@lti_info[:login_id]) if assignment.blank?
+        assignment = find_user_assignment_by_username([
+            @lti_info[:person_sourcedid],
+            @lti_info[:login_id]
+        ])
         return nil unless assignment.present?
         user = assignment.user
         return nil if user.has_global_role?
         user
     end
 
-    # def find_lti_user_by_eamil        
-        # users = User.joins(:user_assignments).where( {
-    #         :user_assignments => { :organization_id => @organization.self_and_descendants }, 
-    #         :users => { :email => @lti_info[:email] }
-    #     } )
-
-    #     return nil unless users.count == 1 
-    #     users.first
-    # end
-
-    def get_consumer_key(obj)
-        key = nil
-
-        # check for key in request, if found, return it
-        if obj[:oauth_consumer_key]
-            key = obj[:oauth_consumer_key]
-        end
-    end
-
-    # def get_user_assignment
-        
-    # end
-
-    def find_remote_user_assignment(remote_username)
+    def find_user_assignment_by_username(remote_username)
         assignments = UserAssignment.where( 
             :organization_id => @organization.self_and_descendants, 
             :username => remote_username
@@ -130,41 +86,19 @@ class LtiController < ApplicationController
         return nil unless assignments.count == 1
         assignments.first
     end
-    # def find_remote_user_assignment
 
-    #     assignments = UserAssignment.joins(:user).where( {
-    #         :user_assignments => { :organization_id => @organization.self_and_descendants}, 
-    #         :users => { :email => @lti_info[:person_sourcedid] }
-    #     } )
+    def get_consumer_key(obj)
+        key = nil
 
-    #     return nil unless assignments.count == 1
-    #     assignments.first
-    # end
+        # check for key in request, if found, return it
+        if obj[:oauth_consumer_key]
+            key = obj[:oauth_consumer_key]
+        else
+            raise "consumer key not found"
+        end
 
-    # def find_lti_user_by_eamil
-        
-    #     users = User.joins(:user_assignments).where( {
-    #         :user_assignments => { :organization_id => @organization.self_and_descendants }, 
-    #         :users => { :email => @lti_info[:email] }
-    #     } )
-
-    #     return nil unless users.count == 1 
-    #     return nil if users.first.has_global_role?
-    #     users.first
-    # end
-
-    # def get_consumer_key(obj)
-    #     key = nil
-
-    #     # check for key in request, if found, return it
-    #     if obj[:oauth_consumer_key]
-    #         key = obj[:oauth_consumer_key]
-    #     else
-    #         raise "consumer key not found"
-    #     end
-
-    #     return key
-    # end
+        return key
+    end
 
     def get_consumer_secret key
         temp_secrets = {}
