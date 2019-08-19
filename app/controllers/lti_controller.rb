@@ -35,7 +35,7 @@ class LtiController < ApplicationController
 
                 # logout any current user
                 session[:authenticated_user] = false
-                @user = find_lti_user_by_assignmnet_username
+                @user = find_lti_user_by_assignment_username
 
                 if @user
                     # login the new user
@@ -67,7 +67,7 @@ class LtiController < ApplicationController
 
     private
 
-    def find_lti_user_by_assignmnet_username
+    def find_lti_user_by_assignment_username
         assignment = find_user_assignment_by_username([
             @lti_info[:person_sourcedid],
             @lti_info[:login_id]
