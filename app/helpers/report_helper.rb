@@ -230,10 +230,40 @@ module ReportHelper
     params[:limit] = (params[:per] || 1).to_i if params[:page]
 
     query_settings = collect_query_settings params, query_options
+    raise JSON.parse(Organization.find_by_sql([org_chart_data({org_ids: 'WHERE orgs.id IN (:org_ids)'}),{org_ids: [1,3]}]).to_json).to_yaml
 
     Document.find_by_sql([document_report_data_query_sql(query_settings[:strings]), query_settings[:params]])
   end
 
+  def self.org_chart_data sql_strings
+    <<-SQL.gsub(/^ {4}/, '')
+      SELECT 
+        orgs.id,
+        orgs.parent_id,
+        orgs.name,
+        COUNT(docs.*) total_docs,
+        COUNT(docs.lms_published_at) lms_published,
+        (COUNT(docs.*) - COUNT(docs.lms_published_at)) lms_unpublished,
+        COUNT(docs.published_at) published,
+        (COUNT(docs.*) - COUNT(docs.published_at)) unpublished,
+        -- (SELECT COUNT(*) FROM documents WHERE updated_at = created_at AND organization_id IN (1,4)) unpublished,
+        COUNT(docs.lms_course_id) has_lms_course,
+        (COUNT(docs.*) - COUNT(docs.lms_course_id)) has_no_lms_course,
+        (SELECT COUNT(*) FROM documents WHERE updated_at = created_at AND organization_id = orgs.id) abandoned,
+        (SELECT COUNT(*) FROM documents WHERE updated_at <> created_at AND organization_id = orgs.id) maintained
+      FROM documents docs
+        LEFT JOIN organizations orgs
+          ON orgs.id = docs.organization_id
+      #{sql_strings[:org_ids]}
+      GROUP BY orgs.id, orgs.name
+      #{sql_strings[:limit]}
+    SQL
+  end
+
+  def self.document_meta_query_sql account_filter_sql, limit_sql, start_filter
+    <<-SQL.gsub(/^ {4}/, '')
+    SQL
+  end
   # def self.document_report_data_query_sql orgs = false, name_by = 'docs.name', period_id = false, limit = false
   def self.document_report_data_query_sql sql_strings
     <<-SQL.gsub(/^ {4}/, '')
