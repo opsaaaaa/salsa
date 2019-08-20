@@ -83,10 +83,12 @@ class Organization < ApplicationRecord
     self.name_reports_by = nil if name_reports_by.blank?
   end
 
-  def get_name_reports_by
-    setting = self.setting("name_reports_by")
-    setting = Organization.name_reports_by_options.values.first if setting.blank?
-    return setting
+  def get_name_reports_by(subs = {})
+    subs = subs.stringify_keys
+    name_by = self.setting("name_reports_by")
+    name_by = Organization.name_reports_by_options.values.first if name_by.blank?
+    subs.each { |k, v| name_by[k.to_s] &&= v.to_s }
+    name_by
   end
 
   # force null save so setting can cascade up the tree (most settings should probably be this way)

@@ -22,7 +22,7 @@ hasSyllabusTotal = 0,
 hasSyllabusPer = 0,
 usedWizardTotal = 0,
 usedWizardPer = 0,
-org_chart = chart_data.org_chart;
+org_chart = 0;
 
 function checkTotals() {
   'use strict';
@@ -37,6 +37,7 @@ function checkTotals() {
   hasSyllabusPer = usingSalsaTotal>0?Math.floor((hasSyllabusTotal / usingSalsaTotal) * 100):0;
   usedWizardTotal = $(".courses .icon-magic:visible").length;
   usedWizardPer = Math.floor((usedWizardTotal / notUsingSalsaTotal) * 100);
+  org_chart = chart_data.org_chart;
 
   $('.grandTotal').html(grandTotal);
   $('.usingSalsaTotal').html(usingSalsaTotal);

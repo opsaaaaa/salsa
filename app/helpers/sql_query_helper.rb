@@ -45,7 +45,6 @@ module SqlQueryHelper
 
     def self.get_local_report_data org_ids, account_filter = nil, params = {}
         query_options = { 
-            :name_by=>":name_by as name,", 
             :account_filter=>"AND n.value LIKE :account_filter AND a.key = 'account_id'", 
             :start=>"AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)", 
             :limit=>"offset :offset limit :limit", 
@@ -53,15 +52,7 @@ module SqlQueryHelper
             :org_ids=>"AND docs.organization_id IN ( :org_ids )",
             :offset=>nil
         }
-        subs = {
-            document: :docs, 
-            organization: :orgs, 
-            workflow_step: :ws,
-            period: :pd  
-        }
 
-        params[:name_by] = 'document.lms_course_id'
-        subs.each { |k, v| params[:name_by][k.to_s] &&= v.to_s }
         params[:org_ids] = org_ids
         params[:account_filter] = "%#{account_filter}%" unless ReportHelper.account_filter_blank?(account_filter)
         params[:offset] = (params[:page] || 1).to_i if params[:page]
@@ -119,8 +110,7 @@ module SqlQueryHelper
             orgs.parent_id as parent_id,
             docs.id as document_id,
             docs.id as id,
-            -- docs.name docs.lms_course_id as name,
-            #{sql_strings[:name_by]}
+            docs.name as name,
             -- cc.value as course_code,
             -- et.value as enrollment_term_id,
             -- sis.value as sis_course_id,

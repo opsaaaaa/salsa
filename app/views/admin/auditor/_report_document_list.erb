@@ -47,7 +47,7 @@
             <ul class="course-list" data-account="<%= record['account'] %>">
         <% end %>
 
-        <% if true | course_id != record['course_id'] %>
+        <% if course_id != record['course_id'] %>
           <% course_id = record['course_id'] %>
           <% li_classes, status_icon, syllabus_link = '', '', false %>
           <% if record['edit_id'] and !record['published_at'] %>
@@ -71,7 +71,7 @@
               <!-- <a href="<%= 'URL' %>salsa/<%= record['account_id'] %>/course/<%= record['course_id'] %>"><%= record['name'] %></a> -->
               <%= link_to record['name'], document_path(record['view_id'], org_path: params[:org_path]), target:"_blank" %>
             <% else %>
-              <%= record['name'] %>
+              <%= record[@name_by] %>
             <% end %>
 
             <%# teacher_array = [ record.teacher_first_name + " " + record.teacher_last_name ] %>

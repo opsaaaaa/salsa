@@ -32,7 +32,6 @@ module ReportHelper
     else
       puts 'Getting local report data'
       org_ids = @organization.self_and_descendants.pluck(:id)
-      params[:name_by] = @organization.get_name_reports_by
       @report_data = self.get_org_report(@organization.self_and_descendants.pluck(:id), account_filter, params)
       puts 'Retrieved local report data'
     end
