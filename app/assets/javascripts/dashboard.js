@@ -37,7 +37,9 @@ function checkTotals() {
   hasSyllabusPer = usingSalsaTotal>0?Math.floor((hasSyllabusTotal / usingSalsaTotal) * 100):0;
   usedWizardTotal = $(".courses .icon-magic:visible").length;
   usedWizardPer = Math.floor((usedWizardTotal / notUsingSalsaTotal) * 100);
-  org_chart = chart_data.org_chart;
+  if (typeof chart_data !== 'undefined'){
+    org_chart = chart_data.org_chart;
+  }
 
   $('.grandTotal').html(grandTotal);
   $('.usingSalsaTotal').html(usingSalsaTotal);

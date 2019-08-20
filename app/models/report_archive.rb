@@ -10,7 +10,7 @@ class ReportArchive < ApplicationRecord
   def used_meta?
     r = self.used_document_meta
     if r.nil?
-      r = JSON.parse(self.payload)[:org_chart].blank?
+      r = self.parsed_payload[:org_chart].blank?
       set_used_document_meta(r)
     end
     r

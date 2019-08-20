@@ -4,7 +4,7 @@ require 'zip'
 class Admin::AuditorController < ApplicationController
 
   before_action :require_auditor_role
-  before_action -> { @org = get_org }, olny: [:report, :reports, :data]
+  before_action -> { @org = get_org }, olny: [:report, :reports]
 
   def download
     if FileHelper::should_use_aws_s3?
