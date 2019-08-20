@@ -25,12 +25,29 @@
     </div>
   <% end %>
 
+  <% if @document.organization&.root_org_setting("lms_authentication_source") %>
+    <div class="form-group">
+      <%= f.label :lms_course_id, 'LMS Course ID', class: "control-label" %>
+      <div class="controls">
+        <%= f.text_field :lms_course_id, class: 'form-control input-xxlarge' %>
+      </div>
+    </div>
+  <% end %>
+  
   <div class="form-group">
-    <%= f.label :lms_course_id, class: "control-label" %>
+    <%= f.label :remote_identifier, class: "control-label" %>
     <div class="controls">
-      <%= f.text_field :lms_course_id, class: 'form-control input-xxlarge' %>
+      <%= f.text_field :remote_identifier, class: 'form-control input-xxlarge' %>
     </div>
   </div>
+
+  <div class="form-group">
+    <%= f.label :view_id, 'View Identifier', class: "control-label" %>
+    <div class="controls">
+      <%= f.text_field :view_id, class: 'form-control input-xxlarge' %>
+    </div>
+  </div>
+
   <% if @workflow_steps && @document.organization&.root_org_setting("enable_workflows") %>
     <div class="form-group">
       <%= f.label :workflow_step_id, class: "control-label" %>
@@ -95,7 +112,7 @@
   <% end %>
 
 
-  <% if !@document.organization&.disable_document_view %>
+  <% if !@document.organization&.root_org_setting('disable_document_view') %>
     <li>
       <%= link_to "View: #{org_base}#{document_path(id: @document.view_id, org_path: params[:org_path])}", "#{org_base}#{document_path(id: @document.view_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
     </li>

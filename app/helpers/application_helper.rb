@@ -134,6 +134,12 @@ module ApplicationHelper
     end
   end
 
+  def require_designer_or_supervisor_permissions
+    unless has_role('designer') || has_role('supervisor') || has_role('organization_admin') || has_role('supervisor')
+      return redirect_or_error
+    end
+  end
+
   def require_auditor_role
     unless has_role('auditor') || has_role('designer') ||  has_role('organization_admin')
       return redirect_or_error
@@ -235,7 +241,8 @@ module ApplicationHelper
 
   def get_organizations
     if session[:saml_authenticated_user]
-      user = UserAssignment.find_by("lower(username) = ?", session[:saml_authenticated_user]["id"].to_s.downcase).user
+      user_assignment = UserAssignment.find_by("lower(username) = ?", session[:saml_authenticated_user]["id"].to_s.downcase)
+      user = user_assignment.user if user_assignment
     elsif session[:authenticated_user]
       user = User.find session[:authenticated_user]
     end
@@ -327,6 +334,22 @@ module ApplicationHelper
     ReportHelper.get_document_meta org_slug, nil, params
   end
 
+  def get_country_time_zones(country = 'US')
+    ActiveSupport::TimeZone.country_zones(country)
+    # ActiveSupport::TimeZone.us_zones
+  end
+
+  def formatted_date (time, org_id = nil)
+    unless org_id
+      org = find_org_by_path params[:slug] 
+    else
+      org = Organization.find(org_id)
+    end
+    zone = org.setting("time_zone")
+    zone = Time.zone.name if zone === nil
+    return time.in_time_zone(zone).strftime("%m/%d/%Y")
+  end
+
   def send_email config
     email_override = APP_CONFIG['email_override']
 
@@ -360,3 +383,4 @@ module ApplicationHelper
     end
   end
 end
+

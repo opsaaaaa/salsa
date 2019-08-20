@@ -10,7 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(version: 20190820202934) do
+=======
+ActiveRecord::Schema.define(version: 20190730203210) do
+>>>>>>> master
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -25,10 +29,10 @@ ActiveRecord::Schema.define(version: 20190820202934) do
   end
 
   create_table "components", id: :serial, force: :cascade do |t|
-    t.string "name"
-    t.string "slug"
+    t.string "name", limit: 255
+    t.string "slug", limit: 255
     t.text "description"
-    t.string "category"
+    t.string "category", limit: 255
     t.integer "organization_id"
     t.text "css"
     t.text "js"
@@ -55,29 +59,29 @@ ActiveRecord::Schema.define(version: 20190820202934) do
 
   create_table "document_meta", id: :serial, force: :cascade do |t|
     t.integer "document_id"
-    t.string "key"
-    t.string "value"
-    t.string "lms_organization_id"
-    t.string "lms_course_id"
+    t.string "key", limit: 255
+    t.string "value", limit: 255
+    t.string "lms_organization_id", limit: 255
+    t.string "lms_course_id", limit: 255
     t.integer "root_organization_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
   create_table "documents", id: :serial, force: :cascade do |t|
-    t.string "name"
-    t.string "edit_id"
-    t.string "view_id"
+    t.string "name", limit: 255
+    t.string "edit_id", limit: 255
+    t.string "view_id", limit: 255
     t.text "payload"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string "template_id"
+    t.string "template_id", limit: 255
     t.integer "organization_id"
-    t.string "lms_course_id"
+    t.string "lms_course_id", limit: 255
     t.datetime "lms_published_at"
     t.integer "component_id"
     t.integer "component_version"
-    t.string "term_id"
+    t.string "term_id", limit: 255
     t.integer "version"
     t.integer "workflow_step_id"
     t.integer "user_id"
@@ -106,35 +110,35 @@ ActiveRecord::Schema.define(version: 20190820202934) do
 
   create_table "organization_meta", id: :serial, force: :cascade do |t|
     t.integer "organization_id"
-    t.string "key"
-    t.string "value"
-    t.string "lms_organization_id"
+    t.string "key", limit: 255
+    t.string "value", limit: 255
+    t.string "lms_organization_id", limit: 255
     t.integer "root_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
   create_table "organizations", id: :serial, force: :cascade do |t|
-    t.string "name"
-    t.string "slug"
+    t.string "name", limit: 255
+    t.string "slug", limit: 255
     t.integer "parent_id"
     t.integer "lft"
     t.integer "rgt"
     t.integer "depth"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string "lms_authentication_source"
-    t.string "lms_authentication_id"
-    t.string "lms_authentication_key"
-    t.string "lms_info_slug"
-    t.string "lms_id"
+    t.string "lms_authentication_source", limit: 255
+    t.string "lms_authentication_id", limit: 255
+    t.string "lms_authentication_key", limit: 255
+    t.string "lms_info_slug", limit: 255
+    t.string "lms_id", limit: 255
     t.datetime "dashboard_start_at"
     t.datetime "dashboard_end_at"
-    t.string "home_page_redirect"
+    t.string "home_page_redirect", limit: 255
     t.json "default_account_filter"
+    t.boolean "skip_lms_publish"
     t.datetime "republish_at"
     t.string "republish_batch_token"
-    t.boolean "skip_lms_publish"
     t.boolean "enable_anonymous_actions", default: true
     t.boolean "track_meta_info_from_document"
     t.string "export_type", default: "default"
@@ -154,8 +158,11 @@ ActiveRecord::Schema.define(version: 20190820202934) do
     t.string "authn_context"
     t.string "lms_account_id"
     t.string "period_meta_key"
+<<<<<<< HEAD
     t.boolean "reports_use_document_meta", default: false, null: false
     t.string "name_reports_by"
+=======
+>>>>>>> master
     t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
@@ -166,8 +173,8 @@ ActiveRecord::Schema.define(version: 20190820202934) do
   end
 
   create_table "periods", id: :serial, force: :cascade do |t|
-    t.string "slug"
-    t.string "name"
+    t.string "slug", limit: 255
+    t.string "name", limit: 255
     t.integer "organization_id"
     t.integer "duration"
     t.boolean "is_default"
@@ -203,7 +210,7 @@ ActiveRecord::Schema.define(version: 20190820202934) do
   end
 
   create_table "templates", id: :serial, force: :cascade do |t|
-    t.string "slug"
+    t.string "slug", limit: 255
     t.text "payload"
     t.integer "organization_id"
     t.datetime "created_at"
@@ -214,22 +221,22 @@ ActiveRecord::Schema.define(version: 20190820202934) do
   create_table "user_assignments", id: :serial, force: :cascade do |t|
     t.integer "user_id"
     t.integer "organization_id"
-    t.string "username"
+    t.string "username", limit: 255
     t.boolean "cascades"
-    t.string "role"
+    t.string "role", limit: 255
   end
 
   create_table "users", id: :serial, force: :cascade do |t|
-    t.string "name"
+    t.string "name", limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string "email"
-    t.string "password_digest"
-    t.string "remember_digest"
-    t.string "activation_digest"
+    t.string "email", limit: 255
+    t.string "password_digest", limit: 255
+    t.string "remember_digest", limit: 255
+    t.string "activation_digest", limit: 255
     t.boolean "activated"
     t.datetime "activated_at"
-    t.string "reset_digest"
+    t.string "reset_digest", limit: 255
     t.datetime "reset_sent_at"
     t.boolean "archived", default: false
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -246,15 +253,15 @@ ActiveRecord::Schema.define(version: 20190820202934) do
   end
 
   create_table "vestal_versions", id: :serial, force: :cascade do |t|
-    t.string "versioned_type"
     t.integer "versioned_id"
-    t.string "user_type"
+    t.string "versioned_type", limit: 255
     t.integer "user_id"
-    t.string "user_name"
+    t.string "user_type", limit: 255
+    t.string "user_name", limit: 255
     t.text "modifications"
     t.integer "number"
     t.integer "reverted_from"
-    t.string "tag"
+    t.string "tag", limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["created_at"], name: "index_vestal_versions_on_created_at"

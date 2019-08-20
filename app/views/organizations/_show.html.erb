@@ -79,11 +79,15 @@
               <% end %>
 
               <th scope="row" nowrap width="50%">
-                <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
+                <% if has_role('supervisor') || has_role('designer') %>
+                  <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
+                <% else %>
+                  <%= document.name %>
+                <% end %>
               </th>
 
               <% if @periods %>
-                <td>
+                <td nowrap>
                   <%= document.period&.name %>
                 </td>
               <% end %>
@@ -133,7 +137,7 @@
 
                 <div>
                   <ul class="horizontal-list">
-                    <% if document.organization && document.organization.root_org_setting('disable_document_view') %>
+                    <% if document.organization && !document.organization.root_org_setting('disable_document_view') %>
                       <li>
                         <%= link_to "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path] %>
                       </li>
@@ -169,21 +173,21 @@
 
                     <% if @organization.root_org_setting('enable_workflows') != false %>
                       <% if document.user_id %>
-                        <%= link_to "Workflow",
+                        <li><%= link_to "Workflow",
                           organization_user_document_workflow_assignments_path(
                             organization_user_id: document.user_id,
                             org_path: params[:org_path],
                             slug: params[:slug],
                             document_id: document.id,
-                          ) %>
+                          ) %></li>
                         <% end %>
                     <% end %>
 
-                    <% if @organization.root_org_setting('track_meta_info_from_document') != false %>
-                      <%= link_to "Meta",
+                    <% if has_role('designer') && @organization.root_org_setting('track_meta_info_from_document') != false %>
+                      <li><%= link_to "Meta",
                         document_meta_path(
                           document_id: document.id,
-                        ) %>
+                        ) %></li>
                     <% end %>
 
                   </ul>

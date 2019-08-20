@@ -1,3 +1,4 @@
+
 <div class="row">
   <% if @organization.errors.any? %>
     <div id="error_expl" class="alert alert-danger">
@@ -43,12 +44,21 @@
               <% else %>
                 <%= f.select :parent_id, @organizations.where.not(id: params[:id]).collect { |org| [ org.slug + ' - ' + org.name, org.id ] }, { include_blank: ''}, { class: 'form-control' } %>
               <% end %>
-
-            </div>
+            </div>          
           <% end %>
+        
+          <div class="form-group">
+            <%= f.label :time_zone, class: "control-label" %>
+              <%= f.select :time_zone,
+                get_country_time_zones("US").collect { |zone| [ 
+                  "UTC#{zone.formatted_offset} - #{zone.now.strftime("%I:%M %p")} - #{zone.name}", zone.name 
+                ]},
+                { include_blank: "-- use parent time zone --"}, 
+                { class: 'form-control' } 
+              %>
+          </div>          
           
         </fieldset>
-
 
         <fieldset class="default_account_filter">
           <legend>Defaults</legend>

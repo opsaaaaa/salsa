@@ -33,8 +33,8 @@
           <span class="nav-link">
             <% if current_user %>
               <%= current_user.name %>
-            <% else%>
-              Super Admin
+            <% elsif has_role('admin') %>
+              Admin
             <% end %>
           </span>
         </div>

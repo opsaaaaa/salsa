@@ -1,12 +1,18 @@
 <% @documents.each do |document| %>
-    <h2 class="h2 mt-4">
+    <% if document.workflow_step&.step_type == 'end_step' %>
+    <% end %>
+    <h1 class="h2 mt-4">
         <%= document.user.name %>
-        <br>
-        <small class="text-muted small">
-            <%= document.period.name %> -
-            <%= document.organization.name %>
-        </small>
-    </h2>
+        <div class="small text-muted">
+            <small class="small">
+                <%= document.period.name %> -
+                <%= document.organization.name %>
+            </small>
+            <div class="small">
+                <small class="small">Archived - <%= document.updated_at %></small>
+            </div>
+        </div>
+    </h1>
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>
