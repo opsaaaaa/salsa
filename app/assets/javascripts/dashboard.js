@@ -22,7 +22,7 @@ hasSyllabusTotal = 0,
 hasSyllabusPer = 0,
 usedWizardTotal = 0,
 usedWizardPer = 0,
-bar = barbar.bar;
+org_chart = chart_data.org_chart;
 
 function checkTotals() {
   'use strict';
@@ -125,6 +125,56 @@ function checkTotals() {
       $(this).before('<a name="' + myClass + '"></a>');
       $(this).append('<a class="topLink" href="#top"><i class="icon-circle-arrow-up"></i></a>');
     }
+  });
+  $('#orgDocCountChart').highcharts({
+    chart: {type: 'bar'},
+    title: {
+      text: org_chart.org_name + " - Total SALSAs: " + org_chart.org_total
+    },
+    subtitle: {
+      text: 'Number of document for each organization and department'
+    },
+    xAxis: {
+      categories: org_chart.org_names,
+      title: {text: null }
+    },
+    yAxis: {
+      min: 0,
+      title: {text: null}
+    },
+    tooltip: {valueSuffix: ' Documents'},
+    plotOptions: {
+      series: {
+        stacking: 'normal'
+      }
+      // bar: {
+      //   dataLabels: {
+      //     enabled: true
+      //   }
+      // }
+    },
+    legend: {
+      layout: 'vertical',
+      align: 'right',
+      verticalAlign: 'top',
+      x: -40,
+      y: 100,
+      floating: true,
+      borderWidth: 1,
+      backgroundColor: '#FFFFFF',
+      shadow: true
+    },
+    credits: {
+      enabled: false
+    },
+    series: [{
+      name: 'Published SALSAs',
+      data: org_chart.org_lms_published
+      },{
+      name: 'Unpublished SALSAs',
+      data: org_chart.org_lms_unpublished
+      }
+    ]
   });
   $('#collegeCount').highcharts({
     chart: {type: 'bar'},
@@ -245,66 +295,6 @@ $(function () {
     }
 
     accountFilter.append('<option value="' + account.id + '">' + styling + account.name + '</option>');
-  });
-
-  $.get('report-data', function(data){
-    if(data.use_metas == false) {
-      // datas = data
-      $('#orgDocCountChart').highcharts({
-        chart: {type: 'bar'},
-        title: {
-          text: data.base_org_name + " - Total SALSAs: " + data.org_doc_total 
-        },
-        subtitle: {
-          text: 'Number of document for each organization and department'
-        },
-        xAxis: {
-          categories: data.org_names,
-          title: {text: null }
-        },
-        yAxis: {
-          min: 0,
-          title: {
-            text: 'Number of Published Documents',
-            align: 'high'
-          },
-          labels: {overflow: 'justify'}
-        },
-        tooltip: {valueSuffix: ' Documents'},
-        plotOptions: {
-          bar: {
-            dataLabels: {
-              enabled: true
-            }
-          }
-        },
-        legend: {
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'top',
-          x: -40,
-          y: 100,
-          floating: true,
-          borderWidth: 1,
-          backgroundColor: '#FFFFFF',
-          shadow: true
-        },
-        credits: {
-          enabled: false
-        },
-        series: [{
-          name: 'Published SALSAs',
-          data: data.org_doc_pub_counts
-         },{
-          name: 'Unpublished SALSAs',
-          data: data.org_doc_unpub_counts
-         },{
-          name: 'bar',
-          data: bar
-         }
-        ]
-      });
-    }
   });
 
 }(jQuery));

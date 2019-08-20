@@ -57,7 +57,6 @@ class Admin::AuditorController < ApplicationController
   end
 
   def report
-    # raise @org.setting('default_account_filter')['account_filter'].inspect
     @params_hash = params.permit(:account_filter, :controller, :action).to_hash
     @params_hash[:name_by] = "document.potart" 
     rebuild = params[:rebuild]
@@ -70,10 +69,8 @@ class Admin::AuditorController < ApplicationController
     params[:account_filter] = @account_filter
     # @account_filter = {"account_filter":"FL17"}
 
-    # raise ReportHelper.get_document_meta(@org.slug, @account_filter, @params_hash).to_yaml
-    raise ReportHelper.get_local_report_data(@org.self_and_descendants.pluck(:id), "potato", @account_filter, @params_hash).to_yaml
-    get_report
-
+    @report = get_report
+    # ReportHelper.generate_report @org.slug, @account_filter, @params_hash, @report.id
  
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
 
@@ -86,53 +83,44 @@ class Admin::AuditorController < ApplicationController
         generate_report(@report.id)
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
       end
-      @report_data = JSON.parse(@report.payload)
-      @chart_data = get_chart_data(@report_data)
-      # raise @chart_data.inspect
-      # raise @report_data.inspect
+      report_payload = @report.parsed_payload
+      @chart_data = prep_chart_data_for_hichart(report_payload)
+      @report_data = report_payload['list']
       render 'report', layout: '../admin/auditor/report_layout'
     end
   end
 
-  def data
+  # def data
     # render json @report_data.payload
     # render json session[:report_id].to_json
-    render json: get_chart_data.to_json
-  end
+    # render json: get_chart_data.to_json
+  # end
 
   private
+
 
   def generate_report(id = nil)
     @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash, id
   end
 
-  def get_chart_data(report_data)
-      # raise report_data.to_yaml
-      raise ((report_data.uniq {|ri| ri['organization_id'] }).collect {|ri| ri['organization_name']}).inspect
-    {
-      base_org_name: @report.organization.name,
-      use_metas: @org.setting("reports_use_document_meta"),
-      org_doc_total: report_data.count,
-      org_names: @report_data.select {|rep|}, 
-      org_doc_counts: 0,
-      org_doc_pub_counts: 0,
-      org_doc_unpub_counts: 0
-    }
-  end
+  def prep_chart_data_for_hichart(data)
+    chart_data = {}
+    org_data = data['org_chart']
+    salsa_use = data['salsa_use']
 
-  def get_chart_data_old
-    org_doc_pub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NULL').count}
-    org_doc_unpub_counts = @org.self_and_descendants.collect {|o| o.documents.where('published_at IS NOT NULL').count}
-    org_doc_counts = @org.self_and_descendants.collect {|o| o.documents.count}
-    {
-      base_org_name: @org.name,
-      use_metas: @org.setting("reports_use_document_meta"),
-      org_doc_total: org_doc_counts.sum,
-      org_names: @org.self_and_descendants.pluck(:name), 
-      org_doc_counts: org_doc_counts,
-      org_doc_pub_counts: org_doc_pub_counts,
-      org_doc_unpub_counts: org_doc_unpub_counts
-    }
+    chart_data[:org_chart] = {
+      org_name: @report.organization.name,
+      org_total: (org_data.map {|o| o['total_docs'] }).sum,
+      org_names: org_data.map {|o| o['name'] },
+      org_lms_published: org_data.map {|o| o['lms_published'] },
+      org_lms_unpublished: org_data.map {|o| o['lms_unpublished'] },
+      use_metas: @org.setting("reports_use_document_meta")
+    #   org_doc_counts: 0,
+    #   org_doc_pub_counts: 0,
+    #   org_doc_unpub_counts: 0
+    } if data['org_chart'].present?
+
+    chart_data
   end
 
   def redirect_if_job_incomplete
@@ -162,21 +150,21 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_report
+    report = nil
     @account_filter = get_account_filter unless @account_filter.blank?
     if params[:report]
-      @report = ReportArchive.where(id: params[:report]).first
+      report = ReportArchive.where(id: params[:report]).first
       params.delete :report
     else
       #start by saving the report (add check to see if there is a report)
       reports = ReportArchive.where(organization_id: @org.id) 
       if !reports.blank?
-        if reports.count == 1
-          @report = reports.first;
-        else
-          @report = nil
-        end
+          report = reports.count == 1
+      else
+        report = nil
       end
     end
+    return report
   end
 
   def remove_unneeded_params
