@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190808164738) do
+ActiveRecord::Schema.define(version: 20190820202934) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -83,6 +83,7 @@ ActiveRecord::Schema.define(version: 20190808164738) do
     t.integer "user_id"
     t.integer "period_id"
     t.datetime "published_at"
+    t.string "remote_identifier"
     t.index ["component_id"], name: "index_documents_on_component_id"
     t.index ["edit_id"], name: "index_documents_on_edit_id", unique: true
     t.index ["lms_course_id"], name: "index_documents_on_lms_course_id"
@@ -155,6 +156,7 @@ ActiveRecord::Schema.define(version: 20190808164738) do
     t.string "period_meta_key"
     t.boolean "reports_use_document_meta", default: false, null: false
     t.string "name_reports_by"
+    t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"
@@ -196,6 +198,7 @@ ActiveRecord::Schema.define(version: 20190808164738) do
     t.datetime "updated_at"
     t.json "report_filters"
     t.boolean "is_archived", default: false
+    t.boolean "used_document_meta", default: true
     t.index ["organization_id"], name: "index_report_archives_on_organization_id"
   end
 
@@ -285,4 +288,5 @@ ActiveRecord::Schema.define(version: 20190808164738) do
     t.string "step_type", default: "default_step"
   end
 
+  add_foreign_key "organizations", "organizations", column: "parent_id"
 end
