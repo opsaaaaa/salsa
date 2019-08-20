@@ -63,8 +63,6 @@ class Admin::AuditorController < ApplicationController
     
     remove_unneeded_params
 
-
-
     @account_filter = get_account_filter
     params[:account_filter] = @account_filter
     # @account_filter = {"account_filter":"FL17"}
@@ -90,14 +88,7 @@ class Admin::AuditorController < ApplicationController
     end
   end
 
-  # def data
-    # render json @report_data.payload
-    # render json session[:report_id].to_json
-    # render json: get_chart_data.to_json
-  # end
-
   private
-
 
   def generate_report(id = nil)
     @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash, id
@@ -113,11 +104,11 @@ class Admin::AuditorController < ApplicationController
       org_total: (org_data.map {|o| o['total_docs'] }).sum,
       org_names: org_data.map {|o| o['name'] },
       org_lms_published: org_data.map {|o| o['lms_published'] },
-      org_lms_unpublished: org_data.map {|o| o['lms_unpublished'] },
-      use_metas: @org.setting("reports_use_document_meta")
-    #   org_doc_counts: 0,
-    #   org_doc_pub_counts: 0,
-    #   org_doc_unpub_counts: 0
+      org_lms_unpublished: org_data.map {|o| o['lms_unpublished'] }
+      # use_metas: @org.setting("reports_use_document_meta")
+      #   org_doc_counts: 0,
+      #   org_doc_pub_counts: 0,
+      #   org_doc_unpub_counts: 0
     } if data['org_chart'].present?
 
     chart_data
