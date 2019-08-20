@@ -198,7 +198,7 @@ ActiveRecord::Schema.define(version: 20190820202934) do
     t.datetime "updated_at"
     t.json "report_filters"
     t.boolean "is_archived", default: false
-    t.boolean "used_document_meta", default: true
+    t.boolean "used_document_meta"
     t.index ["organization_id"], name: "index_report_archives_on_organization_id"
   end
 

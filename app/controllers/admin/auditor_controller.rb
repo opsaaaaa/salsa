@@ -69,7 +69,7 @@ class Admin::AuditorController < ApplicationController
 
     @report = get_report
     # ReportHelper.generate_report @org.slug, @account_filter, @params_hash, @report.id
- 
+    
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
 
     if !@report || rebuild

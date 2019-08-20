@@ -24,6 +24,7 @@ module ReportHelper
       docs = Document.where(workflow_step_id: WorkflowStep.where(organization_id: @organization.parents.push(@organization.id), step_type: "end_step").pluck(:id), organization_id: @organization.id).where('updated_at != created_at').all
     end
     # get the report data (slow process... only should run one at a time)
+    @report.used_document_meta = @organization.setting("reports_use_document_meta")
     if @organization.setting("reports_use_document_meta")
       puts 'Getting Document Meta'
       org_ids = @organization.id
