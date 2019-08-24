@@ -69,7 +69,7 @@
             <!-- <span class="label label-default enrollment-count">7</span> -->
             <% if syllabus_link && !@org.disable_document_view %>
               <!-- <a href="<%= 'URL' %>salsa/<%= record['account_id'] %>/course/<%= record['course_id'] %>"><%= record['name'] %></a> -->
-              <%= link_to record['name'], document_path(record['view_id'], org_path: params[:org_path]), target:"_blank" %>
+              <%= link_to record[@name_by], document_path(record['view_id'], org_path: params[:org_path]), target:"_blank" %>
             <% else %>
               <%= record[@name_by] %>
             <% end %>

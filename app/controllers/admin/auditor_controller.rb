@@ -103,19 +103,20 @@ class Admin::AuditorController < ApplicationController
   end
 
   def prep_chart_data_for_hichart(data)
-    chart_data = {}
-    org_data = {}
-    org_data = data['org_chart'] if data['org_chart'].present?
+    preped = {}
 
-    chart_data[:org_chart] = {
-      org_name: @report.organization.name,
-      org_total: (org_data.map {|o| o['total_docs'] }).sum,
-      org_names: org_data.map {|o| o['name'] },
-      org_lms_published: org_data.map {|o| o['lms_published'] },
-      org_lms_unpublished: org_data.map {|o| o['lms_unpublished'] }
-    } 
+    data.each do |chart_key , chart_data|
+      preped[chart_key] = chart_data.first.keys.zip(
+        chart_data.map(&:values).transpose
+      ).to_h if chart_data.present? 
+    end
+    
+    if data['org_chart'].present?
+      preped['org_chart']['org_name'] = @report.organization.name
+      preped['org_chart']['org_total'] = preped['org_chart']['total_docs'].sum
+    end
 
-    chart_data
+    preped
   end
 
   def redirect_if_job_incomplete

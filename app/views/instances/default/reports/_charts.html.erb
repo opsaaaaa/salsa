@@ -1,0 +1,25 @@
+<% if @report_data %>
+
+  <!-- custom chart. -->
+  <div id="customChart" class="well" style="height:800px;"></div>
+  
+  <% if @report.used_meta? %>
+    
+    <div class="row">
+      <%= render 'salsa_usage_stats' %>
+      <%= render 'canvas_published_stats' %>
+    </div><!-- .row -->
+
+    <div class="row">
+      <div id="collegeCount" class="well" style="height:800px;"></div>
+    </div><!-- .row -->
+  
+  <% else %>
+    <div id="orgDocCountChart" class="well" style="height:800px;"></div>
+  <% end %>
+
+  <%= render 'report_document_list' %>
+
+<% else %>
+  <div class="alert alert-warning" role="alert">No data for the selected term</div>
+<% end %>

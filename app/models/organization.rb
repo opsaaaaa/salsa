@@ -91,7 +91,7 @@ class Organization < ApplicationRecord
     subs = subs.stringify_keys
     name_by = self.setting("name_reports_by")
     name_by = Organization.name_reports_by_options.values.first if name_by.blank?
-    subs.each { |k, v| name_by[k.to_s] &&= v.to_s }
+    subs.each { |k, v| name_by["#{k.to_s}."] &&= v.to_s }
     name_by
   end
 

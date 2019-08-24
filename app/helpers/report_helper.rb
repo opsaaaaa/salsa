@@ -162,7 +162,7 @@ module ReportHelper
     end
     {
       list: report_data,
-      meta_chart: nil
+      meta_chart: {}
     }
   end
 
