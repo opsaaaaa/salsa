@@ -65,5 +65,13 @@ class UserAssignment < ApplicationRecord
     end
     self.save
   end
+        
+  def self.find_by_lti_info
+    assignments = UserAssignment.where( 
+      yield
+    )
+    return nil unless assignments.count == 1
+    assignments.first
+  end
 
 end

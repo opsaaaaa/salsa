@@ -86,4 +86,14 @@ class User < ApplicationRecord
       self.save
     end
   end
+  
+  def self.get_lti_user
+    assignment = UserAssignment.find_by_lti_info do
+      yield
+    end
+    return nil unless assignment.present?
+    return nil if assignment.user.has_global_role?
+    assignment.user
+  end
+
 end

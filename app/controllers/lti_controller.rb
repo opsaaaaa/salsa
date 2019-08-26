@@ -28,15 +28,17 @@ class LtiController < ApplicationController
                     person_sourcedid: params['lis_person_sourcedid']
                     # email: params['tool_consumer_instance_contact_email']
                 }
-
                 session['institution'] = request.env['SERVER_NAME']
                 session[:saml_authenticated_user] = {}
                 session[:saml_authenticated_user]['id'] = params['user_id']
 
                 # logout any current user
                 session[:authenticated_user] = false
-                @user = find_lti_user_by_assignment_username
+                @user = get_lti_user
 
+                # @user = method if !@user
+
+                raise @user.name.inspect
                 if @user
                     # login the new user
                     session[:authenticated_user] = @user.id
@@ -67,25 +69,39 @@ class LtiController < ApplicationController
 
     private
 
-    def find_lti_user_by_assignment_username
-        assignment = find_user_assignment_by_username([
-            @lti_info[:person_sourcedid],
-            @lti_info[:login_id]
-        ])
-        return nil unless assignment.present?
-        user = assignment.user
-        return nil if user.has_global_role?
-        user
+    def get_lti_user
+        user = User.get_lti_user do {
+            :organization_id => @organization.self_and_descendants, 
+            :username => [
+                @lti_info[:person_sourcedid],
+                @lti_info[:login_id]
+                ]
+            }
+        end
+        # if user.blank?
+
+        # end
     end
 
-    def find_user_assignment_by_username(remote_username)
-        assignments = UserAssignment.where( 
-            :organization_id => @organization.self_and_descendants, 
-            :username => remote_username
-        )
-        return nil unless assignments.count == 1
-        assignments.first
-    end
+    # def find_lti_user_by_assignment_username
+    #     assignment = find_user_assignment_by_username([
+    #         @lti_info[:person_sourcedid],
+    #         @lti_info[:login_id]
+    #     ])
+    #     return nil unless assignment.present?
+    #     user = assignment.user
+    #     return nil if user.has_global_role?
+    #     user
+    # end
+
+    # def find_user_assignment_by_username(remote_username)
+    #     assignments = UserAssignment.where( 
+    #         :organization_id => @organization.self_and_descendants, 
+    #         :username => remote_username
+    #     )
+    #     return nil unless assignments.count == 1
+    #     assignments.first
+    # end
 
     def get_consumer_key(obj)
         key = nil
