@@ -74,4 +74,16 @@ class UserAssignment < ApplicationRecord
     assignments.first
   end
 
+  def self.lazy_create
+    # UserAssignment.find_by(username: "salsalti").delete
+    params = yield
+    return nil if params.blank?
+    return nil if params[:organization_id].blank? || params[:user_id].blank?
+    ua_params = {
+      role: self.roles['Staff'],
+      cascades: true
+    }.merge(params)
+    return UserAssignment.create ua_params
+  end
+
 end
