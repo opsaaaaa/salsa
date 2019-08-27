@@ -1,23 +1,26 @@
-%h1
-  = user.name + "'s"
-  Assignments
-- if !descendant_users.blank?
-  = render 'form', assignment: assignment
-- unless assignments.blank? 
+- if ! defined? is_summary
+  %h1
+    = user.name + "'s"
+    Assignments
+  - if !descendant_users.blank?
+    = render 'form', assignment: assignment
+
+- if ! assignments.blank? 
   %table.table.table-responsive.table-striped
     %thead
       %tr
         %th Role
         %th Team Member
-        %th Actions
+        - if ! defined? is_summary
+          %th Actions
     %tbody
       - if !assignments.blank?
         - assignments&.each do |assignment|
           %tr
             %td= assignment.role
             %td= assignment.team_member.name + " : " + assignment.team_member.email
-            %td
-              = link_to 'Unassign', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignment.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
-
-- else
-  %p No Assignents found
+            - if ! defined? is_summary
+              %td
+                = link_to 'Unassign', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignment.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
+- elsif ! defined? is_summary
+  %p No direct assignents found
