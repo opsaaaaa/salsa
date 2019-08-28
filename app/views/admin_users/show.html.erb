@@ -21,10 +21,11 @@
 
   <br><br>
 
-  <%= render('assignments/direct_list', user: @user, descendant_users: @descendant_users, assignments: @assignments, is_summary: true) %>
-
-  <hr>
 <% end %>
+
+<%= render('assignments/direct_list', user: @user, assignments: @direct_assignments, is_summary: true) %>
+
+<hr>
 
 <div class="row">
   <%= render 'edit_permission', permission: @new_permission, action: 'Add' %>

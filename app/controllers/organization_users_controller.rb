@@ -55,14 +55,6 @@ class OrganizationUsersController < AdminUsersController
     @user = users.find_by id: params[:id]
     return redirect_to organization_users_path(org_path: params[:org_path]) if @user.blank?
 
-    descendant_ua_ids = []
-    find_org_by_path(params[:slug]).self_and_descendants.each do |org|
-      descendant_ua_ids += org.user_assignments.pluck(:id)
-    end
-    @descendant_user_assignments = UserAssignment.where(id: descendant_ua_ids)
-    @descendant_users = User.where(id: @descendant_user_assignments.pluck(:user_id) - [@user.id])
-    @assignments = @user.assignments
-
     super
   end
 

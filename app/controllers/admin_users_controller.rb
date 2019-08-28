@@ -25,6 +25,8 @@ class AdminUsersController < AdminController
     @user_assignments = @user_assignments.where(organization_id: @organizations.pluck(:id)) if @user_assignments && params[:controller] == 'organization_users'
 
     @new_permission = @user.user_assignments.new
+
+    @direct_assignments = Assignment.where(user_id: @user.id)
   end
 
   def edit

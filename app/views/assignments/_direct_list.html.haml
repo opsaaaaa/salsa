@@ -2,8 +2,10 @@
   %h1
     = user.name + "'s"
     Assignments
-  - if !descendant_users.blank?
-    = render 'form', assignment: assignment
+
+- if defined?(descendant_users) && descendant_users.any?
+  %div.row= render 'form', assignment: assignment
+  %hr
 
 - if ! assignments.blank? 
   %table.table.table-responsive.table-striped
@@ -11,16 +13,14 @@
       %tr
         %th Role
         %th Team Member
-        - if ! defined? is_summary
-          %th Actions
+        %th Actions
     %tbody
       - if !assignments.blank?
         - assignments&.each do |assignment|
           %tr
             %td= assignment.role
             %td= assignment.team_member.name + " : " + assignment.team_member.email
-            - if ! defined? is_summary
-              %td
-                = link_to 'Unassign', eval("#{@namespace}_user_team_assignment_path(params[:slug],@user.id,assignment.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
+            %td
+              = link_to 'Unassign', eval("organization_user_team_assignment_path(assignment.user.user_assignments.first.organization.slug,@user.id,assignment.id)"), method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-sm btn-danger"
 - elsif ! defined? is_summary
   %p No direct assignents found
