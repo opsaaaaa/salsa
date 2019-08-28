@@ -1,4 +1,5 @@
 class UserAssignment < ApplicationRecord
+  include Populate
   def self.roles
     {'Global Administrator'=>'admin', 'Organization Administrator'=>'organization_admin', 'Auditor'=>'auditor', 'Designer'=>'designer', 'Supervisor'=>'supervisor','Staff'=>'staff','Approver'=>'approver'}
   end
@@ -66,24 +67,30 @@ class UserAssignment < ApplicationRecord
     self.save
   end
         
-  def self.find_by_lti_info
+  def self.find_by_lti_info(&block)
     assignments = UserAssignment.where( 
       yield
     )
     return nil unless assignments.count == 1
     assignments.first
   end
-
-  def self.lazy_create
-    # UserAssignment.find_by(username: "salsalti").delete
-    params = yield
-    return nil if params.blank?
-    return nil if params[:organization_id].blank? || params[:user_id].blank?
-    ua_params = {
-      role: self.roles['Staff'],
+  
+  def self.lazy_params(params)
+    {
+      role: "staff",
       cascades: true
     }.merge(params)
-    return UserAssignment.create ua_params
   end
+
+  # def self.lazy_create(params)
+  #   # params = yield
+  #   return nil if params.blank?
+  #   return nil if params[:organization_id].blank? || params[:user_id].blank?
+  #   ua_params = {
+  #     role: self.roles['Staff'],
+  #     cascades: true
+  #   }.merge(params)
+  #   return UserAssignment.create ua_params
+  # end
 
 end

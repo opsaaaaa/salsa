@@ -131,6 +131,8 @@ class OrganizationUsersController < AdminUsersController
   end
 
   def import_users
+    bob = {things: 'stuff'}
+    raise User.create_or_import_by(user_assignment: {username: "salsalti"}) {bob} 
     @organization = find_org_by_path(params[:slug])
   end
 
