@@ -35,7 +35,7 @@ class LtiController < ApplicationController
                 # logout any current user
                 session[:authenticated_user] = false
                 @user = get_lti_user
-                raise @user.inspect
+                
                 # @user = method if !@user
                 if @user
                     # login the new user
