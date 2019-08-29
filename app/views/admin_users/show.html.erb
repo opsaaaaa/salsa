@@ -18,8 +18,14 @@
 
 <% if params[:controller] == "organization_users" && @organization.root_org_setting("enable_workflows") == true %>
   <%= link_to "Direct Assignments", polymorphic_path([params[:controller].singularize,:team_assignments],"#{params[:controller].singularize}_id".to_sym => @user.id, org_path: params[:org_path]), class:"btn btn-primary" %>
-  <hr>
+
+  <br><br>
+
 <% end %>
+
+<%= render('assignments/direct_list', user: @user, assignments: @direct_assignments, is_summary: true) %>
+
+<hr>
 
 <div class="row">
   <%= render 'edit_permission', permission: @new_permission, action: 'Add' %>

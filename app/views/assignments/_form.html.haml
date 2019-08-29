@@ -1,8 +1,8 @@
-%a.btn.btn-primary{onclick:"$('#team_member_form').show();$(this).hide()"} Add Team Member
-= form_with(model: [@namespace,:user,:team,assignment], local: true, id: "team_member_form", html: {style: "display:none"}) do |f|
+%div.h2 Add Team Member
+= form_with(model: [@namespace,:user,:team,assignment], local: true, id: "team_member_form") do |f|
   - if assignment.errors.any?
-    #error_explanation
-      %h2
+    #error_explanation.alert.alert-danger
+      %div
         = pluralize(assignment.errors.count, "error")
         prohibited this assignment from being saved:
       %ul
@@ -13,13 +13,14 @@
   .form-group
     .col-md-4
       = f.label :role, "#{@user.name}'s Role", :class => 'control-label'
-      = f.select(:role, @roles)
+      = f.select(:role, @roles, {}, id: 'assignment_role', class: 'form-control')
       = f.error_span(:role)
 
   .form-group
     .col-md-3
       = f.label :team_member_id, :class => 'control-label'
-      = f.collection_select(:team_member_id, @descendant_users,:id, :name)
+      = f.collection_select(:team_member_id, @descendant_users, :id, :name, {},  id: 'assignment_team_member_id', class: 'form-control')
       = f.error_span(:team_member_id)
+  %br
   %button.btn.btn-success{:type => "submit"}
     Assign
