@@ -77,28 +77,21 @@ class LtiController < ApplicationController
                 ]
             }
         end
-        # User.find_by(name: 'salsalti').delete
-        # user = nil
-        if user.blank? && @organization.setting('lms_authentication_source') == "LTI"
-            user = User.lazy_create do {
-                # :user_assignment => {
-                    # :organization_id => @organization.id,
-                    # :username => @lti_info[:person_sourcedid]
-                    # :username => @lti_info[:login_id]
-                # },
-                
-                :name => @lti_info[:person_sourcedid],
-                :email => "#{@lti_info[:person_sourcedid]}@example.com"
-                # }
+        user = nil
+        if user.blank? && @organization.setting('lms_authentication_source') == "LTI"            
+            user_params = {
+                user: {
+                    :name => @lti_info[:person_sourcedid],
+                    :email => "#{@lti_info[:person_sourcedid]}@example.com"
+                },
+                user_assignment: {
+                    :organization_id => @organization.id,
+                    :username => @lti_info[:person_sourcedid]
+                }
             }
-            user.add_role({
-                :organization_id => @organization.id,
-                :username => @lti_info[:person_sourcedid]
-                # :username => @lti_info[:login_id]
-            })
-            end
+            user = User.import_or_create_by(user_params)
         end
-        raise user.assignments.inspect
+        raise user.user_assignments.inspect
     end
 
     # def find_lti_user_by_assignment_username

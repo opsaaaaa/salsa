@@ -117,12 +117,12 @@ class User < ApplicationRecord
 
   def self.lazy_create(user_params = {},role_params = {})
     user = User.create lazy_params(user_params)
-    user.add_role UserAssignment.lazy_params(role_params) if role_params.present?
+    user.add_role role_params if role_params.present?
     user
   end
 
   def add_role(params)
-    return nil if params[:organization_id].blank?
+    return nil if params[:organization_id].blank? || self.user_assignments.find_by(params).present? 
     UserAssignment.create UserAssignment.lazy_params({user_id: self.id}.merge(params))
   end
 
@@ -141,15 +141,8 @@ class User < ApplicationRecord
     user = User.new() if user.blank?
     user.archived = false
     user.populate lazy_params(set_params[:user])
-    user.add_org set_params[:user_assignment][:organization_id], set_params[:user_assignment] 
+    user.add_role set_params[:user_assignment] 
     user
-  end
-
-  def add_org org_id, ua_params = {}
-    ua_params = {organization_id: org_id}.merge(ua_params)
-    ua = self.user_assignments.find_by(ua_params) 
-    self.add_role ua_params if ua.blank?
-    return self
   end
 
 end
