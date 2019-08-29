@@ -26,7 +26,6 @@ class LtiController < ApplicationController
                     login_id: params['user_id'],
                     roles: params['roles'],
                     person_sourcedid: params['lis_person_sourcedid']
-                    # email: params['tool_consumer_instance_contact_email']
                 }
                 session['institution'] = request.env['SERVER_NAME']
                 session[:saml_authenticated_user] = {}
