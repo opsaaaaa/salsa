@@ -97,15 +97,6 @@ class User < ApplicationRecord
     assignment.user
   end
 
-  def self.create_lti_user
-    user_params = yield[:user]
-    user = User.new user_params
-    user.save
-    raise user.to_yaml
-    assignment_params = yield[:user_assignment]
-    assignment = User.new yield[:user]
-  end
-
   def self.lazy_params(params = {})
     {
       archived: false,
@@ -113,12 +104,6 @@ class User < ApplicationRecord
       name: "New User",
       password: "#{rand(36**40).to_s(36)}"
     }.merge(params)
-  end
-
-  def self.lazy_create(user_params = {},role_params = {})
-    user = User.create lazy_params(user_params)
-    user.add_role role_params if role_params.present?
-    user
   end
 
   def add_role(params)
