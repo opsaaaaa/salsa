@@ -4,7 +4,7 @@ module Populate
   
   def populate(fills)
     fills.each do |f,v|
-      self[f] = v if self&.send(f).blank?
+      self.send("#{f.to_s}=",v) if self&.send(f).blank?
     end
     self.save
   end
