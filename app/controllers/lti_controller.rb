@@ -76,7 +76,6 @@ class LtiController < ApplicationController
                 ]
             }
         end
-        user = nil
         if user.blank? && @organization.setting('lms_authentication_source') == "LTI"            
             user_params = {
                 user: {
@@ -90,6 +89,7 @@ class LtiController < ApplicationController
             }
             user = User.import_or_create_by(user_params)
         end
+        user
     end
 
     def get_consumer_key(obj)
