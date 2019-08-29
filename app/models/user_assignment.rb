@@ -55,18 +55,6 @@ class UserAssignment < ApplicationRecord
 
   end
   
-  def should_lti_populate_remote_user?
-    # in the data base remote_user_id is username
-    self.username.blank?
-  end
-
-  def set(values)
-    values.each do |feild, val|
-      self[feild] = val
-    end
-    self.save
-  end
-        
   def self.find_by_lti_info(&block)
     assignments = UserAssignment.where( 
       yield
@@ -81,16 +69,5 @@ class UserAssignment < ApplicationRecord
       cascades: true
     }.merge(params)
   end
-
-  # def self.lazy_create(params)
-  #   # params = yield
-  #   return nil if params.blank?
-  #   return nil if params[:organization_id].blank? || params[:user_id].blank?
-  #   ua_params = {
-  #     role: self.roles['Staff'],
-  #     cascades: true
-  #   }.merge(params)
-  #   return UserAssignment.create ua_params
-  # end
 
 end

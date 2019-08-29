@@ -9,4 +9,11 @@ module Populate
     self.save
   end
   
+  # def set(values)
+  #   values.each do |feild, val|
+  #     self[feild] = val
+  #   end
+  #   self.save
+  # end
+        
 end

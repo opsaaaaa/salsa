@@ -35,9 +35,8 @@ class LtiController < ApplicationController
                 # logout any current user
                 session[:authenticated_user] = false
                 @user = get_lti_user
-
+                raise @user.inspect
                 # @user = method if !@user
-                raise @user.name.inspect
                 if @user
                     # login the new user
                     session[:authenticated_user] = @user.id
@@ -91,28 +90,7 @@ class LtiController < ApplicationController
             }
             user = User.import_or_create_by(user_params)
         end
-        raise user.user_assignments.inspect
     end
-
-    # def find_lti_user_by_assignment_username
-    #     assignment = find_user_assignment_by_username([
-    #         @lti_info[:person_sourcedid],
-    #         @lti_info[:login_id]
-    #     ])
-    #     return nil unless assignment.present?
-    #     user = assignment.user
-    #     return nil if user.has_global_role?
-    #     user
-    # end
-
-    # def find_user_assignment_by_username(remote_username)
-    #     assignments = UserAssignment.where( 
-    #         :organization_id => @organization.self_and_descendants, 
-    #         :username => remote_username
-    #     )
-    #     return nil unless assignments.count == 1
-    #     assignments.first
-    # end
 
     def get_consumer_key(obj)
         key = nil
