@@ -141,7 +141,7 @@ class User < ApplicationRecord
     user = User.new() if user.blank?
     user.archived = false
     user.populate lazy_params(set_params[:user])
-    user.add_role set_params[:user_assignment] 
+    user.add_role set_params[:user_assignment] unless user.has_global_role?
     user
   end
 
