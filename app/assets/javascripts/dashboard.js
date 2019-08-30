@@ -8,7 +8,7 @@ var BASE_URL = "";
   $(function() {
     BASE_URL = $('body').data('base-url');
   });
-
+ 
 }(jQuery));
 
 var grandTotal = 0,
@@ -21,8 +21,63 @@ noSyllabusPer = 0,
 hasSyllabusTotal = 0,
 hasSyllabusPer = 0,
 usedWizardTotal = 0,
-usedWizardPer = 0,
-org_chart = 0;
+usedWizardPer = 0;
+
+function orgChart() {
+  if ( chart_data && typeof chart_data.org_chart !== 'undefined'){
+    var org_chart = chart_data.org_chart;
+    $('#orgDocCountChart').highcharts({
+      chart: {type: 'bar'},
+      title: {
+        text: org_chart.org_name + " - Total SALSAs: " + org_chart.org_total
+      },
+      subtitle: {
+        text: 'Number of document for each organization and department'
+      },
+      xAxis: {
+        categories: org_chart.name,
+        title: {text: null }
+      },
+      yAxis: {
+        min: 0,
+        title: {text: null}
+      },
+      tooltip: {valueSuffix: ' Documents'},
+      plotOptions: {
+        series: {
+          stacking: 'normal'
+        }
+        // bar: {
+        //   dataLabels: {
+        //     enabled: true
+        //   }
+        // }
+      },
+      legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'top',
+        x: -40,
+        y: 100,
+        floating: true,
+        borderWidth: 1,
+        backgroundColor: '#FFFFFF',
+        shadow: true
+      },
+      credits: {
+        enabled: false
+      },
+      series: [{
+        name: 'Published SALSAs',
+        data: org_chart.lms_published
+        },{
+        name: 'Unpublished SALSAs',
+        data: org_chart.lms_unpublished
+        }
+      ]
+    });
+  }
+}
 
 function checkTotals() {
   'use strict';
@@ -37,9 +92,6 @@ function checkTotals() {
   hasSyllabusPer = usingSalsaTotal>0?Math.floor((hasSyllabusTotal / usingSalsaTotal) * 100):0;
   usedWizardTotal = $(".courses .icon-magic:visible").length;
   usedWizardPer = Math.floor((usedWizardTotal / notUsingSalsaTotal) * 100);
-  if (typeof chart_data !== 'undefined'){
-    org_chart = chart_data.org_chart;
-  }
 
   $('.grandTotal').html(grandTotal);
   $('.usingSalsaTotal').html(usingSalsaTotal);
@@ -129,56 +181,6 @@ function checkTotals() {
       $(this).append('<a class="topLink" href="#top"><i class="icon-circle-arrow-up"></i></a>');
     }
   });
-  $('#orgDocCountChart').highcharts({
-    chart: {type: 'bar'},
-    title: {
-      text: org_chart.org_name + " - Total SALSAs: " + org_chart.org_total
-    },
-    subtitle: {
-      text: 'Number of document for each organization and department'
-    },
-    xAxis: {
-      categories: org_chart.org_names,
-      title: {text: null }
-    },
-    yAxis: {
-      min: 0,
-      title: {text: null}
-    },
-    tooltip: {valueSuffix: ' Documents'},
-    plotOptions: {
-      series: {
-        stacking: 'normal'
-      }
-      // bar: {
-      //   dataLabels: {
-      //     enabled: true
-      //   }
-      // }
-    },
-    legend: {
-      layout: 'vertical',
-      align: 'right',
-      verticalAlign: 'top',
-      x: -40,
-      y: 100,
-      floating: true,
-      borderWidth: 1,
-      backgroundColor: '#FFFFFF',
-      shadow: true
-    },
-    credits: {
-      enabled: false
-    },
-    series: [{
-      name: 'Published SALSAs',
-      data: org_chart.org_lms_published
-      },{
-      name: 'Unpublished SALSAs',
-      data: org_chart.org_lms_unpublished
-      }
-    ]
-  });
   $('#collegeCount').highcharts({
     chart: {type: 'bar'},
     colors: [
@@ -256,6 +258,7 @@ $(function () {
   'use strict';
   $("[data-toggle=tooltip]").tooltip({html: true});
   checkTotals();
+  orgChart();
   $('.expandList').click(listToggle(event,".collapseList"));
   $('.collapseList').click(listToggle(event,".expandList"));
 });
@@ -286,6 +289,7 @@ $(function () {
     }
 
     checkTotals();
+    orgChart();
   });
   var accountElms = $('h2,h3','.college-list');
 
