@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190730203210) do
+ActiveRecord::Schema.define(version: 20190820202934) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -154,6 +154,8 @@ ActiveRecord::Schema.define(version: 20190730203210) do
     t.string "authn_context"
     t.string "lms_account_id"
     t.string "period_meta_key"
+    t.boolean "reports_use_document_meta", default: false, null: false
+    t.string "name_reports_by"
     t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
@@ -196,6 +198,7 @@ ActiveRecord::Schema.define(version: 20190730203210) do
     t.datetime "updated_at"
     t.json "report_filters"
     t.boolean "is_archived", default: false
+    t.boolean "used_document_meta"
     t.index ["organization_id"], name: "index_report_archives_on_organization_id"
   end
 
