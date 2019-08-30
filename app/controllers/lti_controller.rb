@@ -67,14 +67,14 @@ class LtiController < ApplicationController
 
     def get_lti_user
         user = User.get_lti_user do {
-            :organization_id => @organization.self_and_descendants, 
+            :organization_id => @organization.root.self_and_descendants, 
             :username => [
                 @lti_info[:person_sourcedid],
                 @lti_info[:login_id]
                 ]
             }
         end
-        if user.blank? && @organization.setting('lms_authentication_source') == "LTI"            
+        if user.blank? && @organization.root_org_setting('lms_authentication_source') == "LTI"            
             user_params = {
                 user: {
                     :name => @lti_info[:person_sourcedid],
