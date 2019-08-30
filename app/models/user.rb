@@ -100,7 +100,6 @@ class User < ApplicationRecord
   def self.lazy_params(params = {})
     {
       archived: false,
-      email: "#{Faker::Name.first_name}@example.com",
       name: "New User",
       password: "#{rand(36**40).to_s(36)}"
     }.merge(params)
