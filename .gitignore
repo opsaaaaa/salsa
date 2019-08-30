@@ -46,3 +46,6 @@ sp-cert.cnf
 # Ignore application configuration
 /config/application.yml
 coverage
+
+# Ignore report archive
+/storage/*
