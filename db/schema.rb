@@ -153,10 +153,10 @@ ActiveRecord::Schema.define(version: 20190820202934) do
     t.string "idp_cert_fingerprint_algorithm"
     t.string "authn_context"
     t.string "lms_account_id"
+    t.string "time_zone"
     t.string "period_meta_key"
     t.boolean "reports_use_document_meta", default: false, null: false
     t.string "name_reports_by"
-    t.string "time_zone"
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"
