@@ -1,4 +1,5 @@
 class UserAssignment < ApplicationRecord
+  include Populate
   def self.roles
     {'Global Administrator'=>'admin', 'Organization Administrator'=>'organization_admin', 'Auditor'=>'auditor', 'Designer'=>'designer', 'Supervisor'=>'supervisor','Staff'=>'staff','Approver'=>'approver'}
   end
@@ -54,16 +55,19 @@ class UserAssignment < ApplicationRecord
 
   end
   
-  def should_lti_populate_remote_user?
-    # in the data base remote_user_id is username
-    self.username.blank?
+  def self.find_by_lti_info(&block)
+    assignments = UserAssignment.where( 
+      yield
+    )
+    return nil unless assignments.count == 1
+    assignments.first
   end
-
-  def set(values)
-    values.each do |feild, val|
-      self[feild] = val
-    end
-    self.save
+  
+  def self.lazy_params(params)
+    {
+      role: "staff",
+      cascades: true
+    }.merge(params)
   end
 
 end
