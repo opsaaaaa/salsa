@@ -7,7 +7,7 @@ class ReportGenerator < Que::Job
   # @run_at = proc { 1.minute.from_now }
 
   def run(org_id, account_filter, params, report)
-    org = Organization.find org_id
+    org = Organization.find(org_id)
     Que.mode = :async
     ReportHelper.generate_report org.slug, account_filter, params, report
   end

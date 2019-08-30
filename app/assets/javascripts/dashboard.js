@@ -8,7 +8,7 @@ var BASE_URL = "";
   $(function() {
     BASE_URL = $('body').data('base-url');
   });
-
+ 
 }(jQuery));
 
 var grandTotal = 0,
@@ -22,6 +22,62 @@ hasSyllabusTotal = 0,
 hasSyllabusPer = 0,
 usedWizardTotal = 0,
 usedWizardPer = 0;
+
+function orgChart() {
+  if ( chart_data && typeof chart_data.org_chart !== 'undefined'){
+    var org_chart = chart_data.org_chart;
+    $('#orgDocCountChart').highcharts({
+      chart: {type: 'bar'},
+      title: {
+        text: org_chart.org_name + " - Total SALSAs: " + org_chart.org_total
+      },
+      subtitle: {
+        text: 'Number of document for each organization and department'
+      },
+      xAxis: {
+        categories: org_chart.name,
+        title: {text: null }
+      },
+      yAxis: {
+        min: 0,
+        title: {text: null}
+      },
+      tooltip: {valueSuffix: ' Documents'},
+      plotOptions: {
+        series: {
+          stacking: 'normal'
+        }
+        // bar: {
+        //   dataLabels: {
+        //     enabled: true
+        //   }
+        // }
+      },
+      legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'top',
+        x: -40,
+        y: 100,
+        floating: true,
+        borderWidth: 1,
+        backgroundColor: '#FFFFFF',
+        shadow: true
+      },
+      credits: {
+        enabled: false
+      },
+      series: [{
+        name: 'Published SALSAs',
+        data: org_chart.lms_published
+        },{
+        name: 'Unpublished SALSAs',
+        data: org_chart.lms_unpublished
+        }
+      ]
+    });
+  }
+}
 
 function checkTotals() {
   'use strict';
@@ -202,6 +258,7 @@ $(function () {
   'use strict';
   $("[data-toggle=tooltip]").tooltip({html: true});
   checkTotals();
+  orgChart();
   $('.expandList').click(listToggle(event,".collapseList"));
   $('.collapseList').click(listToggle(event,".expandList"));
 });
@@ -232,6 +289,7 @@ $(function () {
     }
 
     checkTotals();
+    orgChart();
   });
   var accountElms = $('h2,h3','.college-list');
 
