@@ -25,6 +25,8 @@ class AdminUsersController < AdminController
     @user_assignments = @user_assignments.where(organization_id: @organizations.pluck(:id)) if @user_assignments && params[:controller] == 'organization_users'
 
     @new_permission = @user.user_assignments.new
+
+    @direct_assignments = Assignment.where(user_id: @user.id)
   end
 
   def edit
@@ -77,9 +79,15 @@ class AdminUsersController < AdminController
     @user_assignment.organization_id = get_org.id unless has_role('admin')
     get_organizations
     @user_assignments = @user.user_assignments if @user.user_assignments.count > 0
+
+    user_assignments_org_ids = Organization.find(@user_assignment.organization_id).root.self_and_descendants.pluck(:id)
+    other_users = UserAssignment.where(organization_id: user_assignments_org_ids).where("lower(username) = ?", params[:user_assignment][:username].downcase).where.not(user_id: @user.id)
+
+    @user_assignment.errors.add('username', "`#{@user_assignment.username}` already in use") if other_users.any?
+
     @new_permission = @user_assignment
     respond_to do |format|
-      if @user_assignment.save
+      if @user_assignment.errors.empty? && @user_assignment.save
         format.html { redirect_to eval("#{ get_namespace }_user_path(org_path: params[:org_path], id: @user[:id])"), notice: 'User Assignment was successfully created.' }
         format.json { render :show, status: :created, location: @user_assignment }
       else
@@ -125,6 +133,11 @@ class AdminUsersController < AdminController
     @user_assignment.errors.add('user_id', 'Invalid User ID') if params[:user_assignment][:user_id].to_i != @user_assignment.user_id
 
     @user_assignment.errors.add('role', 'Invalid role') if !get_roles.value?(params[:user_assignment][:role]) && !has_role('admin')
+
+    user_assignments_org_ids = @user_assignment.organization.root.self_and_descendants.pluck(:id)
+    other_users = UserAssignment.where(organization_id: user_assignments_org_ids).where("lower(username) = ?", params[:user_assignment][:username].downcase).where.not(user_id: @user_assignment.user_id)
+
+    @user_assignment.errors.add('username', "Username already in use") if other_users.any?
 
     @user_assignment.update(user_assignment_params) if !@user_assignment.errors.any?
 
