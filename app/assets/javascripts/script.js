@@ -34,7 +34,7 @@ function liteOff(x) {
     if(editorElement) {
       var lmsCourse = editorElement.data('lms-course');
 
-      if(lmsCourse.login_id) {
+      if(lmsCourse && lmsCourse.login_id) {
         $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
       }
 
@@ -330,24 +330,23 @@ function liteOff(x) {
       }
     });
     $('#tb_save').on('ajax:success', function(event, data, xhr, settings) {
-      if (data.status == 'ok') {
-        $("#save_prompt").html('saved at: ' + new Date().toLocaleTimeString())
-          .delay(5000).fadeOut(1000);
-        $('[data-document-version]').attr('data-document-version',
-          data.version);
-      } else {
-        $("#save_prompt").css({
-          display: 'block',
-          zIndex: 999999999,
-          top: 30,
-          position: 'fixed',
-          width: '100%',
-          textAlign: 'center',
-          backgroundColor: '#f99',
-          borderBottom: 'solid 1px #ddd'
-        }).html(data.message).delay(5000).fadeOut(1000);
-      }
-
+      $("#save_prompt").html('saved at: ' + new Date().toLocaleTimeString())
+        .delay(5000).fadeOut(1000);
+      $('[data-document-version]').attr('data-document-version',
+        data.version);
+    }).on('ajax:error', function(event, xhr, code) {
+      $("#save_prompt").css({
+        display: 'block',
+        zIndex: 999999999,
+        top: 30,
+        position: 'fixed',
+        width: '100%',
+        textAlign: 'center',
+        backgroundColor: '#f99',
+        borderBottom: 'solid 1px #ddd'
+      }).text(xhr.statusText).delay(5000).fadeOut(1000);
+    }).on('ajax:complete', function(event, xhr, code) {
+      $(".save-modal-overlay").dialog('close').remove();
     });
 
     $('#extra_credit').on('blur', '.editing :input', function() {
@@ -382,29 +381,35 @@ function liteOff(x) {
 
       $('#save_message').show();
       $('#pdf_share_link').hide();
-    });
+    }).on('ajax:success', function(event, data) {
+      $('[data-document-version]').attr('data-document-version',
+        data.version);
+      $('#share_prompt').dialog('open');
 
-    $('#tb_share').on('ajax:success', function(event, data) {
-      if (data.status == 'ok') {
-        $('[data-document-version]').attr('data-document-version',
-          data.version);
-        $('#share_prompt').dialog('open');
-
-        // should be save to LMS...
-        if ($('#skip-lms').html() != 'true') {
-          $('#tb_send_canvas').trigger('click');
-        }
-
-        setTimeout(
-          function() {
-            $('#save_message').hide();
-            $('#pdf_share_link').removeClass('hidden').show();
-          }, 15000
-        );
-      } else {
-        notification(data.message);
+      // should be save to LMS...
+      if ($('#skip-lms').html() != 'true') {
+        $('#tb_send_canvas').trigger('click');
       }
 
+      setTimeout(
+        function() {
+          $('#save_message').hide();
+          $('#pdf_share_link').removeClass('hidden').show();
+        }, 15000
+      );
+    }).on('ajax:error', function(event, xhr, code) {
+      $("#save_prompt").css({
+        display: 'block',
+        zIndex: 999999999,
+        top: 30,
+        position: 'fixed',
+        width: '100%',
+        textAlign: 'center',
+        backgroundColor: '#f99',
+        borderBottom: 'solid 1px #ddd'
+      }).text(xhr.statusText).delay(5000).fadeOut(1000);
+    }).on('ajax:complete', function(event, xhr, code) {
+      $(".save-modal-overlay").dialog('close').remove();
       $("#save_prompt:visible").delay(1000).fadeOut(1000);
     });
 
