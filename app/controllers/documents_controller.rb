@@ -222,12 +222,16 @@ class DocumentsController < ApplicationController
     verify_org
     user = current_user if current_user
     assigned_to_user = @document.assigned_to? user
+
+    lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
+    has_canvas_publish = lms_authentication_source.includes?('instructure.com') if lms_authentication_source
+
     if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
       republishing = false;
       if meta_data_from_doc && @organization.lms_authentication_id && @organization.root_org_setting("track_meta_info_from_document")
         create_meta_data_from_document(meta_data_from_doc, @document, @organization)
         meta_data_from_doc_saved = true
-      elsif canvas_course_id && !@organization.skip_lms_publish
+      elsif has_canvas_publish && canvas_course_id && !@organization.skip_lms_publish
         # publishing to canvas should not save in the Document model, the canvas version has been modified
         saved = update_course_document(canvas_course_id, request.raw_post, @organization[:lms_info_slug], @lms_client, @document) if params[:canvas] && canvas_course_id
       elsif !meta_data_from_doc
