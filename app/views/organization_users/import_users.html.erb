@@ -5,7 +5,7 @@
   </h1>
 </div>
 
-<%= form_for("users", url: organization_import_users_path(params[:slug], org_path: params[:org_path]), :html => { :class => "form-horizontal col-md-9 col-lg-6" } ) do |f| %>
+<%= form_for("users", url: organization_import_users_path(params[:slug], org_path: params[:org_path]), :html => { :class => "form-horizontal col-lg-9" } ) do |f| %>
 
   <% if flash[:errors] != []  && flash[:errors] != nil%>
       <div class="alert alert-danger">
@@ -16,17 +16,17 @@
   <% end %>
 
   <div class="row">
-    <div class="form-group col-md-6">
+    <div class="col-md-6">
       <%= f.label :remote_user_ids, class: "control-label", "aria-describedby" => "remote-user-ids-help" %>
-      <div class="controls col-md-12">
+      <div class="controls">
         <%= f.text_area :remote_user_ids, class: 'form-control input-xxlarge', rows: 6 %>
-        <div class="help-block" id="remote-user-ids-help">seperate each remote user id by a comma or newline</div>
+        <div class="help-block" id="remote-user-ids-help">separate each remote user id by a comma or newline</div>
       </div>
     </div>
 
-    <div class="form-group col-md-6">
+    <div class="col-md-6">
       <%= f.label :emails, class: "control-label", "aria-describedby" => "emails-help" %>
-      <div class="controls col-md-12">
+      <div class="controls">
         <%= f.text_area :emails, class: 'form-control input-xxlarge', rows: 6 %>
         <div class="help-block" id="emails-help">separate each email by a comma or newline</div>
       </div>
@@ -34,7 +34,7 @@
   </div>
 
   <div class="row">
-    <div class="form-group col-md-12">
+    <div class="col-md-12">
       <%= f.label :organization_id, class: "control-label" %>
       <div class="controls">
         <%= f.select(:organization_id, @organizations.collect { |org| [ (org.parent && org.parent.parent ? org.parent.parent.name + ' » ' : '') + (org.parent ? org.parent.name + ' » ' : '') + org.name, org.id ] }, { prompt: @organization.name}, {class: 'form-control'}) %></p>
@@ -42,9 +42,11 @@
     </div>
   </div>
 
-  <div class="form-group">
-    <%= f.submit "Create Users", class: 'btn btn-default' %>
-    &nbsp; &nbsp;
+  <div class="row">
+    <div class="col-md-12 text-right">
+    <hr>
+      <%= f.submit "Create Users", class: 'btn btn-default' %>
+    </div>
   </div>
 
 <% end %><!-- form -->
