@@ -330,10 +330,11 @@ function liteOff(x) {
       }
     });
     $('#tb_save').on('ajax:success', function(event, data, xhr, settings) {
+      $(".save-modal-overlay").dialog('close').remove();
+      
       if (data.status == 'ok') {
         $("#save_prompt").html('saved at: ' + new Date().toLocaleTimeString())
           .delay(5000).fadeOut(1000);
-        $(".save-modal-overlay").dialog('close').remove();
         $('[data-document-version]').attr('data-document-version',
           data.version);
       } else {
