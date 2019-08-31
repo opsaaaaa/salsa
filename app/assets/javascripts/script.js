@@ -34,7 +34,7 @@ function liteOff(x) {
     if(editorElement) {
       var lmsCourse = editorElement.data('lms-course');
 
-      if(lmsCourse.login_id) {
+      if(lmsCourse && lmsCourse.login_id) {
         $('#mySalsa').append($('<div id="lms-login-id">').text('Login ID: '+lmsCourse.login_id));
       }
 
@@ -333,6 +333,7 @@ function liteOff(x) {
       if (data.status == 'ok') {
         $("#save_prompt").html('saved at: ' + new Date().toLocaleTimeString())
           .delay(5000).fadeOut(1000);
+        $(".save-modal-overlay").dialog('close').remove();
         $('[data-document-version]').attr('data-document-version',
           data.version);
       } else {
