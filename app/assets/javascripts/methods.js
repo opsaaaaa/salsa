@@ -23,7 +23,31 @@ var focusEditor = function(editor, context) {
     return window[editor + '_focus'](context);
 }
 
-var notification = function(msg) {$('#save_prompt').stop().removeAttr('style').removeClass('hidden').css({display: 'block', zIndex: 999999999, top: 30, position: 'fixed', width: '100%', textAlign: 'center', backgroundColor: '#ffe', borderBottom: 'solid 1px #ddd'}).html(msg)}
+var notification = function(msg) {
+    
+    var saveModal = $('<div>').addClass('save-modal-overlay').dialog({
+            modal: true,
+            width: 500,
+            open: function(event, ui) {
+                $(this).closest('.ui-dialog').hide();
+            }
+        });
+
+    $('#save_prompt')
+        .stop()
+        .removeAttr('style')
+        .removeClass('hidden')
+        .css({
+            display: 'block',
+            zIndex: 999999999,
+            top: 30,
+            position: 'fixed',
+            width: '100%',
+            textAlign: 'center',
+            backgroundColor: '#ffe',
+            borderBottom: 'solid 1px #ddd'
+        }).html(msg);
+}
 
 var blurEditor = function(editor, context){
     return window[editor + '_blur'](context);
