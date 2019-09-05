@@ -29,6 +29,11 @@ class OrganizationUsersController < AdminUsersController
 
   def assign
     @organization = find_org_by_path(params[:slug])
+    user_ids = UserAssignment.where(organization_id: @organizations.pluck(:id) ).pluck(:user_id)
+    users = User.where(id: user_ids, archived: false)
+    @user = users.find_by id: params[:user_assignment][:user_id]
+
+    raise ActionController::RoutingError.new('Not Authorized') if @user.blank? && !has_role('admin')
 
     super
   end
@@ -53,7 +58,8 @@ class OrganizationUsersController < AdminUsersController
     user_ids = UserAssignment.where(organization_id: @organizations.pluck(:id) ).pluck(:user_id)
     users = User.where(id: user_ids, archived: false)
     @user = users.find_by id: params[:id]
-    return redirect_to organization_users_path(org_path: params[:org_path]) if @user.blank?
+    
+    raise ActionController::RoutingError.new('Not Authorized') if @user.blank? && !has_role('admin')
 
     super
   end
@@ -63,7 +69,8 @@ class OrganizationUsersController < AdminUsersController
     user_ids = UserAssignment.where(organization_id: @organization&.self_and_descendants&.pluck(:id)).pluck(:user_id)
     users = User.where(id: user_ids, archived: false)
     @user = users.find_by id: params[:id].to_i
-    return redirect_to organization_users_path(org_path: params[:org_path]) if @user.blank?
+
+    raise ActionController::RoutingError.new('Not Authorized') if @user.blank?
   end
 
   def archive

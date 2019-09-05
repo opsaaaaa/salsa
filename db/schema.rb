@@ -152,6 +152,7 @@ ActiveRecord::Schema.define(version: 20190820202934) do
     t.string "idp_cert_fingerprint"
     t.string "idp_cert_fingerprint_algorithm"
     t.string "authn_context"
+    t.integer "children_count", default: 0, null: false
     t.string "lms_account_id"
     t.string "time_zone"
     t.string "period_meta_key"
