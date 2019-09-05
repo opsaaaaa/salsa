@@ -224,7 +224,7 @@ class DocumentsController < ApplicationController
     assigned_to_user = @document.assigned_to? user
 
     lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
-    has_canvas_publish = lms_authentication_source.includes?('instructure.com') if lms_authentication_source
+    has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
     if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
       republishing = false;
