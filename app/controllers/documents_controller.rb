@@ -258,14 +258,14 @@ class DocumentsController < ApplicationController
       end
       if params[:publish] == "true" && @organization.root_org_setting("enable_workflows") && user && saved
         if @document.workflow_step_id && @document.assigned_to?(user)
-          WorkflowMailer.step_email(@document,user, @organization, @document.workflow_step.slug, component_allowed_liquid_variables(@document.workflow_step, user,@organization, @document)).deliver_later
           @document.paper_trail_event = 'publish'
           @document.published_at = DateTime.now
           @document.save!
           
+          # Log the current action, then save, then send any emails
           workflow_log = WorkflowLog.create(user: current_user, step_id: @document.workflow_step.id, document: @document, role: @document.workflow_step.component.role)
-
           @document.update(workflow_step_id: @document.workflow_step.next_workflow_step_id) if @document.workflow_step&.next_workflow_step_id && (@document.workflow_step.component.role != "approver"|| @document.signed_by_all_approvers)
+          WorkflowMailer.step_email(@document, component_allowed_liquid_variables(@document.workflow_step, user,@organization, @document)).deliver_later
         end
         flash[:notice] = 'The workflow document step has been completed'
         flash.keep(:notice)
