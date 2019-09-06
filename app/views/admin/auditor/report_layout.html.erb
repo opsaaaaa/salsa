@@ -78,6 +78,6 @@
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 	<script> var chart_data = <%= @chart_data.to_json.html_safe %>; </script>
 	<script src="https://code.highcharts.com/highcharts.js"></script>
-	<%= salsa_partial('reports/highcharts',@org) %>
+	<%= salsa_partial('highcharts',@org) %>
 	</body>
 	</html>
