@@ -132,7 +132,7 @@ class OrganizationsController < AdminController
     end
     organization = find_org_by_path(params[:slug])
     if start_workflow_params[:start_for_sub_organizations]
-      organizations = organization.descendants + [organization]
+      organizations = organization.self_and_descendants
     else
       organizations = [organization]
     end
