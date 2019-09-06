@@ -2,7 +2,7 @@ class AdminUsersController < AdminController
   skip_before_action :require_designer_permissions
   before_action :require_admin_permissions, except: %i[import_users create_users]
   before_action :require_supervisor_permissions, only: %i[import_users create_users]
-  before_action :get_organizations, only: %i[index new edit show edit_assignment import_users users_search create_users]
+  before_action :get_organizations, only: %i[index new edit show assign edit_assignment import_users users_search create_users]
   before_action :get_roles, only: %i[edit_assignment assign index show]
 
   def index
@@ -22,7 +22,13 @@ class AdminUsersController < AdminController
 
     @user_assignments = @user.user_assignments if @user.user_assignments.count > 0
 
-    @user_assignments = @user_assignments.where(organization_id: @organizations.pluck(:id)) if @user_assignments && params[:controller] == 'organization_users'
+    if !has_role('admin')
+      @user_assignments = @user_assignments.where(organization_id: @organizations.pluck(:id))
+    end
+
+    if !has_role('organization_admin')
+      @user_assignments = @user_assignments.where(role: 'staff')
+    end
 
     @new_permission = @user.user_assignments.new
 
@@ -30,7 +36,7 @@ class AdminUsersController < AdminController
   end
 
   def edit
-    @user = User.find params[:id]
+    show
   end
 
   def users_search(page = params[:page], per = 25)
@@ -76,14 +82,21 @@ class AdminUsersController < AdminController
   def assign
     @user = User.find params[:user_assignment][:user_id]
     @user_assignment = UserAssignment.new user_assignment_params
-    @user_assignment.organization_id = get_org.id unless has_role('admin')
+    org = get_org
+    @user_assignment.organization_id = org.id unless has_role('admin')
     get_organizations
     @user_assignments = @user.user_assignments if @user.user_assignments.count > 0
 
-    user_assignments_org_ids = Organization.find(@user_assignment.organization_id).root.self_and_descendants.pluck(:id)
-    other_users = UserAssignment.where(organization_id: user_assignments_org_ids).where("lower(username) = ?", params[:user_assignment][:username].downcase).where.not(user_id: @user.id)
+    if org || has_role('admin')
+      if params[:user_assignment][:username] != ''
+        user_assignments_org_ids = Organization.find(org.id).root.self_and_descendants.pluck(:id)
+        other_users = UserAssignment.where(organization_id: user_assignments_org_ids).where("lower(username) = ?", params[:user_assignment][:username].downcase).where.not(user_id: @user.id)
 
-    @user_assignment.errors.add('username', "`#{@user_assignment.username}` already in use") if other_users.any?
+        @user_assignment.errors.add('username', "`#{@user_assignment.username}` already in use") if other_users.any?
+      end
+    elsif
+      raise ActionController::RoutingError.new('Not Authorized')
+    end
 
     @new_permission = @user_assignment
     respond_to do |format|
@@ -108,9 +121,14 @@ class AdminUsersController < AdminController
 
   def remove_assignment
     @user_assignment = get_user_assignment(params[:id])
+
+    if !@user_assignment
+      raise ActionController::RoutingError.new('Not Authorized')
+    end
+
     @user_assignment.destroy if @user_assignment
 
-    redirect_to polymorphic_path([params[:controller].singularize], id: @user_assignment.user_id, org_path: params[:org_path])
+    redirect_back fallback_location: polymorphic_path([params[:controller].singularize], id: @user_assignment.user_id, org_path: params[:org_path])
   end
 
   def edit_assignment
@@ -122,7 +140,7 @@ class AdminUsersController < AdminController
       raise ActionController::RoutingError.new('Not Found')
     end
 
-    unless @organizations.pluck(:id).include?(@user_assignment.organization.id)
+    unless has_role('admin') || @organizations.pluck(:id).include?(@user_assignment.organization.id)
       raise ActionController::RoutingError.new('Not Authorized')
     end
   end
@@ -135,16 +153,21 @@ class AdminUsersController < AdminController
     @user_assignment.errors.add('role', 'Invalid role') if !get_roles.value?(params[:user_assignment][:role]) && !has_role('admin')
 
     user_assignments_org_ids = @user_assignment.organization.root.self_and_descendants.pluck(:id)
-    other_users = UserAssignment.where(organization_id: user_assignments_org_ids).where("lower(username) = ?", params[:user_assignment][:username].downcase).where.not(user_id: @user_assignment.user_id)
+    
+    if params[:user_assignment][:username] != ''
+      other_users = UserAssignment.where(organization_id: user_assignments_org_ids)
+        .where("lower(username) = ?", params[:user_assignment][:username].downcase)
+        .where.not(user_id: @user_assignment.user_id)
 
-    @user_assignment.errors.add('username', "Username already in use") if other_users.any?
+        @user_assignment.errors.add('username', "Username already in use") if other_users.any?
+    end
 
     @user_assignment.update(user_assignment_params) if !@user_assignment.errors.any?
 
     if @user_assignment.errors.any?
       get_organizations
 
-      render action: :edit_assignment
+      redirect_back fallback_location: polymorphic_path([params[:controller].singularize], id: @user_assignment.user_id, org_path: params[:org_path])
     else
       redirect_to polymorphic_path([params[:controller].singularize], id: @user_assignment.user_id, org_path: params[:org_path])
     end
@@ -201,7 +224,7 @@ class AdminUsersController < AdminController
   private
 
   def get_user_assignment(id)
-    if params[:controller] == 'admin'
+    if params[:controller] == 'admin_users'
       user_assignment = UserAssignment.find id
     else
       user_assignment = UserAssignment.find_by id: id, organization_id: get_organizations.pluck(:id)
