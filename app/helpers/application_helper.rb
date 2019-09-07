@@ -350,17 +350,6 @@ module ApplicationHelper
     return time.in_time_zone(zone).strftime("%m/%d/%Y")
   end
 
-  def send_email config
-    email_override = APP_CONFIG['email_override']
-
-    if email_override
-      to = email_override
-      subject = "#{config[:to]} - #{config[:subject]}"
-    end
-
-    mail(to: config[:to], subject: config[:subject])
-  end
-
   def get_document id=nil
     id = params[:id] unless id
     @document = Document.find(id)
