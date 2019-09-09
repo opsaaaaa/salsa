@@ -75,13 +75,13 @@ module ApplicationHelper
     result = false
     check_for_admin_password
 
-    if has_role('supervisor') || has_role('auditor')
+    if has_role('supervisor') || has_role('aprover')
       result = true
     else
       # supervisor and auditor roles can be assigned to users (don't go through orgs)
       direct_assignments = current_user&.assignments
       direct_assignments&.each do |direct_assignment|
-        if ['supervisor', 'auditor'].include?(direct_assignment[:role])
+        if ['supervisor', 'approver'].include?(direct_assignment[:role])
           result = true
         end
       end
