@@ -23,7 +23,7 @@ class WorkflowMailer < ApplicationMailer
         send_email(to: users.pluck(:email), subject: @subject)
         user = nil
       elsif role == "approver"
-        user_ids = document.approvers_that_have_not_signed.map(&:whodunnit)
+        user_ids = document.approvers_that_have_not_signed.pluck :id
         user = document.closest_users_with_role("approver", user_ids).where(id:user_ids).first
       end
       send_email(to: user&.email, subject: @subject) if !user.blank?
