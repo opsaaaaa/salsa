@@ -75,7 +75,7 @@ module ApplicationHelper
     result = false
     check_for_admin_password
 
-    if has_role('supervisor') || has_role('aprover')
+    if has_role('supervisor') || has_role('approver')
       result = true
     else
       # supervisor and auditor roles can be assigned to users (don't go through orgs)
