@@ -13,12 +13,16 @@ class WorkflowMailer < ApplicationMailer
       @template = Liquid::Template.parse(@mail_component.layout)
       @subject = Liquid::Template.parse(@mail_component.subject).render(allowed_variables).html_safe
       @step_email = @template.render(allowed_variables).html_safe
-      if @component && @component.role == "supervisor"
+
+      role = @component.role if @component
+      role = @mail_component.role if @mail_component.role && @mail_component.role != ''
+
+      if role == "supervisor"
         users = document.assignees
         # send email to all users together so they can coordinate if desired
         send_email(to: users.pluck(:email), subject: @subject)
         user = nil
-      elsif @component && @component.role == "approver"
+      elsif role == "approver"
         user_ids = document.approvers_that_have_not_signed.map(&:whodunnit)
         user = document.closest_users_with_role("approver", user_ids).where(id:user_ids).first
       end
