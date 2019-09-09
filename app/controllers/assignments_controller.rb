@@ -28,7 +28,7 @@ class AssignmentsController < AdminController
       @documents = [@documents.find(params[:document_id].to_i)]
     end
 
-    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
+    @has_assignments = has_role("supervisor") || has_role("approver") || @direct_assignments.include?('approver') || @direct_assignments.include?('supervisor')
 
     @workflow_steps = {}
     @assignees = {}

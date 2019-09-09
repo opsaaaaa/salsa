@@ -14,7 +14,7 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
 
   def index
     @direct_assignments = current_user.assignments.pluck('role')
-    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
+    @has_assignments = has_role("supervisor") || has_role("approver") || @direct_assignments.include?('approver') || @direct_assignments.include?('supervisor')
 
     org = get_org
     organization_ids = org.root.self_and_descendants.pluck(:id)
@@ -48,7 +48,7 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
 
   def assignments
     @direct_assignments = current_user.assignments.pluck('role')
-    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
+    @has_assignments = has_role("supervisor") || has_role("approver") || @direct_assignments.include?('approver') || @direct_assignments.include?('supervisor')
 
     org = get_org
     organization_ids = org.root.self_and_descendants.pluck(:id)
