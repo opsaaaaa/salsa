@@ -74,7 +74,9 @@ class Admin::AuditorController < ApplicationController
 
     if !@report || rebuild
       redirect_if_job_incomplete
-      generate_report(@report&.id)
+      report_id = nil
+      report_id = @report.id if @report
+      generate_report(report_id)
       redirect_to admin_auditor_report_path(org_path:params[:org_path])
     else
       if !@report.payload && !@queued
