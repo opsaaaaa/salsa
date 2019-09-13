@@ -57,55 +57,31 @@ class Admin::AuditorController < ApplicationController
   end
 
   def report
-    #@params_hash = params.permit(:account_filter, :controller, :action).to_hash
-    #rebuild = params[:rebuild]
-    
-    #remove_unneeded_params
-
-    #@account_filter = get_account_filter
-    #params[:account_filter] = @account_filter
-    # @account_filter = {"account_filter":"FL17"}
-
     @report = get_report
-    # ReportHelper.generate_report @org.slug, @account_filter, @params_hash, @report.id
-    
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
 
-    #if rebuild && @report.present?
-    #  redirect_if_job_incomplete
-    #  report_id = @report.id
-    #  generate_report(report_id)
-    #  redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-    #elsif @report.blank?
-    #  redirect_if_job_incomplete
-    #  generate_report()
-    #  redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-    # if true
-    #if !@report.payload && !@queued
-    #  generate_report(@report.id)
-    #  return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-    #end
-    #@report.payload if !@report.payload && !@queued
-    # @report.payload = nil
-    # @report.save
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)
     @report_data = report_payload['list']
     render 'report', layout: '../admin/auditor/report_layout'
-    # end
   end
 
   def build
     @params_hash = params.permit(:account_filter, :controller, :action).to_hash
     rebuild = params[:rebuild]
     remove_unneeded_params
+ 
     @account_filter = get_account_filter
+ 
     redirect_if_job_incomplete
+ 
     report = @org.report_archives.find(params[:report])
+ 
     unless report.present? && report.report_filters['account_filter'] == "#{@account_filter}" && rebuild
       report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@account_filter}" && !r.is_archived }
     end
+ 
     if report.present?
       generate_report(report.id)
     else
@@ -173,7 +149,6 @@ class Admin::AuditorController < ApplicationController
 
   def get_report
     report = nil
-    @account_filter = get_account_filter unless @account_filter.blank?
     if params[:report]
       report = ReportArchive.where(id: params[:report]).first
       params.delete :report
