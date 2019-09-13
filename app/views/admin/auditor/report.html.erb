@@ -84,9 +84,9 @@
       <% account = ''%>
       <% parent_account = 0 %>
 
-      <% @report_data.each_with_index do |record, i| %>
-
-        <% if (course_id != record['course_id']) and (i > 1) %>
+      <% @report_data["list"].each_with_index do |record, i| %>
+        
+        <% if (course_id != record['course_id']) && (i > 1) %>
         <%# <a href="#" data-toggle="tooltip" data-original-title="{{ teachers.to_s }}"><i class="fa {{ if true or teachers.size }}fa-users{{ else }}fa-user{{ end }}"></i></a>%>
         </li>
         <% end %>
