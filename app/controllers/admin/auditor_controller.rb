@@ -78,11 +78,11 @@ class Admin::AuditorController < ApplicationController
  
     report = @org.report_archives.find(params[:report])
  
-    unless report.present? && report.report_filters['account_filter'] == "#{@account_filter}" && rebuild
+    unless report.present? && report.report_filters['account_filter'] == "#{@account_filter}"
       report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@account_filter}" && !r.is_archived }
     end
  
-    if report.present?
+    if report.present? && rebuild
       generate_report(report.id)
     else
       generate_report()
