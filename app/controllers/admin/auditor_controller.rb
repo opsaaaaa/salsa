@@ -4,7 +4,7 @@ require 'zip'
 class Admin::AuditorController < ApplicationController
 
   before_action :require_auditor_role
-  before_action -> { @org = get_org }, olny: [:report, :reports]
+  before_action -> { @org = get_org }, olny: [:report, :reports, :build]
 
   def download
     if FileHelper::should_use_aws_s3?
@@ -58,7 +58,6 @@ class Admin::AuditorController < ApplicationController
 
   def report
     @params_hash = params.permit(:account_filter, :controller, :action).to_hash
-    @params_hash[:name_by] = "document.potart" 
     rebuild = params[:rebuild]
     
     remove_unneeded_params
@@ -94,10 +93,19 @@ class Admin::AuditorController < ApplicationController
     end
   end
 
-  def new
+  def build
+    @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+    rebuild = params[:rebuild]
+    remove_unneeded_params
+    @account_filter = get_account_filter
     redirect_if_job_incomplete
-    generate_report()
-    redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+    report = get_report
+    if report && report.report_filters['account_filter'] == params['account_filter'] && rebuild
+      generate_report(report.id)
+    else
+      generate_report()
+    end
+    return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
   end
 
   private

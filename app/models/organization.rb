@@ -10,6 +10,7 @@ class Organization < ApplicationRecord
   has_many :user_assignments
   has_many :users, through: :user_assignments
   has_many :workflow_steps
+  has_many :report_archives
 
   before_validation :use_nil_for_blank_name_reports_by
   before_validation :use_nil_for_blank_time_zone
