@@ -2,6 +2,7 @@ class ReportArchive < ApplicationRecord
   belongs_to :organization
 
   def parsed_payload
+    return {:list=>[]} if self.payload.blank?
     data = JSON.parse(self.payload)
     return data if data.is_a?(Hash) 
     return {'list'=> data} if data.is_a?(Array)

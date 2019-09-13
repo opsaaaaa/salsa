@@ -57,13 +57,13 @@ class Admin::AuditorController < ApplicationController
   end
 
   def report
-    @params_hash = params.permit(:account_filter, :controller, :action).to_hash
-    rebuild = params[:rebuild]
+    #@params_hash = params.permit(:account_filter, :controller, :action).to_hash
+    #rebuild = params[:rebuild]
     
-    remove_unneeded_params
+    #remove_unneeded_params
 
-    @account_filter = get_account_filter
-    params[:account_filter] = @account_filter
+    #@account_filter = get_account_filter
+    #params[:account_filter] = @account_filter
     # @account_filter = {"account_filter":"FL17"}
 
     @report = get_report
@@ -71,26 +71,29 @@ class Admin::AuditorController < ApplicationController
     
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
 
-    if rebuild && @report.present?
-      redirect_if_job_incomplete
-      report_id = @report.id
-      generate_report(report_id)
-      redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-    elsif @report.blank?
-      redirect_if_job_incomplete
-      generate_report()
-      redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-    else
-      if !@report.payload && !@queued
-        generate_report(@report.id)
-        return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-      end
-      @name_by = get_name_reports_by
-      report_payload = @report.parsed_payload
-      @chart_data = prep_chart_data_for_hichart(report_payload)
-      @report_data = report_payload['list']
-      render 'report', layout: '../admin/auditor/report_layout'
-    end
+    #if rebuild && @report.present?
+    #  redirect_if_job_incomplete
+    #  report_id = @report.id
+    #  generate_report(report_id)
+    #  redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+    #elsif @report.blank?
+    #  redirect_if_job_incomplete
+    #  generate_report()
+    #  redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+    # if true
+    #if !@report.payload && !@queued
+    #  generate_report(@report.id)
+    #  return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+    #end
+    #@report.payload if !@report.payload && !@queued
+    # @report.payload = nil
+    # @report.save
+    @name_by = get_name_reports_by
+    report_payload = @report.parsed_payload
+    @chart_data = prep_chart_data_for_hichart(report_payload)
+    @report_data = report_payload['list']
+    render 'report', layout: '../admin/auditor/report_layout'
+    # end
   end
 
   def build
@@ -173,7 +176,7 @@ class Admin::AuditorController < ApplicationController
     else
       #start by saving the report (add check to see if there is a report)
       reports = ReportArchive.where(organization_id: @org.id) 
-      if !reports.blank?
+      if reports.present?
           report = reports.count == 1
       else
         report = nil
