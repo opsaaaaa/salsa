@@ -70,14 +70,17 @@ class Admin::AuditorController < ApplicationController
     @report = get_report
     # ReportHelper.generate_report @org.slug, @account_filter, @params_hash, @report.id
     
-    return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
+    return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
 
-    if !@report || rebuild
+    if rebuild && @report.present?
       redirect_if_job_incomplete
-      report_id = nil
-      report_id = @report.id if @report
+      report_id = @report.id
       generate_report(report_id)
-      redirect_to admin_auditor_report_path(org_path:params[:org_path])
+      redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
+    elsif @report.blank?
+      redirect_if_job_incomplete
+      generate_report()
+      redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
     else
       if !@report.payload && !@queued
         generate_report(@report.id)
@@ -89,6 +92,12 @@ class Admin::AuditorController < ApplicationController
       @report_data = report_payload['list']
       render 'report', layout: '../admin/auditor/report_layout'
     end
+  end
+
+  def new
+    redirect_if_job_incomplete
+    generate_report()
+    redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
   end
 
   private

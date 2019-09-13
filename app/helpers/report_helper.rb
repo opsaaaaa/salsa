@@ -11,7 +11,7 @@ module ReportHelper
     @report.save!(touch:false)
 
     # ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
-    ReportGenerator.enqueue org_id, account_filter, params, @report.id 
+    #ReportGenerator.enqueue org_id, account_filter, params, @report.id 
   end
 
   def self.generate_report (org_slug, account_filter, params, report_id)
