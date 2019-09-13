@@ -102,12 +102,16 @@ class Admin::AuditorController < ApplicationController
     remove_unneeded_params
     @account_filter = get_account_filter
     redirect_if_job_incomplete
-    report = get_report
-    if report && report.report_filters['account_filter'] == params['account_filter'] && rebuild
+    report = @org.report_archives.find(params[:report])
+    unless report.present? && report.report_filters['account_filter'] == "#{@account_filter}" && rebuild
+      report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@account_filter}" && !r.is_archived }
+    end
+    if report.present?
       generate_report(report.id)
     else
       generate_report()
     end
+
     return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
   end
 
@@ -177,7 +181,7 @@ class Admin::AuditorController < ApplicationController
       #start by saving the report (add check to see if there is a report)
       reports = ReportArchive.where(organization_id: @org.id) 
       if reports.present?
-          report = reports.count == 1
+        report = reports.first
       else
         report = nil
       end
