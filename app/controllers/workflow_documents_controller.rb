@@ -23,6 +23,7 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
     @periods = Period.where(organization_id: organization_ids).order('name')
     @documents = Document.where(organization_id:org.self_and_descendants.pluck(:id))
       .where(Document.not_abandoned)
+      .where(user_id: current_user&.id)
 
     if params[:step_filter] && params[:step_filter] != ''
       wfs = @workflow_steps.find_by(slug: params[:step_filter])
@@ -30,7 +31,6 @@ class WorkflowDocumentsController < AdminDocumentsBaseController
     else
       end_steps = @workflow_steps.where(organization_id: organization_ids).find_by(step_type: 'end_step')
       @user_documents = @documents.where.not(workflow_step_id: end_steps&.id )
-        .where(user_id: current_user&.id)
     end
 
     if params[:period_filter] != nil && params[:period_filter] != ''
