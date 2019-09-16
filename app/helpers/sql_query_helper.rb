@@ -49,12 +49,11 @@ module SqlQueryHelper
             :start=>"AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)", 
             :limit=>"offset :offset limit :limit", 
             :period_id=>"AND ( docs.period_id = :period_id )", 
+            :period_slug=>"AND ( pd.slug = :period_slug )", 
             :org_ids=>"AND docs.organization_id IN ( :org_ids )",
             :offset=>nil
         }
-
         params[:org_ids] = org_ids
-        params[:account_filter] = "%#{account_filter}%" unless ReportHelper.account_filter_blank?(account_filter)
         params[:offset] = (params[:page] || 1).to_i if params[:page]
         params[:limit] = (params[:per] || 1).to_i if params[:page]
 
@@ -66,6 +65,7 @@ module SqlQueryHelper
     def self.get_org_chart_data org_ids, params = {}
         query_options = { 
             :limit=>"offset :offset limit :limit",
+            :period_slug=>"AND ( pd.slug = :period_slug )", 
             :org_ids=>'WHERE orgs.id IN (:org_ids)'
         }
         params[:org_ids] = org_ids
@@ -95,7 +95,10 @@ module SqlQueryHelper
             FROM documents docs
             LEFT JOIN organizations orgs
                 ON orgs.id = docs.organization_id
+            LEFT JOIN periods as pd
+                ON docs.period_id = pd.id
             #{sql_strings[:org_ids]}
+            #{sql_strings[:period_slug]}
             GROUP BY orgs.id, orgs.name
             #{sql_strings[:limit]}
         SQL
@@ -116,6 +119,7 @@ module SqlQueryHelper
             -- sis.value as sis_course_id,
             pd.start_date as start_at,
             pd.duration as duration,
+            pd.slug as period_slug,
             -- pd.end_date asend_at,
             p_org.name as parent_account_name,
             ws.name as workflow_state, 
@@ -150,7 +154,7 @@ module SqlQueryHelper
             ON docs.period_id = pd.id
 
             WHERE docs.created_at != docs.updated_at         
-            #{sql_strings[:period_id]}
+            #{sql_strings[:period_slug]}
             #{sql_strings[:org_ids]}
 
             ORDER BY docs.lms_published_at, orgs.id

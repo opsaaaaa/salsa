@@ -128,6 +128,10 @@ class Organization < ApplicationRecord
   def can_delete?
     self.descendants.blank?
   end
+  
+  def all_periods
+    Period.where(organization_id: self.root.self_and_descendants)
+  end
 
   private
   

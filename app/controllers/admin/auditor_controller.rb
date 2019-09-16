@@ -2,7 +2,7 @@ require 'tempfile'
 require 'zip'
 
 class Admin::AuditorController < ApplicationController
-
+  
   before_action :require_auditor_role
   before_action -> { @org = get_org }, olny: [:report, :reports, :build]
 
@@ -36,7 +36,7 @@ class Admin::AuditorController < ApplicationController
     @reports = ReportArchive.where(
       organization_id: @org.id, 
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
-    
+
     if @reports.blank? && !params[:show_archived]
       @params_hash = params.permit(:account_filter, :controller, :action).to_hash
 
@@ -77,8 +77,8 @@ class Admin::AuditorController < ApplicationController
     redirect_if_job_incomplete
  
     report = @org.report_archives.find(params[:report])
- 
-    unless report.present? && report.report_filters['account_filter'] == "#{@account_filter}"
+
+    unless report.present? && report.report_filters['account_filter'].downcase == @account_filter.downcase
       report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@account_filter}" && !r.is_archived }
     end
  
@@ -135,9 +135,13 @@ class Admin::AuditorController < ApplicationController
     if params[:account_filter] && params[:account_filter] != ""
       return params[:account_filter]
     else
-      default_account_filter = @org.setting('default_account_filter')
+      if @organization.root_org_setting("reports_use_document_meta")
+        default_account_filter = @org.root_org_setting('default_account_filter')
+      else
+        default_account_filter = Period.find_by(organization_id: @org.self_and_descendants, is_default:true).slug.upcase
+      end
       if default_account_filter.present?
-        return @org.setting('default_account_filter')
+        return default_account_filter
       else
         # jump 2 weeks ahead to allow staff to review things for upcoming semester
         date = Date.today + 2.weeks
