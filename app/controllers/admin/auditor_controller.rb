@@ -38,7 +38,7 @@ class Admin::AuditorController < ApplicationController
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
 
     if @reports.blank? && !params[:show_archived]
-      @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+      @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
 
       report = ReportArchive.create({organization_id: @org.id, report_filters: @params_hash})
       generate_report(report.id)
@@ -72,14 +72,14 @@ class Admin::AuditorController < ApplicationController
     rebuild = params[:rebuild]
     remove_unneeded_params
  
-    @account_filter = get_account_filter
+    @period_filter = get_account_filter
  
     redirect_if_job_incomplete
  
     report = @org.report_archives.find(params[:report])
 
-    unless report.present? && report.report_filters['account_filter'].downcase == @account_filter.downcase
-      report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@account_filter}" && !r.is_archived }
+    unless report.present? && report.report_filters['account_filter'].downcase == @period_filter.downcase
+      report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@period_filter}" && !r.is_archived }
     end
  
     if report.present? && rebuild
@@ -101,7 +101,7 @@ class Admin::AuditorController < ApplicationController
   end
 
   def generate_report(id = nil)
-    @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash, id
+    @queued = ReportHelper.generate_report_as_job @org.id, @period_filter, @params_hash, id
   end
 
   def prep_chart_data_for_hichart(data)
@@ -123,7 +123,7 @@ class Admin::AuditorController < ApplicationController
 
   def redirect_if_job_incomplete
     jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
-    args = [ @org.id, @account_filter, params ]
+    args = [ @org.id, @period_filter, params ]
     jobs.each do |job|
       if job['args'] == args
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
@@ -135,10 +135,10 @@ class Admin::AuditorController < ApplicationController
     if params[:account_filter] && params[:account_filter] != ""
       return params[:account_filter]
     else
-      if @organization.root_org_setting("reports_use_document_meta")
+      if @org.root_org_setting("reports_use_document_meta")
         default_account_filter = @org.root_org_setting('default_account_filter')
       else
-        default_account_filter = Period.find_by(organization_id: @org.self_and_descendants, is_default:true).slug.upcase
+        default_account_filter = @org.all_periods.find_by(is_default:true).slug.upcase
       end
       if default_account_filter.present?
         return default_account_filter
