@@ -28,7 +28,7 @@ Rails.application.routes.draw do
             get 'request_access', to: 'request_access'
 
             get 'report', to: 'auditor#report', as: 'auditor_report'
-            post 'report', to: 'auditor#report', as: 'auditor_generate_report'
+            post 'report', to: 'auditor#build', as: 'auditor_generate_report'
             get 'download', to: 'auditor#download', as: 'auditor_download'
 
             get 'report-status', to: 'auditor#reportStatus', as: 'auditor_report_status'

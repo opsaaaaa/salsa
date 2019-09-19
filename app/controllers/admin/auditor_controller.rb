@@ -2,9 +2,9 @@ require 'tempfile'
 require 'zip'
 
 class Admin::AuditorController < ApplicationController
-
+  
   before_action :require_auditor_role
-  before_action -> { @org = get_org }, olny: [:report, :reports]
+  before_action -> { @org = get_org }, olny: [:report, :reports, :build]
 
   def download
     if FileHelper::should_use_aws_s3?
@@ -36,9 +36,9 @@ class Admin::AuditorController < ApplicationController
     @reports = ReportArchive.where(
       organization_id: @org.id, 
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
-    
+
     if @reports.blank? && !params[:show_archived]
-      @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+      @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
 
       report = ReportArchive.create({organization_id: @org.id, report_filters: @params_hash})
       generate_report(report.id)
@@ -57,38 +57,38 @@ class Admin::AuditorController < ApplicationController
   end
 
   def report
-    @params_hash = params.permit(:account_filter, :controller, :action).to_hash
-    @params_hash[:name_by] = "document.potart" 
-    rebuild = params[:rebuild]
-    
-    remove_unneeded_params
-
-    @account_filter = get_account_filter
-    params[:account_filter] = @account_filter
-    # @account_filter = {"account_filter":"FL17"}
-
     @report = get_report
-    # ReportHelper.generate_report @org.slug, @account_filter, @params_hash, @report.id
-    
-    return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.nil?
+    return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
 
-    if !@report || rebuild
-      redirect_if_job_incomplete
-      report_id = nil
-      report_id = @report.id if @report
-      generate_report(report_id)
-      redirect_to admin_auditor_report_path(org_path:params[:org_path])
-    else
-      if !@report.payload && !@queued
-        generate_report(@report.id)
-        return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
-      end
-      @name_by = get_name_reports_by
-      report_payload = @report.parsed_payload
-      @chart_data = prep_chart_data_for_hichart(report_payload)
-      @report_data = report_payload['list']
-      render 'report', layout: '../admin/auditor/report_layout'
+    @name_by = get_name_reports_by
+    report_payload = @report.parsed_payload
+    @chart_data = prep_chart_data_for_hichart(report_payload)
+    @report_data = report_payload['list']
+    render 'report', layout: '../admin/auditor/report_layout'
+  end
+
+  def build
+    @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+    rebuild = params[:rebuild]
+    remove_unneeded_params
+ 
+    @period_filter = get_account_filter
+ 
+    redirect_if_job_incomplete
+ 
+    report = @org.report_archives.find(params[:report])
+
+    unless report.present? && report.report_filters['account_filter'].downcase == @period_filter.downcase
+      report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@period_filter}" && !r.is_archived }
     end
+ 
+    if report.present? && rebuild
+      generate_report(report.id)
+    else
+      generate_report()
+    end
+
+    return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
   end
 
   private
@@ -101,7 +101,7 @@ class Admin::AuditorController < ApplicationController
   end
 
   def generate_report(id = nil)
-    @queued = ReportHelper.generate_report_as_job @org.id, @account_filter, @params_hash, id
+    @queued = ReportHelper.generate_report_as_job @org.id, @period_filter, @params_hash, id
   end
 
   def prep_chart_data_for_hichart(data)
@@ -123,7 +123,7 @@ class Admin::AuditorController < ApplicationController
 
   def redirect_if_job_incomplete
     jobs = Que.execute("select run_at, job_id, error_count, last_error, queue, args from que_jobs where job_class = 'ReportGenerator'")
-    args = [ @org.id, @account_filter, params ]
+    args = [ @org.id, @period_filter, params ]
     jobs.each do |job|
       if job['args'] == args
         return redirect_to admin_auditor_report_status_path(org_path:params[:org_path])
@@ -135,9 +135,13 @@ class Admin::AuditorController < ApplicationController
     if params[:account_filter] && params[:account_filter] != ""
       return params[:account_filter]
     else
-      default_account_filter = @org.setting('default_account_filter')
+      if @org.root_org_setting("reports_use_document_meta")
+        default_account_filter = @org.root_org_setting('default_account_filter')
+      else
+        default_account_filter = @org.all_periods.find_by(is_default:true).slug.upcase
+      end
       if default_account_filter.present?
-        return @org.setting('default_account_filter')
+        return default_account_filter
       else
         # jump 2 weeks ahead to allow staff to review things for upcoming semester
         date = Date.today + 2.weeks
@@ -149,15 +153,14 @@ class Admin::AuditorController < ApplicationController
 
   def get_report
     report = nil
-    @account_filter = get_account_filter unless @account_filter.blank?
     if params[:report]
       report = ReportArchive.where(id: params[:report]).first
       params.delete :report
     else
       #start by saving the report (add check to see if there is a report)
       reports = ReportArchive.where(organization_id: @org.id) 
-      if !reports.blank?
-          report = reports.count == 1
+      if reports.present?
+        report = reports.first
       else
         report = nil
       end

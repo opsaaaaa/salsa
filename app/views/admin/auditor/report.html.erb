@@ -7,7 +7,15 @@
     <%= form_tag admin_auditor_generate_report_path(org_path: params[:org_path]), class: 'form form-inline' do %>
         <div class="form-group">
             <%= label_tag :account_filter, 'Semester' %>
-            <%= text_field_tag :account_filter, @report.report_filters["account_filter"], class: 'form-control' %>
+            <% if @report.used_document_meta %>
+              <%= text_field_tag :account_filter, @report.report_filters["account_filter"], class: 'form-control' %>
+            <% else %>
+              <%= select_tag :account_filter, 
+                options_from_collection_for_select(@org.all_periods, "slug", "name", @report.report_filters["account_filter"].downcase),
+                include_blank: 'Default Period',
+                class: 'form-control'
+              %>
+            <% end %>
             <%= hidden_field_tag :rebuild, 'true', class: 'form-control' %>
             <%= hidden_field_tag :report, @report.id, class: 'form-control' %>
         </div>

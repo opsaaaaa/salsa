@@ -25,16 +25,13 @@ module ReportHelper
     end
     # get the report data (slow process... only should run one at a time)
     @report.used_document_meta = @organization.setting("reports_use_document_meta")
+
     if @organization.setting("reports_use_document_meta")
-      puts 'Getting Document Meta'
       org_ids = @organization.id
       @report_data = get_meta_report docs, org_slug, account_filter, params
-      puts 'Retrieved Document Meta'
     else
-      puts 'Getting local report data'
       org_ids = @organization.self_and_descendants.pluck(:id)
       @report_data = self.get_org_report(@organization.self_and_descendants.pluck(:id), account_filter, params)
-      puts 'Retrieved local report data'
     end
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
@@ -167,7 +164,8 @@ module ReportHelper
   end
 
   def self.get_org_report org_ids, account_filter = nil, params = {}
-    {
+    params[:period_slug] = account_filter.downcase if account_filter.present?
+    return {
       list: get_local_report_data(org_ids, account_filter, params),
       org_chart: get_org_chart_data(org_ids, params)
     }
