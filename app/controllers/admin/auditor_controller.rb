@@ -78,7 +78,7 @@ class Admin::AuditorController < ApplicationController
  
     report = @org.report_archives.find(params[:report])
 
-    unless report.present? && report.report_filters['account_filter'].downcase == @period_filter.downcase
+    unless report.present? && report.report_filters['account_filter'] == @period_filter
       report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@period_filter}" && !r.is_archived }
     end
  
@@ -138,7 +138,7 @@ class Admin::AuditorController < ApplicationController
       if @org.root_org_setting("reports_use_document_meta")
         default_account_filter = @org.root_org_setting('default_account_filter')
       else
-        default_account_filter = @org.all_periods.find_by(is_default:true).slug.upcase
+        default_account_filter = @org.all_periods.find_by(is_default:true).slug
       end
       if default_account_filter.present?
         return default_account_filter
