@@ -29,7 +29,7 @@ class ReportArchive < ApplicationRecord
       if self.organization.root_org_setting("reports_use_document_meta")
         self.report_filters['account_filter'] = "#{self.organization.root_org_setting('default_account_filter')}"
       else
-        self.report_filters['account_filter'] = self.organization.periods.find_by(is_default: true).slug.upcase 
+        self.report_filters['account_filter'] = self.organization.periods.find_by(is_default: true).slug
       end  
     end
   end

@@ -164,7 +164,7 @@ module ReportHelper
   end
 
   def self.get_org_report org_ids, account_filter = nil, params = {}
-    params[:period_slug] = account_filter.downcase if account_filter.present?
+    params[:period_slug] = account_filter if account_filter.present?
     return {
       list: get_local_report_data(org_ids, account_filter, params),
       org_chart: get_org_chart_data(org_ids, params)
