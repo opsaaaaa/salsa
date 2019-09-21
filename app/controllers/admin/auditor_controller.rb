@@ -60,48 +60,6 @@ class Admin::AuditorController < ApplicationController
     @report = get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
     
-    # Document.all.each do |d|
-
-      # DocumentMeta.new( 
-      #   document_id: d.id,
-      #   key: "total_students",
-      #   value: rand(3..40),
-      #   lms_course_id: d.lms_course_id, 
-      #   root_organization_id: d.organization.root.id, 
-      #   lms_organization_id: "asdasfsgsadf"
-      # ).save
-      # DocumentMeta.new( 
-      #   document_id: d.id,
-      #   key: "name",
-      #   value: "FL17 #{Faker::Lorem.words.join(" ")}",
-      #   lms_course_id: d.lms_course_id, 
-      #   root_organization_id: d.organization.root.id, 
-      #   lms_organization_id: "asdasfsgsadf"
-      # ).save
-      # DocumentMeta.new( 
-      #   document_id: d.id,
-      #   key: "account_id",
-      #   value:"123123",
-      #   lms_course_id: d.lms_course_id, 
-      #   root_organization_id: d.organization.root.id, 
-      #   lms_organization_id: "asdasfsgsadf"
-      # ).save
-
-    # end
-
-    # DocumentMeta.where("document_id IS NOT NULL").each do |m|
-    #   d = Document.find(m.document_id)
-    #   m.update( 
-    #     lms_course_id: d.lms_course_id, 
-    #     # root_organization_id: 9, 
-    #     root_organization_id: d.organization.root.id, 
-    #     lms_organization_id: "asdasfsgsadf"
-    #   )
-    #   m.save
-
-    end
-
-
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)
