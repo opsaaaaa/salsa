@@ -60,6 +60,18 @@ class Admin::AuditorController < ApplicationController
     @report = get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
 
+    #raise @org.self_and_descendants.pluck(:id).join(', ').inspect
+    # dm = DocumentMeta.new( 
+    #   document_id: 9,
+    #   lms_course_id:"1238", 
+    #   root_organization_id: @org.id, 
+    #   lms_organization_id: "asdasfsgsadf", 
+    #   key: 'total_students', 
+    #   value: 15
+    # )
+    # dm.save
+    # raise dm.inspect
+
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)
