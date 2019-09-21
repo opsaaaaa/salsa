@@ -26,12 +26,12 @@ module ReportHelper
     # get the report data (slow process... only should run one at a time)
     @report.used_document_meta = @organization.setting("reports_use_document_meta")
       
-    org_ids = @organization.self_and_descendants.pluck(:id)
+    org_ids = @organization.root.self_and_descendants.pluck(:id)
 
     if @organization.setting("reports_use_document_meta")
       @report_data = get_meta_report docs, org_ids, account_filter, params
     else
-      @report_data = self.get_org_report(@organization.self_and_descendants.pluck(:id), account_filter, params)
+      @report_data = self.get_org_report(org_ids, account_filter, params)
     end
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
