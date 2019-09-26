@@ -11,20 +11,18 @@ module SqlQueryHelper
         { params: query_parameters, strings: query_strings }
     end
 
-    def self.get_document_meta org_slug, account_filter, params = {}
+    def self.get_document_meta org_ids, account_filter, params = {}
         query_options = { 
             :start => "AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)",
             :account_filter=>"AND n.value LIKE :account_filter AND a.key = 'account_id'", 
             :limit=>"offset :offset limit :limit", 
             :offset=>nil,
-            :org_id=>nil,
-            :org_id_string=>nil
+            :org_ids=>nil,
+            :org_ids_string=>nil
         }
 
-        org_id = Organization.find_by(slug: org_slug).id
-
-        params[:org_id_string] = org_id.to_s
-        params[:org_id] = org_id
+        params[:org_ids_string] = org_ids.join(', ')
+        params[:org_ids] = org_ids
         params[:account_filter] = "%#{account_filter}%" unless ReportHelper.account_filter_blank?(account_filter)
         params[:offset] = (params[:page] || 1).to_i if params[:page]
         params[:limit] = (params[:per] || 1).to_i if params[:page]
@@ -282,11 +280,11 @@ module SqlQueryHelper
             LEFT JOIN
             documents as d ON (
                 a.lms_course_id = d.lms_course_id
-                AND d.organization_id IN ( :org_id )
+                AND d.organization_id IN ( :org_ids )
             )
 
             WHERE
-            a.root_organization_id = :org_id_string
+            a.root_organization_id IN (:org_ids)
             #{account_filter_sql}
 
             ORDER BY pn.value, acn.value, n.value, a.lms_course_id

@@ -25,13 +25,13 @@ module ReportHelper
     end
     # get the report data (slow process... only should run one at a time)
     @report.used_document_meta = @organization.setting("reports_use_document_meta")
+      
+    org_ids = @organization.root.self_and_descendants.pluck(:id)
 
     if @organization.setting("reports_use_document_meta")
-      org_ids = @organization.id
-      @report_data = get_meta_report docs, org_slug, account_filter, params
+      @report_data = get_meta_report docs, org_ids, account_filter, params
     else
-      org_ids = @organization.self_and_descendants.pluck(:id)
-      @report_data = self.get_org_report(@organization.self_and_descendants.pluck(:id), account_filter, params)
+      @report_data = self.get_org_report(org_ids, account_filter, params)
     end
 
     if !account_filter_blank?(account_filter) && !@organization.root_org_setting("enable_workflow_report")
@@ -151,11 +151,11 @@ module ReportHelper
     end
   end
 
-  def self.get_meta_report docs, org_slug, account_filter, params = {}
+  def self.get_meta_report docs, org_ids, account_filter, params = {}
     if @organization.root_org_setting("enable_workflow_report")
       report_data = self.get_workflow_document_meta docs&.pluck(:id)
     else
-      report_data = self.get_document_meta org_slug, account_filter, params
+      report_data = self.get_document_meta org_ids, account_filter, params
     end
     {
       list: report_data,
@@ -183,8 +183,8 @@ module ReportHelper
     SqlQueryHelper.get_org_chart_data org_ids, params
   end
 
-  def self.get_document_meta org_slug, account_filter, params = {}
-    SqlQueryHelper.get_document_meta org_slug, account_filter, params
+  def self.get_document_meta org_ids, account_filter, params = {}
+    SqlQueryHelper.get_document_meta org_ids, account_filter, params
   end
 
 end

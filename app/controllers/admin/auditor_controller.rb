@@ -59,7 +59,7 @@ class Admin::AuditorController < ApplicationController
   def report
     @report = get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
-
+    
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)
