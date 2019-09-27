@@ -103,7 +103,7 @@
                   <%= document.user.name if document.user %>
                 </td>
               <% end %>
-
+              <%= debug(@organization.time_to_zone)%>
               <td nowrap width="50%">
                 <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
                   <div>
