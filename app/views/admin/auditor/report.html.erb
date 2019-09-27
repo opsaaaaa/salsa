@@ -2,7 +2,7 @@
   <div class="pull-right text-right">
     <% if @report.generating_at %>
       Started building a new report <%= time_ago_in_words @report.generating_at %> ago<br>
-      <em class="small"><%= @report.generating_at %></em>
+      <em class="small"><%= @org.time_in_zone @report.generating_at %></em>
     <% else %>
     <%= form_tag admin_auditor_generate_report_path(org_path: params[:org_path]), class: 'form form-inline' do %>
         <div class="form-group">
@@ -27,7 +27,7 @@
   </div>
 
   Report Generated <%= time_ago_in_words @report.updated_at %> ago.<br>
-  <em class="small"><%= @report.updated_at %></em>
+  <em class="small"><%= @org.time_in_zone @report.updated_at %></em>
 </div>
 
 <div class="alert alert-default clearfix">

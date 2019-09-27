@@ -70,7 +70,10 @@
             </tr>
           </thead>
           <tbody>
+          <%= debug(@organization.time_in_zone(Time.now))%>
+          <%= debug(formatted_date(Time.now))%>
           <% @documents.each do |document| %>
+            <%= debug("#{@organization.time_in_zone(document.created_at)} = #{document.created_at}")%>
             <tr id="<%= 'document_#{document.id}_wrapper' %>">
               <% if can_move_documents %>
                 <td>
@@ -103,7 +106,6 @@
                   <%= document.user.name if document.user %>
                 </td>
               <% end %>
-              <%= debug(@organization.time_to_zone)%>
               <td nowrap width="50%">
                 <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
                   <div>

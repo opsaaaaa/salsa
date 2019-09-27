@@ -133,9 +133,9 @@ class Organization < ApplicationRecord
     Period.where(organization_id: self.root.self_and_descendants)
   end
 
-  def time_to_zone(time = Time.now)
+  def time_in_zone(time = Time.now)
     zone = self.setting("time_zone")
-    zone = Time.zone.name if zone === nil
+    zone = Time.zone.name if zone.blank?
     return time.in_time_zone(zone)
   end
 

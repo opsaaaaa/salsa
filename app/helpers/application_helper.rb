@@ -345,9 +345,7 @@ module ApplicationHelper
     else
       org = Organization.find(org_id)
     end
-    zone = org.setting("time_zone")
-    zone = Time.zone.name if zone === nil
-    return time.in_time_zone(zone).strftime("%m/%d/%Y")
+    return org.time_in_zone(time).strftime("%m/%d/%Y")
   end
 
   def get_document id=nil
