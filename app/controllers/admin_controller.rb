@@ -241,6 +241,7 @@ class AdminController < ApplicationController
   end
 
   def search page=params[:page], per=25
+    @organization = find_org_by_path params[:slug]
     search_document_text = ''
     user_name = user_email = user_id = user_remote_id = nil
 
