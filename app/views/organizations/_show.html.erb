@@ -70,6 +70,15 @@
             </tr>
           </thead>
           <tbody>
+          <%= debug(
+            timestamp_tag(Time.now, org_id: @organization.id, prefix: 'Updated')
+          ) %>
+          <%= debug(
+            @time_zone
+          ) %>
+          <%= debug(
+            same_time?(1.day.from_now,Time.now,1.hour)
+          ) %>
           <% @documents.each do |document| %>
             <tr id="<%= 'document_#{document.id}_wrapper' %>">
               <% if can_move_documents %>
@@ -104,6 +113,10 @@
                 </td>
               <% end %>
               <td nowrap width="50%">
+                  
+                  
+                <%= timestamp_tag document.updated_at, prefix: "Updated" unless same_time?(document.updated_at, document.created_at, 1.day)%>
+
                 <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
                   <div>
                     <time datetime="<%= document.created_at %>">Updated <%= time_ago_in_words document.updated_at %> ago</time>
@@ -116,6 +129,7 @@
                   </div>
                 <% end %>
 
+                <%= timestamp_tag document.created_at, prefix: "Created" %>
                 <div>
                   <time datetime="<%= document.created_at %>">Created <%= time_ago_in_words document.created_at %> ago</time>
                 </div>

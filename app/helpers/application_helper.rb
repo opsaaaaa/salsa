@@ -334,20 +334,6 @@ module ApplicationHelper
     ReportHelper.get_document_meta org_slug, nil, params
   end
 
-  def get_country_time_zones(country = 'US')
-    ActiveSupport::TimeZone.country_zones(country)
-    # ActiveSupport::TimeZone.us_zones
-  end
-
-  def formatted_date (time, org_id = nil)
-    unless org_id
-      org = find_org_by_path params[:slug] 
-    else
-      org = Organization.find(org_id)
-    end
-    return org.time_in_zone(time).strftime("%m/%d/%Y")
-  end
-
   def get_document id=nil
     id = params[:id] unless id
     @document = Document.find(id)
@@ -369,5 +355,16 @@ module ApplicationHelper
       @periods = Period.where(organization_id: organization_ids).order('name')
     end
   end
+
+  def get_organization path=params[:slug]
+    @organization = find_org_by_path path
+  end
+    
+  def get_org_time_zone
+    get_organization if @organization.blank?
+    @time_zone = ActiveSupport::TimeZone[@organization.root_org_setting('time_zone')]
+    # @time_zone = TimeZone.new @organization.root_org_setting('time_zone')
+  end
+
 end
 

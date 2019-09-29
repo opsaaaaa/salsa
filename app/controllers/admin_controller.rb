@@ -27,6 +27,8 @@ class AdminController < ApplicationController
       :canvas_accounts,
       :canvas_courses
   ]
+  before_action :get_organization, olny: [:login,:authenticate]
+
   force_ssl only:[:canvas_courses, :canvas_accounts,:canvas_courses,:canvas_accounts_sync]
 
   def landing
@@ -306,5 +308,4 @@ class AdminController < ApplicationController
   def user_params
     params.require(:user).permit(:name, :password, :password_confirmation)
   end
-
 end
