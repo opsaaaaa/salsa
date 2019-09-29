@@ -14,7 +14,8 @@ module TimeZoneHelper
         if options[:org_id].present? && options[:time_zone].blank?
             options[:time_zone] = Organization.find(options[:org_id]).root_org_setting('time_zone') 
         end
-        return time.in_time_zone(options[:time_zone]).strftime("%_m-%_e-%_Y %_l:%M%P")
+        options[:strftime] = "%_m-%_e-%_Y %_l:%M%P" if options[:strftime].blank? 
+        return time.in_time_zone(options[:time_zone]).strftime(options[:strftime])
         # return time.in_time_zone(options[:time_zone]).strftime("%m-%e-%Y %l:%M%P")
     end
 
