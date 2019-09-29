@@ -360,9 +360,10 @@ module ApplicationHelper
     @organization = find_org_by_path path
   end
     
-  def get_org_time_zone
-    get_organization if @organization.blank?
-    @time_zone = ActiveSupport::TimeZone[@organization.root_org_setting('time_zone')]
+  def get_org_time_zone(org = nil)
+    org = @organization if @organization.present? && org.blank?
+    org = get_organization if org.blank?
+    @time_zone = ActiveSupport::TimeZone[org.root_org_setting('time_zone')]
     # @time_zone = TimeZone.new @organization.root_org_setting('time_zone')
   end
 
