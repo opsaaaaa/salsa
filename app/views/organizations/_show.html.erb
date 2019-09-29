@@ -114,25 +114,11 @@
               <% end %>
               <td nowrap width="50%">
                   
-                  
-                <%= timestamp_tag document.updated_at, prefix: "Updated" unless same_time?(document.updated_at, document.created_at, 1.day)%>
+                <%= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at, 1.day)%>
 
-                <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
-                  <div>
-                    <time datetime="<%= document.created_at %>">Updated <%= time_ago_in_words document.updated_at %> ago</time>
-                  </div>
-                <% end %>
+                <%= timestamp_tag document.lms_published_at, prefix: "Created", time_zone: @time_zone if document.lms_published_at.is_a?(Time) %>
 
-                <% if document.lms_published_at.is_a?(Time) %>
-                  <div>
-                    <time datetime="<%= document.created_at %>">Published <%= time_ago_in_words document.lms_published_at %> ago</time>
-                  </div>
-                <% end %>
-
-                <%= timestamp_tag document.created_at, prefix: "Created" %>
-                <div>
-                  <time datetime="<%= document.created_at %>">Created <%= time_ago_in_words document.created_at %> ago</time>
-                </div>
+                <%= timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone %>
               </td>
 
               <td>
