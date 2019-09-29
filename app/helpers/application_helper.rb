@@ -362,8 +362,9 @@ module ApplicationHelper
     
   def get_org_time_zone(org = nil)
     org = @organization if @organization.present? && org.blank?
-    org = get_organization if org.blank?
-    @time_zone = ActiveSupport::TimeZone[org.root_org_setting('time_zone')]
+    org = @org if @organization.present? && org.blank?
+    # org = get_org if org.blank?
+    @time_zone = ActiveSupport::TimeZone[org.root_org_setting('time_zone').to_s]
     # @time_zone = TimeZone.new @organization.root_org_setting('time_zone')
   end
 
