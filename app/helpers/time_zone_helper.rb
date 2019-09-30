@@ -12,7 +12,6 @@ module TimeZoneHelper
         end
         options[:strftime] = "%_m-%_e-%_Y %_l:%M%P" if options[:strftime].blank? 
         return time.in_time_zone(options[:time_zone]).strftime(options[:strftime])
-        # return time.in_time_zone(options[:time_zone]).strftime("%m-%e-%Y %l:%M%P")
     end
 
     def timestamp_tag(time, options= {})
