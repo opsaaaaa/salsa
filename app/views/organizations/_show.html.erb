@@ -70,18 +70,6 @@
             </tr>
           </thead>
           <tbody>
-          <%= debug(
-            @organization.time_zone.inspect
-          ) %>
-          <%= debug(
-            timestamp_tag(Time.now, org_id: @organization.id, prefix: 'Updated')
-          ) %>
-          <%= debug(
-            @time_zone
-          ) %>
-          <%= debug(
-            same_time?(1.day.from_now,Time.now,1.hour)
-          ) %>
           <% @documents.each do |document| %>
             <tr id="<%= 'document_#{document.id}_wrapper' %>">
               <% if can_move_documents %>
