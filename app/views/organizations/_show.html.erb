@@ -119,7 +119,7 @@
                   
                 <%= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at, 1.day)%>
 
-                <%= timestamp_tag document.lms_published_at, prefix: "Created", time_zone: @time_zone if document.lms_published_at.is_a?(Time) %>
+                <%= timestamp_tag document.lms_published_at, prefix: "Published", time_zone: @time_zone if document.lms_published_at.is_a?(Time) %>
 
                 <%= timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone %>
               </td>

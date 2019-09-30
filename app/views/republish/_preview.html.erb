@@ -15,9 +15,8 @@
         <% @documents.each do |document| %>
           <li class="nav-header form-group">
             <div class='pull-right text-right'>
-              <% if document.lms_published_at.is_a?(Time) %>
-                  <div>Published <%= time_ago_in_words document.lms_published_at %> ago</div>
-              <% end %>
+                
+              <%= timestamp_tag document.lms_published_at, prefix: "Published", time_zone: @time_zone if document.lms_published_at.is_a?(Time) %>
 
               <div class="info pull-right">
                 Version: <%= document.versions.count %>
@@ -26,13 +25,9 @@
 
             <label for="<%= "document_#{document.id}" %>"><%= document.name %></label>
 
-            <%#= timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone %>
-            <time datetime="<%= document.created_at %>">Created <%= time_ago_in_words document.created_at %> ago</time>
+            <%= timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone %>
             
-            <%#= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at)%>
-            <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
-              <time datetime="<%= document.created_at %>">Updated <%= time_ago_in_words document.updated_at %> ago</time>
-            <% end %>
+            <%= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at)%>
           </li>
 
           <li id="<%= "document_#{document.id}_wrapper" %>">
