@@ -245,7 +245,6 @@ class OrganizationsController < AdminController
         :enable_workflow_report, 
         :time_zone, 
         :reports_use_document_meta, 
-        :reports_use_document_meta, 
         :document_search_includes_sub_organizations,
         :name_reports_by, 
         :default_account_filter, 
