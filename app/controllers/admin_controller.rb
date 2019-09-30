@@ -253,10 +253,16 @@ class AdminController < ApplicationController
     user_ids = User.where("email = ? OR id = ? OR name ~* ? ", user_email, user_id, user_name).pluck(:id)
     user_ids += UserAssignment.where("lower(username) = ? ", user_remote_id.to_s.downcase).pluck(:user_id) if user_remote_id
 
-    sql = ["organization_id IN (?) AND (lms_course_id = ? OR name like ? OR edit_id like ? OR view_id like ? OR template_id like ?"]
-    param = [@organizations.pluck(:id), params[:q], "%#{params[:q]}%"]
+    sql = ["organization_id IN (?) AND (
+      lms_course_id like ? OR 
+      name like ? OR 
+      edit_id like ? OR 
+      view_id like ? OR 
+      template_id like ? OR 
+      remote_identifier like ?"]
+    param = [@organizations.pluck(:id), "%#{params[:q]}%", "%#{params[:q]}%"]
 
-    3.times do
+    4.times do
       param << "#{params[:q]}%"
     end
 
