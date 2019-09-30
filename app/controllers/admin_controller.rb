@@ -27,7 +27,7 @@ class AdminController < ApplicationController
       :canvas_accounts,
       :canvas_courses
   ]
-  before_action :get_organization, olny: [:login,:authenticate]
+  before_action :get_organization, olny: [:login,:authenticate,:search]
 
   force_ssl only:[:canvas_courses, :canvas_accounts,:canvas_courses,:canvas_accounts_sync]
 
@@ -47,7 +47,6 @@ class AdminController < ApplicationController
   end
 
   def login
-    @organization = find_org_by_path params[:slug]
     if @organization&.root_org_setting("enable_shibboleth")
       return redirect_to new_user_session_path(org_path: params[:org_path])
     end
@@ -68,8 +67,6 @@ class AdminController < ApplicationController
           return redirect_to admin_path
         end
     end
-
-  	@organization = find_org_by_path params[:slug]
 
     unless params[:user][:email] && params[:user][:password]
         flash[:error] = 'Missing email or password'
@@ -187,7 +184,6 @@ class AdminController < ApplicationController
   end
 
   def sync_canvas_accounts account, org_id = nil
-    # store each piece of data into the organization meta model
     account.each do |key, value|
       meta = OrganizationMeta.find_or_initialize_by organization_id: org_id,
         key: key,
@@ -243,7 +239,6 @@ class AdminController < ApplicationController
   end
 
   def search page=params[:page], per=25
-    @organization = find_org_by_path params[:slug]
     search_document_text = ''
     user_name = user_email = user_id = user_remote_id = nil
 
