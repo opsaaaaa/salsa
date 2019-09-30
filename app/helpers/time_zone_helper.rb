@@ -23,7 +23,7 @@ module TimeZoneHelper
         )
     end
 
-    def same_time? time1, time2, range = 0
+    def same_time? time1, time2, range = 1.minute
         return (time1 - time2) < range
     end
 
