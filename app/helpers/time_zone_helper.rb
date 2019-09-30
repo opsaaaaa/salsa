@@ -1,10 +1,6 @@
 
 module TimeZoneHelper
 
-    def time_test
-        Time.now
-    end
-
     def get_country_time_zones(country = 'US')
         ActiveSupport::TimeZone.country_zones(country)
         # ActiveSupport::TimeZone.us_zones
