@@ -33,6 +33,7 @@
             <% end %>
           </td>
           <td nowrap>
+            <%# timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone%>
             <%= time_ago_in_words(document.updated_at)%> ago
           </td>
           <td>

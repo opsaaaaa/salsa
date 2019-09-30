@@ -26,8 +26,10 @@
 
             <label for="<%= "document_#{document.id}" %>"><%= document.name %></label>
 
+            <%#= timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone %>
             <time datetime="<%= document.created_at %>">Created <%= time_ago_in_words document.created_at %> ago</time>
-
+            
+            <%#= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at)%>
             <% if time_ago_in_words(document.created_at) != time_ago_in_words(document.updated_at) %>
               <time datetime="<%= document.created_at %>">Updated <%= time_ago_in_words document.updated_at %> ago</time>
             <% end %>
