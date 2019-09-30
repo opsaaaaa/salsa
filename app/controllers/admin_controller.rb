@@ -253,31 +253,34 @@ class AdminController < ApplicationController
     user_ids = User.where("email = ? OR id = ? OR name ~* ? ", user_email, user_id, user_name).pluck(:id)
     user_ids += UserAssignment.where("lower(username) = ? ", user_remote_id.to_s.downcase).pluck(:user_id) if user_remote_id
 
-    sql = ["organization_id IN (?) AND (
-      lms_course_id like ? OR 
-      name like ? OR 
-      edit_id like ? OR 
-      view_id like ? OR 
-      template_id like ? OR 
-      remote_identifier like ?"]
-    param = [@organizations.pluck(:id), "%#{params[:q]}%", "%#{params[:q]}%"]
-
-    4.times do
-      param << "#{params[:q]}%"
+    sql = [
+      "organization_id IN (:org_ids) AND (
+      lms_course_id like :search_any OR 
+      name like :search_any OR 
+      edit_id like :search_start OR 
+      view_id like :search_start OR 
+      template_id like :search_start OR 
+      remote_identifier like :search_start"
+    ]
+    param = {search_start: "#{params[:q]}%", search_any: "%#{params[:q]}%"}    
+    
+    if @organization.root_org_setting("document_search_includes_sub_organizations")
+      param[:org_ids] = @organization.self_and_descendants.pluck(:id)
+    else 
+      param[:org_ids] = [@organization.id]
     end
 
-    if !user_ids.blank?
-      sql << "OR user_id IN (?)"
-      param << user_ids
+    if user_ids.present?
+      sql << "OR user_id IN (:user_ids)"
+      param[:user_ids] = user_ids
     end
 
     if params[:search_document_text]
-      sql << "OR payload like ?"
-      param << "%#{params[:q]}%"
+      sql << "OR payload like :search_any"
     end
 
       sql << ")"
-    @documents = Document.where(sql.join(' '), *param).page(page).per(per)
+    @documents = Document.where(sql.join(' '), param).page(page).per(per)
   end
 
 
