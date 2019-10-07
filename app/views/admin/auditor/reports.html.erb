@@ -26,10 +26,12 @@
           <% end %>
         </div>
       </div>
-      <p>
-        Report #<%=report.id%>
-        <%= link_to "Load report", admin_auditor_report_path(report: report.id, org_path: params[:org_path])%>
-      </p>
+      <h4>
+        <% pretty_filters = report.pretty_filters %>
+        <% view_link = "Report: " + pretty_filters if pretty_filters.present? %>
+        <% view_link = "Report: ##{report.id}" if pretty_filters.blank?%>
+        <%= link_to view_link, admin_auditor_report_path(report: report.id, org_path: params[:org_path])%>
+      </h4>
       <ul>
         <%if report.generating_at%>
         <li>
@@ -39,9 +41,9 @@
         <%if report.updated_at != report.created_at%>
           <li>Last generated  <%=  time_ago_in_words report.updated_at%> ago</li>
         <%end%>
-        <% if report.report_filters %>
+        <% if pretty_filters.present? %>
         <li>
-            Filters: <%=report.report_filters['account_filter']%>
+            Filters: <%=pretty_filters%>
         </li>
         <% end %>
       </ul>

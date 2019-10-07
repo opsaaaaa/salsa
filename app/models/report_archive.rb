@@ -34,4 +34,22 @@ class ReportArchive < ApplicationRecord
     end
   end
 
+  def filter_types filters = nil
+    types = ['account_filter','lms_course_filter']
+    return types if filters.nil?
+    return filters.select {|k| types.include?(k.to_s)}
+  end
+
+  def filters
+    filter_types(self.report_filters)
+  end
+
+  def pretty_filters
+    self.filters.map {|k,v| v.sub(/\A%/,"").split("%")}.flatten.join(", ")
+  end
+
+  def filters_match?(filters)
+    filter_types(filters).symbolize_keys == self.filters.symbolize_keys
+  end
+
 end

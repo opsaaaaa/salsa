@@ -15,6 +15,7 @@ module SqlQueryHelper
         query_options = { 
             :start => "AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)",
             :account_filter=>"AND n.value LIKE :account_filter AND a.key = 'account_id'", 
+            :lms_course_filter=>"AND d.lms_course_id LIKE :lms_course_filter", 
             :limit=>"offset :offset limit :limit", 
             :offset=>nil,
             :org_ids=>nil,
@@ -36,7 +37,7 @@ module SqlQueryHelper
         query_strings = query_settings[:strings]
 
         DocumentMeta.find_by_sql([
-            document_meta_query_sql(query_strings[:account_filter], query_strings[:limit], query_strings[:start]),
+            document_meta_query_sql(query_strings[:account_filter], query_strings[:limit], query_strings[:start], query_strings),
             query_settings[:params]
         ])
     end
@@ -47,6 +48,7 @@ module SqlQueryHelper
             :start=>"AND (start.value IS NULL OR CAST(start.value AS DATE) >= :start)", 
             :limit=>"offset :offset limit :limit", 
             :period_id=>"AND ( docs.period_id = :period_id )", 
+            :lms_course_filter=>"AND docs.lms_course_id LIKE :lms_course_filter", 
             :period_slug=>"AND ( pd.slug = :period_slug )", 
             :org_ids=>"AND docs.organization_id IN ( :org_ids )",
             :offset=>nil
@@ -64,6 +66,7 @@ module SqlQueryHelper
         query_options = { 
             :limit=>"offset :offset limit :limit",
             :period_slug=>"AND ( pd.slug = :period_slug )", 
+            :lms_course_filter=>"AND docs.lms_course_id LIKE :lms_course_filter", 
             :org_ids=>'WHERE orgs.id IN (:org_ids)'
         }
         params[:org_ids] = org_ids
@@ -97,6 +100,7 @@ module SqlQueryHelper
                 ON docs.period_id = pd.id
             #{sql_strings[:org_ids]}
             #{sql_strings[:period_slug]}
+            #{sql_strings[:lms_course_filter]}
             GROUP BY orgs.id, orgs.name
             #{sql_strings[:limit]}
         SQL
@@ -154,6 +158,7 @@ module SqlQueryHelper
             WHERE docs.created_at != docs.updated_at         
             #{sql_strings[:period_slug]}
             #{sql_strings[:org_ids]}
+            #{sql_strings[:lms_course_filter]}
 
             ORDER BY docs.lms_published_at, orgs.id
 
@@ -161,7 +166,7 @@ module SqlQueryHelper
         SQL
     end
 
-    def self.document_meta_query_sql account_filter_sql, limit_sql, start_filter
+    def self.document_meta_query_sql account_filter_sql, limit_sql, start_filter, sql_strings
         <<-SQL.gsub(/^ {4}/, '')
             SELECT DISTINCT a.lms_course_id as course_id,
             a.value as account_id,
@@ -286,6 +291,7 @@ module SqlQueryHelper
             WHERE
             a.root_organization_id IN (:org_ids)
             #{account_filter_sql}
+            #{sql_strings[:lms_course_filter]}
 
             ORDER BY pn.value, acn.value, n.value, a.lms_course_id
 

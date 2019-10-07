@@ -16,6 +16,7 @@
                 class: 'form-control'
               %>
             <% end %>
+            <%= hidden_field_tag :lms_course_filter, @report.report_filters["lms_course_filter"], class: 'form-control' %>
             <%= hidden_field_tag :rebuild, 'true', class: 'form-control' %>
             <%= hidden_field_tag :report, @report.id, class: 'form-control' %>
         </div>
