@@ -142,12 +142,24 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_report
+    #TODO refactor: 
+      
+    # return ReportArchive.find_by(id: params[:report]) if params[:report]
+    
+    # return ReportArchive.find_by(
+      # "organization_id = :org_id and is_archived = false and report_filters->>'account_filter' = :account_filter", {account_filter: get_account_filter, org_id: @org.id
+    # })
+    
+    # return ReportArchive.find_by(organization_id: @org.id, is_archived: false) ? maybe remove this line
+    # return ReportArchive.find_by(organization_id: @org.id) ? maybe remove this line
+       
     report = nil
     if params[:report]
-      report = ReportArchive.where(id: params[:report]).first
+      report = ReportArchive.where(id: params[:report]).first 
       params.delete :report
     else
       #start by saving the report (add check to see if there is a report)
+
       reports = ReportArchive.where(organization_id: @org.id) 
       if reports.present?
         report = reports.first
@@ -159,10 +171,12 @@ class Admin::AuditorController < ApplicationController
   end
 
   def remove_unneeded_params
+    # TODO: test if this is needed
     params.delete :authenticity_token
     params.delete :utf8
     params.delete :commit
     params.delete :rebuild
+    # params.delete :report
   end
   
 end
