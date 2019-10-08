@@ -13,7 +13,7 @@
               <%= text_field_tag :account_filter, @report.report_filters["account_filter"], class: 'form-control' %>
             <% else %>
               <%= select_tag :account_filter, 
-                options_from_collection_for_select(@org.all_periods, "slug", "name", @report.report_filters["account_filter"].downcase),
+                options_from_collection_for_select(@org.all_periods, "slug", "name", @report.report_filters["account_filter"]),
                 include_blank: 'Default Period',
                 class: 'form-control'
               %>

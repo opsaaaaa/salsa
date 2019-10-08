@@ -41,8 +41,8 @@ class Admin::AuditorController < ApplicationController
     if @reports.blank? && !params[:show_archived]
       @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
 
-      report = ReportArchive.create({organization_id: @org.id, report_filters: @params_hash})
-      generate_report(report.id)
+      @period_filter = get_account_filter
+      generate_report()
       
       return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
     end
@@ -60,7 +60,7 @@ class Admin::AuditorController < ApplicationController
   def report
     @report = get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
-    
+
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)

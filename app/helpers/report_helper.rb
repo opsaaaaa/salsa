@@ -4,6 +4,7 @@ require 'zip'
 module ReportHelper
   def self.generate_report_as_job (org_id, account_filter, params, report_id = nil)
     params = params.select {|k,p| p.present?}
+    # raise params.inspect
     if report_id
       @report = ReportArchive.find(report_id) if report_id
       @report.report_filters = params
