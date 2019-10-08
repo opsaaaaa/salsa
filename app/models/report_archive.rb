@@ -44,8 +44,8 @@ class ReportArchive < ApplicationRecord
     filter_types(self.report_filters)
   end
 
-  def pretty_filters
-    self.filters.map {|k,v| v.sub(/\A%/,"").split("%")}.flatten.join(", ")
+  def pretty_filters join = ", "
+    self.filters.map {|k,v| v.sub(/\A%/,"").split("%")}.flatten.join(join)
   end
 
   def filters_match?(filters)
