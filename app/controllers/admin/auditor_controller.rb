@@ -68,21 +68,23 @@ class Admin::AuditorController < ApplicationController
   end
 
   def build
-    @params_hash = params.permit(:account_filter, :controller, :action).to_hash
+    @params_hash = params.permit(:account_filter, :controller, :action, :lms_course_filter).to_hash
     rebuild = params[:rebuild]
     remove_unneeded_params
  
     @period_filter = get_account_filter
- 
+    @params_hash[:account_filter] = @period_filter
+
     redirect_if_job_incomplete
  
     report = @org.report_archives.find(params[:report])
 
-    unless report.present? && report.report_filters['account_filter'] == @period_filter
-      report = @org.report_archives.all.find {|r| r.report_filters['account_filter'] == "#{@period_filter}" && !r.is_archived }
+    if report.present? && !report.filters_match?(@params_hash)
+      report = @org.report_archives.where("report_filters->>'account_filter' LIKE ? AND is_archived = false",@period_filter)
+        .find {|r| r.filters_match?(@params_hash)}
     end
- 
-    if report.present? && rebuild
+    
+    if report.present? && rebuild && report.filters_match?(@params_hash)
       generate_report(report.id)
     else
       generate_report()
@@ -102,6 +104,7 @@ class Admin::AuditorController < ApplicationController
 
   def generate_report(id = nil)
     @queued = ReportHelper.generate_report_as_job @org.id, @period_filter, @params_hash, id
+    # @queued = ReportHelper.generate_report @org.slug, @period_filter, @params_hash, id
   end
 
   def prep_chart_data_for_hichart(data)
