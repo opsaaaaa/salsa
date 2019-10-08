@@ -37,7 +37,7 @@ class ReportArchive < ApplicationRecord
   def filter_types filters = nil
     types = ['account_filter','lms_course_filter']
     return types if filters.nil?
-    return filters.select {|k| types.include?(k.to_s)}
+    return filters.select {|k,v| types.include?(k.to_s) && v.present?}
   end
 
   def filters

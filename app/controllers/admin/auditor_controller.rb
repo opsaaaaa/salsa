@@ -78,6 +78,11 @@ class Admin::AuditorController < ApplicationController
     redirect_if_job_incomplete
  
     report = @org.report_archives.find(params[:report])
+
+    if report.present? && !report.filters_match?(@params_hash)
+      report = @org.report_archives.where("report_filters->>'account_filter' LIKE ? AND is_archived = false",@period_filter)
+        .find {|r| r.filters_match?(@params_hash)}
+    end
     
     if report.present? && rebuild && report.filters_match?(@params_hash)
       generate_report(report.id)
@@ -99,6 +104,7 @@ class Admin::AuditorController < ApplicationController
 
   def generate_report(id = nil)
     @queued = ReportHelper.generate_report_as_job @org.id, @period_filter, @params_hash, id
+    # @queued = ReportHelper.generate_report @org.slug, @period_filter, @params_hash, id
   end
 
   def prep_chart_data_for_hichart(data)

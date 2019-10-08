@@ -28,8 +28,8 @@
       </div>
       <h4>
         <% pretty_filters = report.pretty_filters %>
-        <% view_link = "Report: " + pretty_filters if pretty_filters.present? %>
-        <% view_link = "Report: ##{report.id}" if pretty_filters.blank?%>
+        <% view_link = "View Report " + pretty_filters if pretty_filters.present? %>
+        <% view_link = "View Report: ##{report.id}" if pretty_filters.blank?%>
         <%= link_to view_link, admin_auditor_report_path(report: report.id, org_path: params[:org_path])%>
       </h4>
       <ul>
