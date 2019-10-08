@@ -47,15 +47,6 @@ class Admin::AuditorController < ApplicationController
       return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
     end
 
-    # TODO remove this
-    @default_report = nil
-    @reports.each do |report|
-      if report.payload && @org.default_account_filter && report.report_filters && report.report_filters["account_filter"] == @org.default_account_filter
-        @default_report = true
-      end
-    end
-    # to here
-
     render 'reports', layout: '../admin/auditor/report_layout'
   end
 
@@ -72,8 +63,6 @@ class Admin::AuditorController < ApplicationController
 
   def build
     @params_hash = params.permit(:account_filter, :controller, :action, :lms_course_filter).to_hash
-    rebuild = params[:rebuild]
-    remove_unneeded_params
  
     @period_filter = get_account_filter
     @params_hash[:account_filter] = @period_filter
@@ -87,7 +76,7 @@ class Admin::AuditorController < ApplicationController
         .find {|r| r.filters_match?(@params_hash)}
     end
     
-    if report.present? && rebuild && report.filters_match?(@params_hash)
+    if report.present? && params[:rebuild] && report.filters_match?(@params_hash)
       generate_report(report.id)
     else
       generate_report()
@@ -144,41 +133,7 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_report
-    #TODO refactor: 
-      
-    # return ReportArchive.find_by(id: params[:report]) if params[:report]
-    
-    # return ReportArchive.find_by(
-      # "organization_id = :org_id and is_archived = false and report_filters->>'account_filter' = :account_filter", {account_filter: get_account_filter, org_id: @org.id
-    # })
-    
-    # return ReportArchive.find_by(organization_id: @org.id, is_archived: false) ? maybe remove this line
-    # return ReportArchive.find_by(organization_id: @org.id) ? maybe remove this line
-       
-    report = nil
-    if params[:report]
-      report = ReportArchive.where(id: params[:report]).first 
-      params.delete :report
-    else
-      #start by saving the report (add check to see if there is a report)
-
-      reports = ReportArchive.where(organization_id: @org.id) 
-      if reports.present?
-        report = reports.first
-      else
-        report = nil
-      end
-    end
-    return report
+    return ReportArchive.find_by(id: params[:report]) if params[:report]
   end
 
-  def remove_unneeded_params
-    # TODO: test if this is needed
-    params.delete :authenticity_token
-    params.delete :utf8
-    params.delete :commit
-    params.delete :rebuild
-    # params.delete :report
-  end
-  
 end
