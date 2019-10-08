@@ -140,17 +140,12 @@ class Admin::AuditorController < ApplicationController
       return params[:account_filter]
     else
       if @org.root_org_setting("reports_use_document_meta")
-        default_account_filter = @org.root_org_setting('default_account_filter')
+        default_account_filter = @org.root_org_setting('default_account_filter')&.dig('account_filter').inspect
       else
-        default_account_filter = @org.all_periods.find_by(is_default:true).slug
+        default_account_filter = @org.all_periods.find_by(is_default:true)&.slug
       end
       if default_account_filter.present?
         return default_account_filter
-      else
-        # jump 2 weeks ahead to allow staff to review things for upcoming semester
-        date = Date.today + 2.weeks
-        semester = ['SP','SU','FL'][((date.month - 1) / 4)]
-        return "#{semester}#{date.strftime("%y")}"
       end
     end
   end
