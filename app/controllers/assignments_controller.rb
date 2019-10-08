@@ -14,6 +14,7 @@ class AssignmentsController < AdminController
   # GET /assignments.json
   def index
     @assignment = Assignment.new
+    get_org_timezone
   end
 
   # GET /assignments/1
@@ -119,6 +120,8 @@ class AssignmentsController < AdminController
 
       @workflow_steps[document.id] = workflow_steps.select { |step| ['supervisor', 'approver'].include?(step.component.role) }
     end
+
+    get_org_timezone
 
     render 'workflows'
   end

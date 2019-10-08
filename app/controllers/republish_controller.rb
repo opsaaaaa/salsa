@@ -9,6 +9,7 @@ class RepublishController < ApplicationController
       @organization.republish_batch_token = SecureRandom.urlsafe_base64(16)
     end
     @organization.save!
+    get_org_timezone
 
     render :layout => 'admin', :template => '/republish/preview'
   end

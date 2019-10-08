@@ -35,7 +35,7 @@
 
           </td>
           <td nowrap>
-            <%= time_ago_in_words(document.updated_at)%> ago
+            <%= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone%>
           </td>
           <td>
             <% if document.workflow_step.step_type != 'end_step' %>
