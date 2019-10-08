@@ -52,4 +52,9 @@ class ReportArchive < ApplicationRecord
     filter_types(filters).symbolize_keys == self.filters.symbolize_keys
   end
 
+  def title
+    return self.pretty_filters if self.filters.present?
+    return "##{self.id}"
+  end
+
 end
