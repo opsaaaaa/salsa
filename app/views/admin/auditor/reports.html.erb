@@ -36,7 +36,9 @@
         </li>
         <%end%>
         <%if report.updated_at != report.created_at%>
+        <li>
           <%= timestamp_tag report.updated_at, prefix: "Last generated #{time_ago_in_words(report.updated_at)} ago at", time_zone: @time_zone, suffix: ""%>
+        </li>
         <%end%>
         <% if report.pretty_filters.present? %>
         <li>
