@@ -38,7 +38,6 @@ class Admin::AuditorController < ApplicationController
       organization_id: @org.id, 
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
 
-    raise get_account_filter.inspect
     if @reports.blank? && !params[:show_archived]
       @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
 
