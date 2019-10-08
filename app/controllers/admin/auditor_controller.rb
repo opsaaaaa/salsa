@@ -39,20 +39,22 @@ class Admin::AuditorController < ApplicationController
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
 
     if @reports.blank? && !params[:show_archived]
+      
       @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
-
       @period_filter = get_account_filter
       generate_report()
       
       return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
     end
 
+    # TODO remove this
     @default_report = nil
     @reports.each do |report|
       if report.payload && @org.default_account_filter && report.report_filters && report.report_filters["account_filter"] == @org.default_account_filter
         @default_report = true
       end
     end
+    # to here
 
     render 'reports', layout: '../admin/auditor/report_layout'
   end
