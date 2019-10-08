@@ -38,6 +38,7 @@ class Admin::AuditorController < ApplicationController
       organization_id: @org.id, 
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
 
+    raise get_account_filter.inspect
     if @reports.blank? && !params[:show_archived]
       @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
 
@@ -136,18 +137,9 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_account_filter
-    if params[:account_filter] && params[:account_filter] != ""
-      return params[:account_filter]
-    else
-      if @org.root_org_setting("reports_use_document_meta")
-        default_account_filter = @org.root_org_setting('default_account_filter')&.dig('account_filter').inspect
-      else
-        default_account_filter = @org.all_periods.find_by(is_default:true)&.slug
-      end
-      if default_account_filter.present?
-        return default_account_filter
-      end
-    end
+    return params[:account_filter] if params[:account_filter] && params[:account_filter] != ""
+    return @org.root_org_setting('default_account_filter')&.dig('account_filter') if @org.root_org_setting("reports_use_document_meta")
+    return @org.all_periods.find_by(is_default:true)&.slug
   end
 
   def get_report
