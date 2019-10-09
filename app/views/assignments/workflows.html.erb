@@ -9,7 +9,7 @@
                 <%= document.organization.name %>
             </small>
             <div class="small">
-                <small class="small">Archived - <%= document.updated_at %></small>
+                <small class="small">Archived - <%= document.updated_at.in_time_zone(@time_zone) %></small>
             </div>
         </div>
     </h1>

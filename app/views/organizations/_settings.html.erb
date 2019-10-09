@@ -90,6 +90,13 @@
 
     <div class="form-group">
       <div class="controls">
+        <%= f.check_box :document_search_includes_sub_organizations, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true %>
+        <%= f.label :document_search_includes_sub_organizations, "Include Sub-Organizations in Document Searches #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <div class="controls">
         <%= f.check_box :track_meta_info_from_document, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true%>
         <%= f.label :track_meta_info_from_document, "Track meta info from document #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label", "aria-describedby" => "track-meta-data-help" %>
       </div>

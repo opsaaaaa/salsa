@@ -27,6 +27,8 @@ class AdminController < ApplicationController
       :canvas_accounts,
       :canvas_courses
   ]
+  before_action :get_organization, olny: [:login,:authenticate,:search]
+
   force_ssl only:[:canvas_courses, :canvas_accounts,:canvas_courses,:canvas_accounts_sync]
 
   def landing
@@ -45,7 +47,6 @@ class AdminController < ApplicationController
   end
 
   def login
-    @organization = find_org_by_path params[:slug]
     if @organization&.root_org_setting("enable_shibboleth")
       return redirect_to new_user_session_path(org_path: params[:org_path])
     end
@@ -66,8 +67,6 @@ class AdminController < ApplicationController
           return redirect_to admin_path
         end
     end
-
-  	@organization = find_org_by_path params[:slug]
 
     unless params[:user][:email] && params[:user][:password]
         flash[:error] = 'Missing email or password'
@@ -185,7 +184,6 @@ class AdminController < ApplicationController
   end
 
   def sync_canvas_accounts account, org_id = nil
-    # store each piece of data into the organization meta model
     account.each do |key, value|
       meta = OrganizationMeta.find_or_initialize_by organization_id: org_id,
         key: key,
@@ -252,25 +250,34 @@ class AdminController < ApplicationController
     user_ids = User.where("email = ? OR id = ? OR name ~* ? ", user_email, user_id, user_name).pluck(:id)
     user_ids += UserAssignment.where("lower(username) = ? ", user_remote_id.to_s.downcase).pluck(:user_id) if user_remote_id
 
-    sql = ["organization_id IN (?) AND (lms_course_id = ? OR name like ? OR edit_id like ? OR view_id like ? OR template_id like ?"]
-    param = [@organizations.pluck(:id), params[:q], "%#{params[:q]}%"]
-
-    3.times do
-      param << "#{params[:q]}%"
+    sql = [
+      "organization_id IN (:org_ids) AND (
+      lms_course_id like :search_any OR 
+      name like :search_any OR 
+      edit_id like :search_start OR 
+      view_id like :search_start OR 
+      template_id like :search_start OR 
+      remote_identifier like :search_start"
+    ]
+    param = {search_start: "#{params[:q]}%", search_any: "%#{params[:q]}%"}    
+    
+    if @organization.root_org_setting("document_search_includes_sub_organizations")
+      param[:org_ids] = @organization.self_and_descendants.pluck(:id)
+    else 
+      param[:org_ids] = [@organization.id]
     end
 
-    if !user_ids.blank?
-      sql << "OR user_id IN (?)"
-      param << user_ids
+    if user_ids.present?
+      sql << "OR user_id IN (:user_ids)"
+      param[:user_ids] = user_ids
     end
 
     if params[:search_document_text]
-      sql << "OR payload like ?"
-      param << "%#{params[:q]}%"
+      sql << "OR payload like :search_any"
     end
 
       sql << ")"
-    @documents = Document.where(sql.join(' '), *param).page(page).per(per)
+    @documents = Document.where(sql.join(' '), param).page(page).per(per)
   end
 
 
@@ -306,5 +313,4 @@ class AdminController < ApplicationController
   def user_params
     params.require(:user).permit(:name, :password, :password_confirmation)
   end
-
 end

@@ -11,6 +11,7 @@ class OrganizationsController < AdminController
   ]
   before_action :get_organizations
   before_action :get_organization, except: [:orphaned_documents, :new, :create, :start_workflow_form]
+  before_action :get_org_time_zone, except: [:orphaned_documents, :new, :create, :start_workflow_form]
   before_action :get_documents, only: [:orphaned_documents, :show, :index]
   
   layout 'admin'
@@ -160,10 +161,6 @@ class OrganizationsController < AdminController
     @export_types = Organization.export_types
   end
 
-  def get_organization path=params[:slug]
-    @organization = find_org_by_path path
-  end
-
   def get_documents path=params[:slug], page=params[:page], per=25, key=params[:key]
     if key == 'abandoned'
       operation = '=';
@@ -245,6 +242,7 @@ class OrganizationsController < AdminController
         :enable_workflow_report, 
         :time_zone, 
         :reports_use_document_meta, 
+        :document_search_includes_sub_organizations,
         :name_reports_by, 
         :default_account_filter, 
         default_account_filter: [:account_filter]
