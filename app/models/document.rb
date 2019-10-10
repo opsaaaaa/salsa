@@ -9,6 +9,7 @@ class Document < ApplicationRecord
   belongs_to :period, optional: true
   belongs_to :workflow_step, optional: true
   belongs_to :user, optional: true
+  has_many :document_meta
   
   def self.abandoned()
     return 'documents.updated_at = documents.created_at'
