@@ -39,19 +39,12 @@ class Admin::AuditorController < ApplicationController
       is_archived: params[:show_archived].present?).order(updated_at: :desc )
 
     if @reports.blank? && !params[:show_archived]
+      
       @params_hash = params.permit(:account_filter, :controller, :action, :period_filter).to_hash
-
-      report = ReportArchive.create({organization_id: @org.id, report_filters: @params_hash})
-      generate_report(report.id)
+      @period_filter = get_account_filter
+      generate_report()
       
       return redirect_to admin_auditor_reports_path(org_path:params[:org_path])
-    end
-
-    @default_report = nil
-    @reports.each do |report|
-      if report.payload && @org.default_account_filter && report.report_filters && report.report_filters["account_filter"] == @org.default_account_filter
-        @default_report = true
-      end
     end
 
     render 'reports', layout: '../admin/auditor/report_layout'
@@ -60,7 +53,7 @@ class Admin::AuditorController < ApplicationController
   def report
     @report = get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
-    
+
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)
@@ -70,8 +63,6 @@ class Admin::AuditorController < ApplicationController
 
   def build
     @params_hash = params.permit(:account_filter, :controller, :action, :lms_course_filter).to_hash
-    rebuild = params[:rebuild]
-    remove_unneeded_params
  
     @period_filter = get_account_filter
     @params_hash[:account_filter] = @period_filter
@@ -85,7 +76,7 @@ class Admin::AuditorController < ApplicationController
         .find {|r| r.filters_match?(@params_hash)}
     end
     
-    if report.present? && rebuild && report.filters_match?(@params_hash)
+    if report.present? && params[:rebuild] && report.filters_match?(@params_hash)
       generate_report(report.id)
     else
       generate_report()
@@ -136,47 +127,13 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_account_filter
-    if params[:account_filter] && params[:account_filter] != ""
-      return params[:account_filter]
-    else
-      if @org.root_org_setting("reports_use_document_meta")
-        default_account_filter = @org.root_org_setting('default_account_filter')
-      else
-        default_account_filter = @org.all_periods.find_by(is_default:true).slug
-      end
-      if default_account_filter.present?
-        return default_account_filter
-      else
-        # jump 2 weeks ahead to allow staff to review things for upcoming semester
-        date = Date.today + 2.weeks
-        semester = ['SP','SU','FL'][((date.month - 1) / 4)]
-        return "#{semester}#{date.strftime("%y")}"
-      end
-    end
+    return params[:account_filter] if params[:account_filter].present?
+    return @org.root_org_setting('default_account_filter')&.dig('account_filter') if @org.root_org_setting("reports_use_document_meta")
+    return @org.all_periods.find_by(is_default:true)&.slug
   end
 
   def get_report
-    report = nil
-    if params[:report]
-      report = ReportArchive.where(id: params[:report]).first
-      params.delete :report
-    else
-      #start by saving the report (add check to see if there is a report)
-      reports = ReportArchive.where(organization_id: @org.id) 
-      if reports.present?
-        report = reports.first
-      else
-        report = nil
-      end
-    end
-    return report
+    return ReportArchive.find_by(id: params[:report]) if params[:report]
   end
 
-  def remove_unneeded_params
-    params.delete :authenticity_token
-    params.delete :utf8
-    params.delete :commit
-    params.delete :rebuild
-  end
-  
 end

@@ -1,7 +1,6 @@
 class ReportArchive < ApplicationRecord
   
   belongs_to :organization
-  before_validation :use_default_on_blank_account_filter
 
   def parsed_payload
     return {:list=>[]} if self.payload.blank?
@@ -22,16 +21,6 @@ class ReportArchive < ApplicationRecord
   def set_used_document_meta(val)
     self.used_document_meta = val
     self.save
-  end
-
-  def use_default_on_blank_account_filter
-    if self.report_filters['account_filter'].blank?
-      if self.organization.root_org_setting("reports_use_document_meta")
-        self.report_filters['account_filter'] = "#{self.organization.root_org_setting('default_account_filter')}"
-      else
-        self.report_filters['account_filter'] = self.organization.periods.find_by(is_default: true).slug
-      end  
-    end
   end
 
   def filter_types filters = nil
