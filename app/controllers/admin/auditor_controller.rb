@@ -127,7 +127,7 @@ class Admin::AuditorController < ApplicationController
   end
 
   def get_account_filter
-    return params[:account_filter] if params[:account_filter] && params[:account_filter] != ""
+    return params[:account_filter] if params[:account_filter].present?
     return @org.root_org_setting('default_account_filter')&.dig('account_filter') if @org.root_org_setting("reports_use_document_meta")
     return @org.all_periods.find_by(is_default:true)&.slug
   end
