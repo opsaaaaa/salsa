@@ -39,7 +39,6 @@ Rails.application.routes.draw do
 
         scope '/admin' do
             get 'orphaned_documents', to: 'organizations#orphaned_documents'
-            get 'search', to: 'admin#search', as: 'admin_search'
             get 'canvas/accounts', to: 'admin#canvas_accounts', as: 'canvas_accounts'
             post 'canvas/accounts/sync', to: 'admin#canvas_accounts_sync', as: 'canvas_accounts_sync'
             get 'canvas/courses', to: 'admin#canvas_courses', as: 'canvas_courses'
@@ -94,7 +93,8 @@ Rails.application.routes.draw do
                     resources :assignments, as: 'team_assignments', controller: 'assignments'
                     get 'test-email/:organization_user_id', to: 'test#email', as: 'test_email'
                 end
-
+                
+                get 'search', to: 'admin#search', as: 'documents_search'
                 get 'users_search', to: 'organization_users#users_search', as: 'organization_users_search'
 
                 post 'users/assignment', as: 'organization_user_assignments', to: 'organization_users#assign'

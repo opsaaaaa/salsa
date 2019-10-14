@@ -9,7 +9,7 @@
       </button>
       <a class="navbar-brand" href="/">Salsa</a>
 
-      <%= form_tag(admin_search_path(org_path: params[:org_path]), method: 'get', class: "form-horizontal col-md-12 navbar-form pull-left", role: "search" ) do |f| %>
+      <%= form_tag(documents_search_path(org_path: params[:org_path], slug: @organization.full_slug), method: 'get', class: "form-horizontal col-md-12 navbar-form pull-left", role: "search" ) do |f| %>
         <% if has_role('designer') %>
           <div class="col-sm-12">
 
