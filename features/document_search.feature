@@ -1,4 +1,4 @@
-Feature: components admin
+Feature: document_search
 as a admin or client
 In order to find specific documents 
 I want to be able search the documents beloning to the current organization.
