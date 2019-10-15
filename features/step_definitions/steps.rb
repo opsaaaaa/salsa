@@ -427,14 +427,9 @@ Then(/^an "(.*?)" should be (present|absent) with:$/) do |class_name, should_be,
 end
 
 Given(/^there is a "(.*?)" with:$/) do |class_name, table|
-  table = table.raw
-  case class_name
-  when /document/
-    table.push(["organization_id",@organization.id])
-  end
   instance_variable_set( "@#{class_name}",
     class_name.classify.safe_constantize
-    .create( Hash[ *table.flatten(1) ] ) )
+    .create( Hash[ *table.raw.flatten(1) ] ) )
 end
 
 Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
