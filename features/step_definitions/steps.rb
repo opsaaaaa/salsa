@@ -427,9 +427,14 @@ Then(/^an "(.*?)" should be (present|absent) with:$/) do |class_name, should_be,
 end
 
 Given(/^there is a "(.*?)" with:$/) do |class_name, table|
+  table = table.raw
+  case class_name
+  when /document/
+    table.push(["organization_id",@organization.id])
+  end
   instance_variable_set( "@#{class_name}",
     class_name.classify.safe_constantize
-    .create( Hash[ *table.raw.flatten(1) ] ) )
+    .create( Hash[ *table.flatten(1) ] ) )
 end
 
 Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
@@ -437,4 +442,25 @@ Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
   expect(class_name.classify.safe_constantize
     .find_by(id: record.id).present?)
       .to eq(should_be == "present")
+end
+
+Given(/^I search documnets for "(.*?)"$/) do |search|
+  visit documents_search_path(org_path: @organization.slug, slug: @organization.full_slug, q: search)
+end
+
+Given(/^the "(.*?)" has:$/) do |class_name, table|
+  record = instance_variable_get("@#{class_name}")
+  update_hash = Hash[ *table.raw.flatten(1) ]
+  record.update update_hash
+  expect(class_name.classify.safe_constantize
+    .find_by(update_hash).present?)
+      .to eq(true)
+end
+
+Given(/^the "(.*?)" has a "(.*?)" with:$/) do |parent_var_name, child_class_name, table|
+  hash = Hash[ *table.raw.flatten(1) ]
+  parent_record = instance_variable_get("@#{parent_var_name}")
+  hash["#{parent_record.class}_id".downcase] = parent_record.id
+  instance_variable_set( "@#{child_class_name}",
+    child_class_name.classify.safe_constantize.create( hash ) )
 end
