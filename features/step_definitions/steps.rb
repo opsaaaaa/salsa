@@ -459,3 +459,17 @@ Given(/^the "(.*?)" has a "(.*?)" with:$/) do |parent_var_name, child_class_name
   instance_variable_set( "@#{child_class_name}",
     child_class_name.classify.safe_constantize.create( hash ) )
 end
+
+Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
+  factory_name = factory_name.to_sym
+  parent_record = instance_variable_get("@#{parent_var_name}")
+  record = FactoryBot.create(factory_name,"#{parent_record.class}_id".downcase.to_sym=>parent_record.id)
+  instance_variable_set( "@#{factory_name}", record)
+  expect(record.present? && !record.new_record?)
+      .to eq(true)
+end
+
+Given(/^raise "(.*?)"$/) do |var_name|
+  record = instance_variable_get("@#{var_name}")
+  raise record.payload.inspect
+end
