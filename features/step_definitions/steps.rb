@@ -215,9 +215,9 @@ end
 
 When(/^I click the "(.*?)" link$/) do |string|
   case string
-  when /tb_share/
-    find(string).click
-    @document.workflow_step_id = @document.workflow_step.next_workflow_step_id
+  # when /(tb_share)/
+  #   find(string).click
+  #   @document.workflow_step_id = @document.workflow_step.next_workflow_step_id
   when /Edit Component/
     click_on("edit_#{@component.slug}")
   when /#edit_document/
@@ -420,9 +420,10 @@ Given(/^I am on the organization (\w+) page$/) do |action|
 end
 
 Then(/^an "(.*?)" should be (present|absent) with:$/) do |class_name, should_be, table|
-  expect(class_name.classify.safe_constantize
-    .find_by(
-      Hash[*table.raw.flatten(1)]).present?)
+  record = class_name.classify.safe_constantize
+  record = class_name.safe_constantize if record.nil?
+  expect(record.find_by(
+    Hash[*table.raw.flatten(1)]).present?)
       .to eq(should_be == "present")
 end
 
@@ -464,12 +465,22 @@ Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
   factory_name = factory_name.to_sym
   parent_record = instance_variable_get("@#{parent_var_name}")
   record = FactoryBot.create(factory_name,"#{parent_record.class}_id".downcase.to_sym=>parent_record.id)
-  instance_variable_set( "@#{factory_name}", record)
-  expect(record.present? && !record.new_record?)
+  instance_variable_set( "@#{record.class.name.downcase}", record)
+  expect(record.present? && !record.new_record? && record.is_a?(Document))
       .to eq(true)
 end
 
-Given(/^raise "(.*?)"$/) do |var_name|
-  record = instance_variable_get("@#{var_name}")
-  raise record.payload.inspect
+Given(/^inspect "(.*?)"$/) do |var_name|
+  case var_name
+  when "document"
+    record = instance_variable_get("@#{var_name}")
+    raise record.payload.inspect
+  when "document_meta"
+    raise DocumentMeta.where("key LIKE 'salsa_%'").inspect
+  end
+end
+
+Then(/^a "DocumentMeta" should be present$/) do 
+  # raise DocumentMeta.all.inspect
+  expect(DocumentMeta.all.present?).to eq(true)
 end

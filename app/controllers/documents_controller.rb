@@ -10,6 +10,7 @@ class DocumentsController < ApplicationController
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
   before_action :set_paper_trail_whodunnit
+  before_action -> {logger.debug "########## ACTION #{params[:action].to_s.upcase} ##########"}
 
   def index
     redirect_to new_document_path(org_path: params[:org_path])
@@ -81,7 +82,7 @@ class DocumentsController < ApplicationController
       else
         @document_version = @document.versions.count
       end
-
+      # raise @document.payload.inspect
       verify_org
 
       @view_url = view_url
@@ -213,6 +214,7 @@ class DocumentsController < ApplicationController
   end
 
   def update
+    logger.debug "####### the meta info is present: #{params[:meta_data_from_doc].present?}#################################################"
     canvas_course_id = params[:canvas_course_id]
     document_version = params[:document_version]
     meta_data_from_doc = params[:meta_data_from_doc]
@@ -227,8 +229,11 @@ class DocumentsController < ApplicationController
     has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
     if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
+      logger.debug "####### check lock and can use edit token #################################################"
       republishing = false;
+
       if meta_data_from_doc && @organization.lms_authentication_id && @organization.root_org_setting("track_meta_info_from_document")
+        logger.debug "####### data.present and lms auth_id and track meta #################################################"
         create_meta_data_from_document(meta_data_from_doc, @document, @organization)
         meta_data_from_doc_saved = true
       elsif has_canvas_publish && canvas_course_id && !@organization.skip_lms_publish
@@ -246,6 +251,9 @@ class DocumentsController < ApplicationController
         if document_version && @document.versions.count == document_version.to_i
           @document.payload = request.raw_post
           @document.payload = nil if @document.payload == ''
+          # logger.debug("=============================================================================")
+          # logger.debug(request.raw_post)
+          # logger.debug("==========================================================================================")
 
           if !@organization.root_org_setting("enable_workflows") || !@document.workflow_step_id || !@document.user_id
             @document.save!
@@ -296,6 +304,7 @@ class DocumentsController < ApplicationController
   protected
   def create_meta_data_from_document meta_data_from_doc, document, organization
     count = Hash.new 0
+    organization = organization.root
     meta_data_from_doc.values.each do |md|
       count[md.fetch(:key).to_s] +=1
       if md.fetch(:lms_course_id) != ""
@@ -304,19 +313,38 @@ class DocumentsController < ApplicationController
         lms_course_id = "nil"
       end
       k = "#{md.fetch(:key).to_s}_#{count[md.fetch(:key)]}"
-      if dm = DocumentMeta.find_by(key: k, document_id: document.id)
-        dm.value = md.fetch(:value)
-        dm.save
-      elsif !DocumentMeta.exists?(key:k, document_id: document.id)
-        DocumentMeta.create(
-          :key => k,
-          :document_id => document.id,
-          :value => md.fetch(:value).to_s,
-          :root_organization_id => document.organization_id,
-          :lms_course_id => lms_course_id,
-          :lms_organization_id => organization.lms_authentication_id
-        )
+      # dm = DocumentMeta.find_or_create_by( key: k, document_id: document.id)
+      hash = {
+        :key => "salsa_test_manual_1",
+        :document_id => document.id,
+        :value => "value",
+        :root_organization_id => organization.id,
+        :lms_course_id => "hi",
+        :lms_organization_id => organization.lms_authentication_id
+      }
+      # DocumentMeta.where("key LIKE 'salsa_%' and document_id = ?",hash[:document_id]).each {|d| d.delete}
+      dm = DocumentMeta.find_by(key: hash[:key], document_id: hash[:document_id])
+      t = nil
+      if dm.present?
+
+        logger.debug "############# i think dm is present #############"
+        # dm.value = md.fetch(:value)
+        dm.delete
+      elsif dm.blank?
+        logger.debug "############# i think dm is absent #############"
+        logger.debug "############# #{hash} #############"
+        # dm = DocumentMeta.new(
+        #   :key => k,
+        #   :document_id => document.id,
+        #   :value => md.fetch(:value).to_s,
+        #   :root_organization_id => document.organization_id,
+        #   :lms_course_id => lms_course_id,
+        #   :lms_organization_id => organization.lms_authentication_id
+        # )
+        dm = DocumentMeta.new hash
+        t = dm.save
       end
+      logger.debug "############# T IS: #{t} #############"
     end
   end
 
