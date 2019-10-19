@@ -232,7 +232,7 @@ class DocumentsController < ApplicationController
       logger.debug "####### check lock and can use edit token #################################################"
       republishing = false;
 
-      if meta_data_from_doc && @organization.lms_authentication_id && @organization.root_org_setting("track_meta_info_from_document")
+      if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
         logger.debug "####### data.present and lms auth_id and track meta #################################################"
         create_meta_data_from_document(meta_data_from_doc, @document, @organization)
         meta_data_from_doc_saved = true
@@ -304,43 +304,22 @@ class DocumentsController < ApplicationController
   protected
   def create_meta_data_from_document meta_data_from_doc, document = @document, organization = @organization
     lms_authentication_id = @organization.root_org_setting("lms_authentication_id")
-    @organization.errors.add('document_meta',"can't save meta when lms_authentication_id if blank") if lms_authentication_id.blank? 
-    # count = Hash.new 0
-    logger.debug meta_data_from_doc.inspect.to_s
-    meta_data_from_doc.permit(:key,:value,:root_organization_slug).each do |md,count|
-      # count[md.fetch(:key).to_s] +=1
-      k = "#{md.fetch(:key).to_s}_#{count+1}"
-      hash = {
-        :key => k,
-        :document_id => document.id,
-        :value => "md[value].to_s",
-        :root_organization_id => organization.id,
-        :lms_course_id => md['lms_course_id'],
-        :lms_organization_id => organization.lms_authentication_id
-      }
-      # if hash[:lms_course_id] 
-      dm = DocumentMeta.find_or_initialize_by(key: hash[:key], document_id: hash[:document_id])
-      t = dm.update hash 
+    lms_course_id = @document.lms_course_id
+    hash = {
+      root_organization_id: @organization.root.id,
+      lms_course_id: lms_course_id,
+      lms_organization_id: lms_authentication_id
+    }
+    meta_data_from_doc.each do |c,md|
+      
+      count = c.to_i + 1
+      k = "#{md['key']}_#{count}"
+      dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
+      h = hash.merge(value: md[:value].to_s)
+      h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
+      t = dm.update 
+      @document.errors.add('document_meta',"failed to track document_meta with: #{} ")
       logger.debug "############# T IS: #{t} #############"
-      # if dm.present?
-
-      #   logger.debug "############# i think dm is present #############"
-      #   # dm.value = md.fetch(:value)
-      #   dm.delete
-      # elsif dm.blank?
-      #   logger.debug "############# i think dm is absent #############"
-      #   logger.debug "############# #{hash} #############"
-      #   # dm = DocumentMeta.new(
-      #   #   :key => k,
-      #   #   :document_id => document.id,
-      #   #   :value => md.fetch(:value).to_s,
-      #   #   :root_organization_id => document.organization_id,
-      #   #   :lms_course_id => lms_course_id,
-      #   #   :lms_organization_id => organization.lms_authentication_id
-      #   # )
-      #   dm = DocumentMeta.new hash
-      #   t = dm.save
-      # end
     end
   end
 
