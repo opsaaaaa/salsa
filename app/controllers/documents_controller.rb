@@ -302,49 +302,45 @@ class DocumentsController < ApplicationController
   end
 
   protected
-  def create_meta_data_from_document meta_data_from_doc, document, organization
-    count = Hash.new 0
-    organization = organization.root
-    meta_data_from_doc.values.each do |md|
-      count[md.fetch(:key).to_s] +=1
-      if md.fetch(:lms_course_id) != ""
-        lms_course_id = md.fetch(:lms_course_id)
-      else
-        lms_course_id = "nil"
-      end
-      k = "#{md.fetch(:key).to_s}_#{count[md.fetch(:key)]}"
-      # dm = DocumentMeta.find_or_create_by( key: k, document_id: document.id)
+  def create_meta_data_from_document meta_data_from_doc, document = @document, organization = @organization
+    lms_authentication_id = @organization.root_org_setting("lms_authentication_id")
+    @organization.errors.add('document_meta',"can't save meta when lms_authentication_id if blank") if lms_authentication_id.blank? 
+    # count = Hash.new 0
+    logger.debug meta_data_from_doc.inspect.to_s
+    meta_data_from_doc.permit(:key,:value,:root_organization_slug).each do |md,count|
+      # count[md.fetch(:key).to_s] +=1
+      k = "#{md.fetch(:key).to_s}_#{count+1}"
       hash = {
-        :key => "salsa_test_manual_1",
+        :key => k,
         :document_id => document.id,
-        :value => "value",
+        :value => "md[value].to_s",
         :root_organization_id => organization.id,
-        :lms_course_id => "hi",
+        :lms_course_id => md['lms_course_id'],
         :lms_organization_id => organization.lms_authentication_id
       }
-      # DocumentMeta.where("key LIKE 'salsa_%' and document_id = ?",hash[:document_id]).each {|d| d.delete}
-      dm = DocumentMeta.find_by(key: hash[:key], document_id: hash[:document_id])
-      t = nil
-      if dm.present?
-
-        logger.debug "############# i think dm is present #############"
-        # dm.value = md.fetch(:value)
-        dm.delete
-      elsif dm.blank?
-        logger.debug "############# i think dm is absent #############"
-        logger.debug "############# #{hash} #############"
-        # dm = DocumentMeta.new(
-        #   :key => k,
-        #   :document_id => document.id,
-        #   :value => md.fetch(:value).to_s,
-        #   :root_organization_id => document.organization_id,
-        #   :lms_course_id => lms_course_id,
-        #   :lms_organization_id => organization.lms_authentication_id
-        # )
-        dm = DocumentMeta.new hash
-        t = dm.save
-      end
+      # if hash[:lms_course_id] 
+      dm = DocumentMeta.find_or_initialize_by(key: hash[:key], document_id: hash[:document_id])
+      t = dm.update hash 
       logger.debug "############# T IS: #{t} #############"
+      # if dm.present?
+
+      #   logger.debug "############# i think dm is present #############"
+      #   # dm.value = md.fetch(:value)
+      #   dm.delete
+      # elsif dm.blank?
+      #   logger.debug "############# i think dm is absent #############"
+      #   logger.debug "############# #{hash} #############"
+      #   # dm = DocumentMeta.new(
+      #   #   :key => k,
+      #   #   :document_id => document.id,
+      #   #   :value => md.fetch(:value).to_s,
+      #   #   :root_organization_id => document.organization_id,
+      #   #   :lms_course_id => lms_course_id,
+      #   #   :lms_organization_id => organization.lms_authentication_id
+      #   # )
+      #   dm = DocumentMeta.new hash
+      #   t = dm.save
+      # end
     end
   end
 
