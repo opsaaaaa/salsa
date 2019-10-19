@@ -3,14 +3,15 @@ require 'net/http'
 class DocumentsController < ApplicationController
 
   layout 'view'
-
+  
+  before_action -> {logger.debug "########## ACTION #{params[:action].to_s.upcase} ##########"}
+  before_action -> {logger.debug "########## #{params.inspect} ##########"}
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
   before_action :set_paper_trail_whodunnit
-  before_action -> {logger.debug "########## ACTION #{params[:action].to_s.upcase} ##########"}
 
   def index
     redirect_to new_document_path(org_path: params[:org_path])
@@ -317,8 +318,8 @@ class DocumentsController < ApplicationController
       dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
       h = hash.merge(value: md[:value].to_s)
       h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
-      t = dm.update 
-      @document.errors.add('document_meta',"failed to track document_meta with: #{} ")
+      t = dm.update h
+      @document.errors.add('document_meta',"failed to track document_meta with: #{h} ")
       logger.debug "############# T IS: #{t} #############"
     end
   end
