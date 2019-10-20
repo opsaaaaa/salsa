@@ -250,7 +250,7 @@ function liteOff(x) {
       var lms_course_id = null;
       if ($("body").find('[data-lms-course]').attr("data-lms-course")) {
         lms_course_id = jQuery.parseJSON($("body").find(
-          '[data-lms-course]').attr("data-lms-course")).id;
+          '[data-lms-course]').attr("data-lms-course")).course_id;
       }
       var organizationConfig = $("[data-organization-config]").data(
         "organization-config");
