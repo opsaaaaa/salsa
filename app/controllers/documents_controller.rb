@@ -3,9 +3,9 @@ require 'net/http'
 class DocumentsController < ApplicationController
 
   layout 'view'
-  
-  before_action -> {logger.debug "########## ACTION #{params[:action].to_s.upcase} ##########"}
-  before_action -> {logger.debug "########## #{params.inspect} ##########"}
+
+  before_action -> {$stdout.puts "########## ACTION #{params[:action].to_s.upcase} ##########"}
+  before_action -> {$stdout.puts "########## #{params.inspect} ##########"}
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
@@ -76,6 +76,8 @@ class DocumentsController < ApplicationController
   end
 
   def edit
+    $stdout.puts "edit action"
+    Rails::logger.debug "Interesting stuff"
     if check_lock @organization.slug, params[:batch_token]
       if params[:version].to_i > 0
         @document_version = params[:version].to_i
@@ -85,6 +87,7 @@ class DocumentsController < ApplicationController
       end
       # raise @document.payload.inspect
       verify_org
+      @document.errors.add('document_meta',"ACTION EDIT")
 
       @view_url = view_url
       @template_url = template_url(@document)
@@ -215,6 +218,7 @@ class DocumentsController < ApplicationController
   end
 
   def update
+    $stdout.puts "update action"
     logger.debug "####### the meta info is present: #{params[:meta_data_from_doc].present?}#################################################"
     canvas_course_id = params[:canvas_course_id]
     document_version = params[:document_version]
@@ -225,15 +229,23 @@ class DocumentsController < ApplicationController
     verify_org
     user = current_user if current_user
     assigned_to_user = @document.assigned_to? user
+    
+    @document.errors.add('document_meta',"ACTION UPDATE")
 
     lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
     has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
     if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
+      $stdout.puts "check lock"
       logger.debug "####### check lock and can use edit token #################################################"
       republishing = false;
+      $stdout.puts "meta_data_from_doc: #{meta_data_from_doc.present?}"
+      $stdout.puts "auth id: #{@organization.root_org_setting("lms_authentication_id")}"
+      $stdout.puts "track_meta: #{@organization.root_org_setting("track_meta_info_from_document")}"
+      $stdout.puts "track_meta: #{@organization.root.track_meta_info_from_document}"
 
       if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
+        $stdout.puts "track meta passed"
         logger.debug "####### data.present and lms auth_id and track meta #################################################"
         create_meta_data_from_document(meta_data_from_doc, @document, @organization)
         meta_data_from_doc_saved = true
@@ -304,6 +316,7 @@ class DocumentsController < ApplicationController
 
   protected
   def create_meta_data_from_document meta_data_from_doc, document = @document, organization = @organization
+    $stdout.puts "in the function"
     lms_authentication_id = @organization.root_org_setting("lms_authentication_id")
     lms_course_id = @document.lms_course_id
     hash = {
@@ -314,13 +327,15 @@ class DocumentsController < ApplicationController
     meta_data_from_doc.each do |c,md|
       
       count = c.to_i + 1
-      k = "#{md['key']}_#{count}"
+      k = "salsa_#{md['key']}_#{count}"
       dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
       h = hash.merge(value: md[:value].to_s)
+      $stdout.puts "meta was #{h}"
       h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
       t = dm.update h
       @document.errors.add('document_meta',"failed to track document_meta with: #{h} ")
       logger.debug "############# T IS: #{t} #############"
+      $stdout.puts "T IS: #{t}"
     end
   end
 

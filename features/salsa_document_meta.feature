@@ -10,20 +10,18 @@ I want the data-meta in the document payload to be tracked in the database.
     Scenario: track document meta for a root organization
         Given the "organization" has:
             | track_meta_info_from_document | true |
-            | lms_authentication_id | saved_meta_from_doc |
-            | lms_authentication_source | LTI |
-            | skip_lms_publish | true |
-            | enable_anonymous_actions | true |
             | export_type | Program Outcomes |
         # Given there is a document
         And the "organization" has a "salsa_meta_document"
         And I am on the document edit page
-        And I click the "tb_save" link
-        # Then I should see "saved at:"
+        Then I should see "test_meta"
+        When I click the "tb_save" link
+        Then I should see "saved at:"
         When I click the "tb_share" link
+        # Then inspect "organization"
+        Then I should see "HTML link"
         # Then inspect "document"
-        # Then I should see "HTML link"
-        # And I am on the document edit page
+        And I am on the document edit page
         Then a "DocumentMeta" should be present
         And an "DocumentMeta" should be present with:
             | key | salsa |

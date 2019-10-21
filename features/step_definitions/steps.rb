@@ -471,16 +471,34 @@ Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
 end
 
 Given(/^inspect "(.*?)"$/) do |var_name|
+  $stdout.puts "another thing"
+  Rails::logger.debug "Interesting stuff"
   case var_name
   when "document"
-    record = instance_variable_get("@#{var_name}")
-    raise record.payload.inspect
+  raise @document..inspect
   when "document_meta"
     raise DocumentMeta.where("key LIKE 'salsa_%'").inspect
+  when "organization"
+    raise @organization.inspect
   end
 end
 
 Then(/^a "DocumentMeta" should be present$/) do 
-  # raise DocumentMeta.all.inspect
+  # raise Document.all.inspect
   expect(DocumentMeta.all.present?).to eq(true)
+end
+
+Given(/^I update request with meta  "(.*?)"$/) do |search|
+  visit documents_search_path(org_path: @organization.slug, slug: @organization.full_slug, document_version: @document.versions.count)
+
+  # ActionController::Parameters {
+  #   "meta_data_from_doc"=>{
+  #     "0"=>{"key"=>"salsa_test_meta", "value"=>"test_meta", "lms_course_id"=>"MTH_4420_LL_02_2019_FA", "root_organization_slug"=>"localhost"}
+  #   }, 
+  #   "publish"=>"true", "document_version"=>"22", 
+  #   "org_path"=>nil, "controller"=>"documents", 
+  #   "action"=>"update", 
+  #   "id"=>"eimouryigusvdgfvoqugfzjtfrtzru"
+  #   } 
+  #   permitted: false
 end

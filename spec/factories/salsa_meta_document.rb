@@ -1,13 +1,15 @@
 FactoryBot.define do
   factory :salsa_meta_document, class: Document do
     name {"salsa_meta_document_name"}
+    lms_course_id {'1234569'}
+    organization_id {nil}
     payload {'
       
       <style type="text/css">
       </style>
       
       <!-- spacer for preview modal -->
-      <dl data-method="taxonomy" data-target=".outcomes_list" class="hide">
+      <dl data-method="taxonomy" data-target=".outcomes_list">
         <dd data-meta="test_meta">test_meta</dd>
       </dl>
       <div id="spacer">&nbsp;</div>

@@ -282,6 +282,14 @@ function liteOff(x) {
         console.log("meta_data_from_docpotat");
         if (meta_data_from_doc && meta_data_from_doc.length > 0) {
           console.log("it runs the if meta_data_from_doc");
+          console.log({
+            url: settings.url,
+            data: {
+              meta_data_from_doc: meta_data_from_doc
+            },
+            dataType: "json",
+            method: "PATCH"
+          });
           $.ajax({
             url: settings.url,
             data: {
