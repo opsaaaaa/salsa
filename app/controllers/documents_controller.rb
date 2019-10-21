@@ -325,16 +325,15 @@ class DocumentsController < ApplicationController
       lms_organization_id: lms_authentication_id
     }
     meta_data_from_doc.each do |c,md|
-      
       count = c.to_i + 1
       k = "salsa_#{md['key']}_#{count}"
       dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
       h = hash.merge(value: md[:value].to_s)
+      h[:lms_course_id] = md['lms_course_id'] if md['lms_course_id']
       $stdout.puts "meta was #{h}"
       h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
       t = dm.update h
-      @document.errors.add('document_meta',"failed to track document_meta with: #{h} ")
-      logger.debug "############# T IS: #{t} #############"
+      @document.errors.add('document_meta',"failed to track document_meta with: #{h} ") unless t
       $stdout.puts "T IS: #{t}"
     end
   end
