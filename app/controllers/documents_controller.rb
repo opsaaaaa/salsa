@@ -244,7 +244,7 @@ class DocumentsController < ApplicationController
       $stdout.puts "track_meta: #{@organization.root_org_setting("track_meta_info_from_document")}"
       $stdout.puts "track_meta: #{@organization.root.track_meta_info_from_document}"
 
-      if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
+      if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root.track_meta_info_from_document
         $stdout.puts "track meta passed"
         logger.debug "####### data.present and lms auth_id and track meta #################################################"
         create_meta_data_from_document(meta_data_from_doc, @document, @organization)
