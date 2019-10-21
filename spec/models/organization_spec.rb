@@ -31,4 +31,12 @@ RSpec.describe Organization, type: :model do
     end
   
   end
+  
+  context "setting method tests" do
+    let(:string_settings) { FactoryBot.build(:organization) }
+    let(:bool_setting) { FactoryBot.build(:organization) }
+    let(:org) { FactoryBot.build(:organization) }
+
+  end
+
 end
