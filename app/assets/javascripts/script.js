@@ -257,7 +257,6 @@ function liteOff(x) {
       if (organizationConfig["track_meta_info_from_document"]) {
         var meta_data_from_doc = [];
         $("#page").find('[data-meta]:not(:input)').each(function() {
-          console.log("it runs the find input deta meta :not");
           var key = "salsa_" + $(this).attr('data-meta');
           var value = $(this).text().replace(/\s+/mg, ' ');
           meta_data_from_doc.push({
@@ -268,7 +267,6 @@ function liteOff(x) {
           });
         });
         $("#page").find(':input:not([data-meta])').each(function() {
-          console.log("it runs the find input:not deta meta");
           var key = "salsa_" + $(this).attr("id");
           var value = $(this).val();
           meta_data_from_doc.push({
@@ -278,18 +276,7 @@ function liteOff(x) {
             root_organization_slug: window.location.hostname
           });
         });
-        // console.log(meta_data_from_doc);
-        console.log("meta_data_from_docpotat");
         if (meta_data_from_doc && meta_data_from_doc.length > 0) {
-          console.log("it runs the if meta_data_from_doc");
-          console.log({
-            url: settings.url,
-            data: {
-              meta_data_from_doc: meta_data_from_doc
-            },
-            dataType: "json",
-            method: "PATCH"
-          });
           $.ajax({
             url: settings.url,
             data: {
@@ -299,7 +286,6 @@ function liteOff(x) {
             method: "PATCH"
           });
         }else{
-          console.log("it dose not run meta_data_from_doc");
         }
       }
       $(".workflow_step").show();
@@ -347,7 +333,6 @@ function liteOff(x) {
     $('#tb_save').on('ajax:success', function(event, data, xhr, settings) {
       $("#save_prompt").html('saved at: ' + new Date().toLocaleTimeString())
         .delay(5000).fadeOut(1000);
-      console.log(data) // sean edited here
       $('[data-document-version]').attr('data-document-version',
         data.version);
     }).on('ajax:error', function(event, xhr, code) {
