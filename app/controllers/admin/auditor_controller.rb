@@ -96,7 +96,6 @@ class Admin::AuditorController < ApplicationController
 
   def generate_report(id = nil)
     @queued = ReportHelper.generate_report_as_job @org.id, @period_filter, @params_hash, id
-    # @queued = ReportHelper.generate_report @org.slug, @period_filter, @params_hash, id
   end
 
   def prep_chart_data_for_hichart(data)

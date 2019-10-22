@@ -15,6 +15,7 @@ module ReportHelper
     @report.generating_at = Time.now
     @report.save!(touch:false)
 
+    # use this line to bypass the backgorund task handler 
     # ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
     ReportGenerator.enqueue org_id, account_filter, params, @report.id 
   end
@@ -77,7 +78,7 @@ module ReportHelper
 
         if @organization.root_org_setting("track_meta_info_from_document") && @organization.root_org_setting("export_type")== "Program Outcomes"
           program_outcomes_format(doc, document_metas)
-        elsif @organization.root_org_setting("track_meta_info_from_document") && dm = "#{DocumentMeta.where("key LIKE :prefix AND document_id IN (:document_id)", prefix: "salsa_%", document_id: doc.id).select(:key, :value).to_json(:except => :id)}" != "[]"
+        elsif @organization.root_org_setting("track_meta_info_from_document") && ( dm = "#{DocumentMeta.where("key LIKE :prefix AND document_id IN (:document_id)", prefix: "salsa_%", document_id: doc.id).select(:key, :value).to_json(:except => :id)}" ) != "[]"
           document_metas["lms_course-#{doc.lms_course_id}"] = JSON.parse(dm)
           zipfile.get_output_stream("#{doc_path}_document_meta.json"){ |os| os.write JSON.pretty_generate(JSON.parse(dm)) }
         end
