@@ -215,9 +215,9 @@ end
 
 When(/^I click the "(.*?)" link$/) do |string|
   case string
-  when /tb_share/
-    find(string).click
-    @document.workflow_step_id = @document.workflow_step.next_workflow_step_id
+  # when /(tb_share)/
+  #   find(string).click
+  #   @document.workflow_step_id = @document.workflow_step.next_workflow_step_id
   when /Edit Component/
     click_on("edit_#{@component.slug}")
   when /#edit_document/
@@ -420,9 +420,10 @@ Given(/^I am on the organization (\w+) page$/) do |action|
 end
 
 Then(/^an "(.*?)" should be (present|absent) with:$/) do |class_name, should_be, table|
-  expect(class_name.classify.safe_constantize
-    .find_by(
-      Hash[*table.raw.flatten(1)]).present?)
+  record = class_name.classify.safe_constantize
+  record = class_name.safe_constantize if record.nil?
+  expect(record.find_by(
+    Hash[*table.raw.flatten(1)]).present?)
       .to eq(should_be == "present")
 end
 
@@ -438,3 +439,34 @@ Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
     .find_by(id: record.id).present?)
       .to eq(should_be == "present")
 end
+
+Given(/^I search documnets for "(.*?)"$/) do |search|
+  visit documents_search_path(org_path: @organization.slug, slug: @organization.full_slug, q: search)
+end
+
+Given(/^the "(.*?)" has:$/) do |class_name, table|
+  record = instance_variable_get("@#{class_name}")
+  update_hash = Hash[ *table.raw.flatten(1) ]
+  record.update update_hash
+  expect(class_name.classify.safe_constantize
+    .find_by(update_hash).present?)
+      .to eq(true)
+end
+
+Given(/^the "(.*?)" has a "(.*?)" with:$/) do |parent_var_name, child_class_name, table|
+  hash = Hash[ *table.raw.flatten(1) ]
+  parent_record = instance_variable_get("@#{parent_var_name}")
+  hash["#{parent_record.class}_id".downcase] = parent_record.id
+  instance_variable_set( "@#{child_class_name}",
+    child_class_name.classify.safe_constantize.create( hash ) )
+end
+
+Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
+  factory_name = factory_name.to_sym
+  parent_record = instance_variable_get("@#{parent_var_name}")
+  record = FactoryBot.create(factory_name,"#{parent_record.class}_id".downcase.to_sym=>parent_record.id)
+  instance_variable_set( "@#{record.class.name.downcase}", record)
+  expect(record.present? && !record.new_record? && record.is_a?(Document))
+      .to eq(true)
+end
+

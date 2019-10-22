@@ -81,7 +81,6 @@ class DocumentsController < ApplicationController
       else
         @document_version = @document.versions.count
       end
-
       verify_org
 
       @view_url = view_url
@@ -222,14 +221,15 @@ class DocumentsController < ApplicationController
     verify_org
     user = current_user if current_user
     assigned_to_user = @document.assigned_to? user
-
+    
     lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
     has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
     if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
       republishing = false;
-      if meta_data_from_doc && @organization.lms_authentication_id && @organization.root_org_setting("track_meta_info_from_document")
-        create_meta_data_from_document(meta_data_from_doc, @document, @organization)
+
+      if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
+        create_meta_data_from_document(meta_data_from_doc)
         meta_data_from_doc_saved = true
       elsif has_canvas_publish && canvas_course_id && !@organization.skip_lms_publish
         # publishing to canvas should not save in the Document model, the canvas version has been modified
@@ -294,29 +294,23 @@ class DocumentsController < ApplicationController
   end
 
   protected
-  def create_meta_data_from_document meta_data_from_doc, document, organization
-    count = Hash.new 0
-    meta_data_from_doc.values.each do |md|
-      count[md.fetch(:key).to_s] +=1
-      if md.fetch(:lms_course_id) != ""
-        lms_course_id = md.fetch(:lms_course_id)
-      else
-        lms_course_id = "nil"
-      end
-      k = "#{md.fetch(:key).to_s}_#{count[md.fetch(:key)]}"
-      if dm = DocumentMeta.find_by(key: k, document_id: document.id)
-        dm.value = md.fetch(:value)
-        dm.save
-      elsif !DocumentMeta.exists?(key:k, document_id: document.id)
-        DocumentMeta.create(
-          :key => k,
-          :document_id => document.id,
-          :value => md.fetch(:value).to_s,
-          :root_organization_id => document.organization_id,
-          :lms_course_id => lms_course_id,
-          :lms_organization_id => organization.lms_authentication_id
-        )
-      end
+  def create_meta_data_from_document meta_data_from_doc
+    lms_authentication_id = @organization.root_org_setting("lms_authentication_id")
+    lms_course_id = @document.lms_course_id
+    hash = {
+      root_organization_id: @organization.root.id,
+      lms_course_id: lms_course_id,
+      lms_organization_id: lms_authentication_id
+    }
+    meta_data_from_doc.each do |c,md|
+      count = c.to_i + 1
+      k = "salsa_#{md['key']}_#{count}"
+      dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
+      h = hash.merge(value: md[:value].to_s)
+      h[:lms_course_id] = md['lms_course_id'] if md['lms_course_id']
+      $stdout.puts "meta was #{h}"
+      h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
+      dm.update h
     end
   end
 
