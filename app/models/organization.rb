@@ -111,14 +111,7 @@ class Organization < ApplicationRecord
   end
 
   def root_org_setting(setting)
-    if self.slug_was&.start_with?('/')
-      org = self.ancestors.find_by(depth: 0)
-      result = org[setting]
-    else
-      org = self
-      result = org[setting]
-    end
-      result
+    return self.root[setting]
   end
 
   def self.descendants
