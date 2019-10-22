@@ -114,6 +114,8 @@ module SqlQueryHelper
             -- root_org.name as account,
             orgs.parent_id as parent_id,
             docs.id as document_id,
+            docs.updated_at as updated_at,
+            docs.created_at as created_at,
             docs.id as id,
             docs.name as name,
             -- cc.value as course_code,
