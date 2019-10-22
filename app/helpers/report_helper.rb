@@ -2,7 +2,7 @@ require 'tempfile'
 require 'zip'
 
 module ReportHelper
-  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil)
+  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil, bypass_que = false)
     params = params.select {|k,p| p.present?}
     if report_id
       @report = ReportArchive.find(report_id) if report_id
@@ -15,9 +15,11 @@ module ReportHelper
     @report.generating_at = Time.now
     @report.save!(touch:false)
 
-    # use this line to bypass the backgorund task handler 
-    # ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
-    ReportGenerator.enqueue org_id, account_filter, params, @report.id 
+    if bypass_que
+      ReportHelper.generate_report Organization.find(org_id).slug, account_filter, params, @report.id
+    else
+      ReportGenerator.enqueue org_id, account_filter, params, @report.id
+    end
   end
 
   def self.generate_report (org_slug, account_filter, params, report_id)
