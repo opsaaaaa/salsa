@@ -285,7 +285,6 @@ function liteOff(x) {
             dataType: "json",
             method: "PATCH"
           });
-        }else{
         }
       }
       $(".workflow_step").show();
