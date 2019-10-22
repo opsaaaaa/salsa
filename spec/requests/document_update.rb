@@ -3,7 +3,7 @@ require 'rails_helper'
 
 RSpec.describe "Doucment Update", type: :request do
     let(:org) { FactoryBot.create(:organization, slug: root_url.gsub(/(http|:|\/)/,""), track_meta_info_from_document: true, lms_authentication_id: "3013371946") }
-    let(:sub_org) { FactoryBot.create(:organization, parent_id: org.id) }
+    let(:sub_org) { FactoryBot.create(:sub_organization, parent_id: org.id) }
     let(:doc) { FactoryBot.create(:document, organization_id: org.id, lms_course_id: "rspec_test_meta_course_root_org") }
     let(:sub_doc) { FactoryBot.create(:document, organization_id: sub_org.id, lms_course_id: "rspec_test_meta_course_sub_org") }
     let(:request_params) {{
@@ -32,13 +32,3 @@ RSpec.describe "Doucment Update", type: :request do
     end
     
 end
-  # ActionController::Parameters {
-  #   "meta_data_from_doc"=>{
-  #     "0"=>{"key"=>"salsa_test_meta", "value"=>"test_meta", "lms_course_id"=>"MTH_4420_LL_02_2019_FA", "root_organization_slug"=>"localhost"}
-  #   }, 
-  #   "publish"=>"true", "document_version"=>"22", 
-  #   "org_path"=>nil, "controller"=>"documents", 
-  #   "action"=>"update", 
-  #   "id"=>"eimouryigusvdgfvoqugfzjtfrtzru"
-  #   } 
-  #   permitted: false

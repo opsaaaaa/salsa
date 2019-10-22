@@ -4,8 +4,6 @@ class DocumentsController < ApplicationController
 
   layout 'view'
 
-  before_action -> {$stdout.puts "########## ACTION #{params[:action].to_s.upcase} ##########"}
-  before_action -> {$stdout.puts "########## #{params.inspect} ##########"}
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
@@ -76,8 +74,6 @@ class DocumentsController < ApplicationController
   end
 
   def edit
-    $stdout.puts "edit action"
-    Rails::logger.debug "Interesting stuff"
     if check_lock @organization.slug, params[:batch_token]
       if params[:version].to_i > 0
         @document_version = params[:version].to_i
@@ -218,8 +214,6 @@ class DocumentsController < ApplicationController
   end
 
   def update
-    $stdout.puts "update action"
-    logger.debug "####### the meta info is present: #{params[:meta_data_from_doc].present?}#################################################"
     canvas_course_id = params[:canvas_course_id]
     document_version = params[:document_version]
     meta_data_from_doc = params[:meta_data_from_doc]
@@ -236,17 +230,9 @@ class DocumentsController < ApplicationController
     has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
     if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
-      $stdout.puts "check lock"
-      logger.debug "####### check lock and can use edit token #################################################"
       republishing = false;
-      $stdout.puts "meta_data_from_doc: #{meta_data_from_doc.present?}"
-      $stdout.puts "auth id: #{@organization.root_org_setting("lms_authentication_id")}"
-      $stdout.puts "track_meta: #{@organization.root_org_setting("track_meta_info_from_document")}"
-      $stdout.puts "track_meta: #{@organization.root.track_meta_info_from_document}"
 
-      if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root.track_meta_info_from_document
-        $stdout.puts "track meta passed"
-        logger.debug "####### data.present and lms auth_id and track meta #################################################"
+      if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
         create_meta_data_from_document(meta_data_from_doc, @document, @organization)
         meta_data_from_doc_saved = true
       elsif has_canvas_publish && canvas_course_id && !@organization.skip_lms_publish
@@ -264,9 +250,6 @@ class DocumentsController < ApplicationController
         if document_version && @document.versions.count == document_version.to_i
           @document.payload = request.raw_post
           @document.payload = nil if @document.payload == ''
-          # logger.debug("=============================================================================")
-          # logger.debug(request.raw_post)
-          # logger.debug("==========================================================================================")
 
           if !@organization.root_org_setting("enable_workflows") || !@document.workflow_step_id || !@document.user_id
             @document.save!
@@ -316,7 +299,6 @@ class DocumentsController < ApplicationController
 
   protected
   def create_meta_data_from_document meta_data_from_doc, document = @document, organization = @organization
-    $stdout.puts "in the function"
     lms_authentication_id = @organization.root_org_setting("lms_authentication_id")
     lms_course_id = @document.lms_course_id
     hash = {
@@ -334,7 +316,6 @@ class DocumentsController < ApplicationController
       h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
       t = dm.update h
       @document.errors.add('document_meta',"failed to track document_meta with: #{h} ") unless t
-      $stdout.puts "T IS: #{t}"
     end
   end
 
