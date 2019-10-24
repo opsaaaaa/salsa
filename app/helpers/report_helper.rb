@@ -2,7 +2,7 @@ require 'tempfile'
 require 'zip'
 
 module ReportHelper
-  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil, bypass_que = true)
+  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil, bypass_que = false)
     params = params.select {|k,p| p.present?}
     if report_id
       @report = ReportArchive.find(report_id) if report_id
