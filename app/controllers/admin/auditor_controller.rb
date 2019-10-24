@@ -53,7 +53,7 @@ class Admin::AuditorController < ApplicationController
   def report
     @report = get_report
     return redirect_to admin_auditor_reports_path(org_path:params[:org_path]) if @report.blank?
-
+    
     @name_by = get_name_reports_by
     report_payload = @report.parsed_payload
     @chart_data = prep_chart_data_for_hichart(report_payload)
@@ -88,10 +88,7 @@ class Admin::AuditorController < ApplicationController
   private
 
   def get_name_reports_by
-    @org.get_name_reports_by({
-        document: '', 
-        lms_course_id: :course_id
-    })
+    @org.get_name_reports_by.split('.')[1].sub("lms_course_id","course_id")
   end
 
   def generate_report(id = nil)

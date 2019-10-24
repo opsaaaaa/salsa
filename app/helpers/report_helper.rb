@@ -2,7 +2,7 @@ require 'tempfile'
 require 'zip'
 
 module ReportHelper
-  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil, bypass_que = false)
+  def self.generate_report_as_job (org_id, account_filter, params, report_id = nil, bypass_que = true)
     params = params.select {|k,p| p.present?}
     if report_id
       @report = ReportArchive.find(report_id) if report_id
@@ -106,7 +106,7 @@ module ReportHelper
   end
 
   def self.doc_file_name(document,report_data)
-    name_by = @organization.get_name_reports_by.split(".")
+    name_by = @organization.get_name_reports_by(document_meta: "report_data").split(".")
     file_name = binding.local_variable_get(name_by[0])[name_by[1]].to_s
     file_name = document.name if file_name.blank?
     "#{file_name.gsub(/[^A-Za-z0-9]+/, '_')}_#{document.id}"
