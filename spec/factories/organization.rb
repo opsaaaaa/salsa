@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :organization do
+  factory :organization, aliases: [:organizations] do
     name {
       if Organization.find_by(name: "example").present?
         Faker::Company.unique.name
