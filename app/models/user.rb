@@ -112,9 +112,9 @@ class User < ApplicationRecord
 
   def self.import_or_create_by get_params, set_params = nil
     get_params = {user: get_params, user_assignment: {}} if get_params[:user].blank? && get_params[:user_assignment].blank?
-    set_params = get_params if set_params.blank?
-    set_params[:user] = {} if set_params[:user].blank?
-    set_params[:user_assignment] = {} if set_params[:user_assignment].blank?
+    set_params ||= get_params
+    set_params[:user] ||= {}
+    set_params[:user_assignment] ||= {}
     ua = nil
     if get_params[:user_assignment][:username].present?
       ua = UserAssignment.find_by("lower(username) = ? ", get_params[:user_assignment][:username].to_s.downcase)
