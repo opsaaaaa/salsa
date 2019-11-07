@@ -15,11 +15,11 @@ I want to be able search the documents beloning to the current organization.
         Given the "organization" has a "document" with:
             | name | an existing document name |
         And the "document" should be present
-        When I search documnets for "an existing document name"
+        When I search documents for "an existing document name"
         Then I should see "an existing document name" 
 
     Scenario: I search for an non-existing document
-        When I search documnets for "a non-existing document name"
+        When I search documents for "a non-existing document name"
         Then I should see "No documents found"
 
     Scenario: setting document_search_includes_sub_organizations is true
@@ -27,7 +27,7 @@ I want to be able search the documents beloning to the current organization.
             | document_search_includes_sub_organizations | true |
         Given the "sub_organization" has a "document" with:
             | name | sub_organization document |
-        When I search documnets for "sub_organization document"
+        When I search documents for "sub_organization document"
         Then I should see "sub_organization document"
 
     Scenario: setting document_search_includes_sub_organizations is false
@@ -35,5 +35,5 @@ I want to be able search the documents beloning to the current organization.
             | document_search_includes_sub_organizations | false |
         Given the "sub_organization" has a "document" with:
             | name | sub_organization document |
-        When I search documnets for "sub_organization document"
+        When I search documents for "sub_organization document"
         Then I should see "No documents found"
