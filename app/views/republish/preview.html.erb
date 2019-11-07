@@ -1,5 +1,5 @@
 <div class="pull-right text-right">
-  <%= link_to @organization.documents.where(Docuemnt.not_abandoned).count.to_s + ' documents', organization_path(id: @organization[:id], org_path:params[:org_path]) %><br>
+  <%= link_to @organization.documents.where(Document.not_abandoned).count.to_s + ' documents', organization_path(id: @organization[:id], org_path:params[:org_path]) %><br>
   <%= link_to @organization.documents.where(Document.abandoned).count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path:params[:org_path]) %>
 </div>
 

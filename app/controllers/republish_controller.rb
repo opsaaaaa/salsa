@@ -9,7 +9,7 @@ class RepublishController < ApplicationController
       @organization.republish_batch_token = SecureRandom.urlsafe_base64(16)
     end
     @organization.save!
-    get_org_timezone
+    get_org_time_zone
 
     render :layout => 'admin', :template => '/republish/preview'
   end
@@ -42,16 +42,15 @@ class RepublishController < ApplicationController
   private
 
   def get_documents path=params[:slug], page=params[:page], per=25, start_date=params[:document][:start_date], end_date=params[:document][:end_date]
-    operation = '';
-    if start_date && start_date != ''
-      operation += "AND lms_published_at >= '#{DateTime.parse(start_date).beginning_of_day}' ";
-    end
-
+    
+    operation = ''
+    operation += "AND lms_published_at >= '#{DateTime.parse(start_date).beginning_of_day}' " if start_date && start_date != ''
     if end_date && end_date != ''
       operation += "AND lms_published_at <= '#{DateTime.parse(end_date).end_of_day}'"
     else
       operation += "AND lms_published_at <= '#{DateTime.now.end_of_day}'"
     end
+
     if path
       @organization = find_org_by_path path
 

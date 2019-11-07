@@ -440,7 +440,7 @@ Then(/^the "(.*?)" should be (present|absent)$/) do |class_name, should_be|
       .to eq(should_be == "present")
 end
 
-Given(/^I search documnets for "(.*?)"$/) do |search|
+Given(/^I search documents for "(.*?)"$/) do |search|
   visit documents_search_path(org_path: @organization.slug, slug: @organization.full_slug, q: search)
 end
 

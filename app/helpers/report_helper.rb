@@ -92,7 +92,7 @@ module ReportHelper
         zipfile.get_output_stream("#{doc_path}.html") { |os| os.write rendered_doc }
       end
       if @organization.root_org_setting("track_meta_info_from_document") && document_metas != {}
-        zipfile.get_output_stream("document_meta.json"){ |os| os.write document_metas.to_json  }
+        zipfile.get_output_stream("document_meta.json"){ |os| os.write JSON.pretty_generate(document_metas)  }
       end
     end
     FileHelper.upload_file(self.remote_file_location(@organization, report_id), zipfile_path(org_slug, report_id)) if FileHelper::should_use_aws_s3?
