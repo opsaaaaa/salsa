@@ -3,7 +3,6 @@ class RepublishController < ApplicationController
   before_action :require_organization_admin_permissions
   def preview
     get_documents
-    # raise @documents.inspect
     @organizations = Organization.all.order(:lft, :rgt, :name)
 
     if !@organization.republish_batch_token
