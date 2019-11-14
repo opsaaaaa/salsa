@@ -3,6 +3,8 @@ As a teacher
 I want to be able to create a syllabus
 in order to define what my class will be doing
 
+  # xvfb-run -a bundle exec cucumber features/document.feature RAILS_ENV=test
+
   Background:
     Given there is a organization
 
@@ -20,9 +22,11 @@ in order to define what my class will be doing
   @javascript
   Scenario: edit document
     Given there is a document
+    And that I am logged in as a admin on the organization
     And I am on the document edit page
     And I click the "tb_save" link
     Then I should see "saved at:"
+    And the document should be associated with my user
 
   Scenario: template document
     Given there is a document

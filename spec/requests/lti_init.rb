@@ -72,7 +72,7 @@ RSpec.describe "lti init", type: :request do
         it "by user_id"
     end
 
-
+    
 # Feature: Login or create user for LMS users
 
 # as a user from an lms i want to be automatically logged into salsa
