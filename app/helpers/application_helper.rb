@@ -356,7 +356,7 @@ module ApplicationHelper
     end
   end
 
-  def get_organization path=params[:slug]
+  def get_organization path=get_org_path
     @organization = find_org_by_path path
   end
     

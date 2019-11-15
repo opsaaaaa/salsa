@@ -4,6 +4,7 @@ class DocumentsController < ApplicationController
 
   layout 'view'
 
+  before_action :get_organization, olny: [:course_select] 
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
@@ -105,6 +106,14 @@ class DocumentsController < ApplicationController
     end
   end
 
+  # select witch document to link a couse to
+  def course_select
+    user = current_user
+    @link_to_documents = Document.where user_id: user.id, organization_id: @organization.id 
+    @link_to_documents = Document.where user_id: user.id
+    raise params.inspect
+  end
+
   def course
     # if canvas flag is set in URL, don't try relinking again
     unless params[:canvas]
@@ -131,9 +140,10 @@ class DocumentsController < ApplicationController
         params[:document_token] = session['relink_'+params[:lms_course_id]]
       end
 
-      unless @document && token_matches?
-        # this is where i need to select course document
-        return find_or_create_document(session, params, @organization, @lms_course)
+      @document = nil
+      if @document.blank? 
+        return find_or_create_document(session, params, @organization, @lms_course) unless token_matches?
+        return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]
@@ -310,7 +320,7 @@ class DocumentsController < ApplicationController
 
   def find_or_create_document session, params, organization, lms_course
     @document = Document.find_by view_id: params[:document_token]
-
+    # @document = nil
     existing_doc = Document.find_by(organization: organization, lms_course_id: lms_course["id"])
       # we need to setup the course and associate it with canvas
     if params[:document_token] && params[:canvas] && @document
