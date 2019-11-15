@@ -109,8 +109,7 @@ class DocumentsController < ApplicationController
   # select witch document to link a couse to
   def course_select
     user = current_user
-    @link_to_documents = Document.where user_id: user.id, organization_id: @organization.id 
-    @link_to_documents = Document.where user_id: user.id
+    @link_to_documents = Document.where user_id: user.id, organization_id: @organization.self_and_descendants
     raise params.inspect
   end
 
@@ -140,7 +139,7 @@ class DocumentsController < ApplicationController
         params[:document_token] = session['relink_'+params[:lms_course_id]]
       end
 
-      @document = nil
+      # @document = nil
       if @document.blank? 
         return find_or_create_document(session, params, @organization, @lms_course) unless token_matches?
         return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
