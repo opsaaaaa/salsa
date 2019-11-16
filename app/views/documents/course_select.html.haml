@@ -1,0 +1,50 @@
+.container
+    %h2= "Select a document for new course: #{params[:lms_course_id]}"
+
+    %table.table.table-responsive
+        %thead
+            %tr
+                %td name
+                %td lms_course_id
+                %td create new from template
+                %td link to course
+        %tbody
+            - @documents.each do |doc|
+                %tr
+                    %th document
+                    %td.btn 
+                        -# if the course is nil
+                        %a.btn.btn-primary 
+                            = 'link course to this document' if doc.lms_course_id.blank? 
+                    %td.btn 
+                        %a.btn.btn-primary use as template
+
+-#   <div class="btn-horizontal">
+-#     <% params.permit! %>
+-#     <%= link_to 'Go to existing SALSA', lms_course_document_path(lms_course_id, org_path: params[:org_path]), {class: 'btn btn-primary'} %>
+-#   </div>
+
+        <table class="table table-responsive striped">
+          <thead>
+            <tr>
+              <% if can_move_documents %>
+                <td>
+                </td>
+              <% end %>
+          </thead>
+          <tbody>
+          <% @documents.each do |document| %>
+            <tr id="<%= 'document_#{document.id}_wrapper' %>">
+              <% if can_move_documents %>
+                <td>
+                  <%= check_box_tag "document_ids[]", document.id, false, { id: "document_#{document.id}", 'aria-labeldedby': "document_#{document.id}_name" } %>
+                </td>
+              <% end %>
+
+              <th scope="row" nowrap width="50%">
+                <% if has_role('supervisor') || has_role('designer') %>
+                  <%= link_to document.name, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name" %>
+                <% else %>
+                  <%= document.name %>
+                <% end %>
+              </th>

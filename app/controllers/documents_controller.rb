@@ -109,8 +109,8 @@ class DocumentsController < ApplicationController
   # select witch document to link a couse to
   def course_select
     user = current_user
-    @link_to_documents = Document.where user_id: user.id, organization_id: @organization.self_and_descendants
-    raise params.inspect
+    @documents = Document.where user_id: user.id, organization_id: @organization.self_and_descendants
+    render layout: 'relink', template: '/documents/course_select'
   end
 
   def course
