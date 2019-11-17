@@ -1,8 +1,19 @@
 .container.text-left
+  = org_url_base(@organization)
   %h2= "Select a document for new course: #{params[:lms_course_id]}"
 
-  = paginate @documents
-  = render partial: '/admin_documents/list', locals: { links: [:view, :course_select, :template], columns: [:links, :name, :dates, :lms_course_id], classes: {template: "btn btn-primary", course_select: "btn btn-success"}, titles: {template: "Use as Course Template", course_select: "Link to Course"} }
-
 
   = paginate @documents
+  - locals = { |
+    links: [:view, :link, :template], |
+    columns: [:org, :links, :name, :dates, :lms_course_id], |
+    classes: {template: "btn btn-primary", link: "btn btn-success course_select_links"}, |
+    titles: {template: "Use Document as Course Template", link: "Link Course to Document"} } |
+
+  = render partial: '/admin_documents/list', locals: locals
+  = paginate @documents
+
+-#   = form_tag "#", method: 'post', id: "lms_course_id_select_form" do
+-#     = hidden_field_tag :lms_course_id, params[:lms_course_id]
+
+-# = javascript_include_tag "course_select"

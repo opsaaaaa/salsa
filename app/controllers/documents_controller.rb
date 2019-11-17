@@ -107,12 +107,19 @@ class DocumentsController < ApplicationController
   end
 
   # set the document that belongs to a course
-  def course_set
-
+  def course_link
+    @document = Document.find_by edit_id: params[:edit_id]
+    if !params[:relink]
+      @document.lms_course_id ||= params[:lms_course_id]
+    else
+      # TODO: when param relink is true then replace an exisitng document course id
+    end
+    return redirect_to lms_course_document_path org_path: params[:org_path], lms_course_id: params[:lms_course_id] if @document.save!
+    return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
   end
 
   # select witch document to link a couse to
-  def course_select page=params[:page], per=2
+  def course_select page=params[:page], per=8
     user = current_user
     @documents = Document.where(user_id: user.id, organization_id: @organization.self_and_descendants).order(updated_at: :desc, created_at: :desc).page(page).per(per)
     render layout: 'relink', template: '/documents/course_select'
@@ -147,7 +154,7 @@ class DocumentsController < ApplicationController
       # @document = nil
       if @document.blank? 
         return find_or_create_document(session, params, @organization, @lms_course) unless token_matches?
-        # return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
+        return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]

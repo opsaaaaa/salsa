@@ -4,8 +4,8 @@
 - columns = Hash[columns.collect { |i| [i, true] } ]
 
 
-- org_base ||= nil 
-- course_select = links.include?(:course_select)
+-# - org_base ||= nil 
+- link = links.include?(:link)
 - enable_workflows = @organization.root_org_setting('enable_workflows') != false
 - track_meta_info_from_document = @organization.root_org_setting('track_meta_info_from_document') != false
 - lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
@@ -17,7 +17,9 @@
       - if columns[:move_documents]
         %th
       - if columns[:name]
-        %th{scope: "col"} name
+        %th{scope: "col"} Name
+      - if columns[:org]
+        %th{scope: "col"} Organization
       - if columns[:period] && @periods.present?
         %th{scope: "col", nowrap: ''} Time Period
       - if columns[:lms_course_id] && !lms_authentication_source.nil?
@@ -33,6 +35,7 @@
 
   %tbody
     - @documents.each do |document|
+      - org_base = org_url_base(document.organization)
       %tr{id: "document_#{document.id}_wrapper"}
         - if columns[:move_documents]
           %td= check_box_tag "document_ids[]", document.id, false, { id: "document_#{document.id}", 'aria-labeldedby': "document_#{document.id}_name" }
@@ -43,13 +46,16 @@
               = link_to document.title, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name"
             - else
               = document.title
+      
+        - if columns[:org]
+          %td{nowrap: ''}= document.organization.name
 
         - if columns[:period] && @periods.present?
           %td{nowrap: ''}= document.period&.name
         
         - if columns[:lms_course_id] && !lms_authentication_source.nil?
-          - if links[:course_select] && document.lms_course_id.blank?
-            %td= link_to titles[:course_select] || "Link", "#", class: classes[:course_select]
+          - if links[:link] && document.lms_course_id.blank?
+            %td= link_to titles[:link] || "Link", "#{org_base}#{lms_course_link_path(lms_course_id:params[:lms_course_id],edit_id:document.edit_id)}", class: classes[:link], 'data-document-id'=>document.id 
           - else
             %td{nowrap: ''}= document.lms_course_id
       

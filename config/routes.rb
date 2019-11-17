@@ -120,6 +120,7 @@ Rails.application.routes.draw do
         get '/lms/courses', to: 'documents#course_list', as: 'lms_course_list'
         get '/lms/courses/:lms_course_id', to: 'documents#course', as: 'lms_course_document'
         get '/lms/courses/:lms_course_id/select', to: 'documents#course_select', as: 'lms_course_select'
+        get '/lms/courses/:lms_course_id/link/:edit_id', to: 'documents#course_link', as: 'lms_course_link'
         get '/lms/courses/:lms_course_id/version/:version', to: 'documents#course', as: 'lms_course_document_history'
 
         post '/lti/init', to: 'lti#init', as: 'lti_init'
