@@ -106,22 +106,32 @@ class DocumentsController < ApplicationController
     end
   end
 
-  # set the document that belongs to a course
   def course_link
-    @document = Document.find_by edit_id: params[:edit_id]
-    if !params[:relink]
-      @document.lms_course_id ||= params[:lms_course_id]
+    # populate a documents empty course id
+    @lms_course = get_lms_course @organization.setting('lms_authentication_source')
+    
+    @document = Document.find_by lms_course_id: params[:lms_course_id], organization_id: @organization.root.self_and_descendants 
+    if @document.present?
+      flash[:error] = "A document with the #{params[:lms_course_id]} course id already exists"
+      redirect_to lms_course_document_path org_path: org_slug_parts(@document.organization)[1], lms_course_id: params[:lms_course_id]
     else
-      # TODO: when param relink is true then replace an exisitng document course id
+      @document = Document.find_by edit_id: params[:edit_id], organization_id: @organization.self_and_descendants
+      @document.lms_course_id ||= params[:lms_course_id]
+      if @document.save!
+        flash[:notice] = "Successfully linked the #{params[:lms_course_id]} course id to this document"
+        return redirect_to lms_course_document_path org_path: params[:org_path], lms_course_id: @document.lms_course_id
+      else
+        flash[:error] = "Failed to link #{params[:lms_course_id]}"
+        return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id] 
+      end
     end
-    return redirect_to lms_course_document_path org_path: params[:org_path], lms_course_id: params[:lms_course_id] if @document.save!
-    return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
   end
 
-  # select witch document to link a couse to
-  def course_select page=params[:page], per=8
+  def course_select page=params[:page], per=25
+    # select witch document to link a couse to
     user = current_user
-    @documents = Document.where(user_id: user.id, organization_id: @organization.self_and_descendants).order(updated_at: :desc, created_at: :desc).page(page).per(per)
+    @documents = Document.where(user_id: user.id, organization_id: @organization.self_and_descendants)
+      .order(updated_at: :desc, created_at: :desc).page(page).per(per)
     render layout: 'relink', template: '/documents/course_select'
   end
 

@@ -3,8 +3,6 @@
 - links = Hash[links.collect { |i| [i, true] } ]
 - columns = Hash[columns.collect { |i| [i, true] } ]
 
-
--# - org_base ||= nil 
 - link = links.include?(:link)
 - enable_workflows = @organization.root_org_setting('enable_workflows') != false
 - track_meta_info_from_document = @organization.root_org_setting('track_meta_info_from_document') != false
@@ -74,7 +72,7 @@
             .ul.horizontal-list
               
               - if links[:view] 
-                %li= link_to "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path], target: :_blank
+                %li= link_to titles[:view] || "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path], target: :_blank
                 
               - if links[:edit_info] && (has_role('supervisor') || has_role('designer'))
                 = link_to "Edit Info", edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_edit_info"

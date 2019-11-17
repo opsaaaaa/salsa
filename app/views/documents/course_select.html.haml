@@ -1,14 +1,25 @@
 .container.text-left
-  = org_url_base(@organization)
-  %h2= "Select a document for new course: #{params[:lms_course_id]}"
+  %h1 
+    Select a SALSA for the 
+    %b=params[:lms_course_id] 
+    Course
+  %p.text-justify.pull-left 
+    Create a 
+    %b New 
+    document for this course, or 
+    %b Link
+    it to an existing document, or use another document as a 
+    %b Template.
 
+  .pull-right
+    %h2=link_to "New Salsa", new_document_path(lms_course_id: params[:lms_course_id]), class: "btn btn-lg btn-success"
 
   = paginate @documents
   - locals = { |
     links: [:view, :link, :template], |
     columns: [:org, :links, :name, :dates, :lms_course_id], |
-    classes: {template: "btn btn-primary", link: "btn btn-success course_select_links"}, |
-    titles: {template: "Use Document as Course Template", link: "Link Course to Document"} } |
+    classes: {template: "btn btn-primary", link: "btn btn-small btn-info course_select_links"}, |
+    titles: {template: "Use as Template", link: "Link Course", view: "Preview"} } |
 
   = render partial: '/admin_documents/list', locals: locals
   = paginate @documents
