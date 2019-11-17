@@ -1,0 +1,98 @@
+- titles ||= {}
+- classes ||= {}
+- links = Hash[links.collect { |i| [i, true] } ]
+- columns = Hash[columns.collect { |i| [i, true] } ]
+
+
+- org_base ||= nil 
+- course_select = links.include?(:course_select)
+- enable_workflows = @organization.root_org_setting('enable_workflows') != false
+- track_meta_info_from_document = @organization.root_org_setting('track_meta_info_from_document') != false
+- lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
+- time_zone = @organization.setting("time_zone")
+
+%table.table.table-responsive.striped
+  %thead
+    %tr
+      - if columns[:move_documents]
+        %th
+      - if columns[:name]
+        %th{scope: "col"} name
+      - if columns[:period] && @periods.present?
+        %th{scope: "col", nowrap: ''} Time Period
+      - if columns[:lms_course_id] && !lms_authentication_source.nil?
+        %th{scope: "col", nowrap: ''} Course ID
+      - if columns[:user]
+        %th{scope: "col", nowrap: ''} User
+      - if columns[:dates]
+        %th{scope: "col"} Dates
+      - if columns[:links]
+        %th{scope: "col"} Links
+      - if columns[:verion]
+        %th{scope: "col"}.text-right Version
+
+  %tbody
+    - @documents.each do |document|
+      %tr{id: "document_#{document.id}_wrapper"}
+        - if columns[:move_documents]
+          %td= check_box_tag "document_ids[]", document.id, false, { id: "document_#{document.id}", 'aria-labeldedby': "document_#{document.id}_name" }
+        
+        - if columns[:name]
+          %td{scope:"row", nowrap: "width='50%'"}
+            - if has_role('supervisor') || has_role('designer')
+              = link_to document.title, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name"
+            - else
+              = document.title
+
+        - if columns[:period] && @periods.present?
+          %td{nowrap: ''}= document.period&.name
+        
+        - if columns[:lms_course_id] && !lms_authentication_source.nil?
+          - if links[:course_select] && document.lms_course_id.blank?
+            %td= link_to titles[:course_select] || "Link", "#", class: classes[:course_select]
+          - else
+            %td{nowrap: ''}= document.lms_course_id
+      
+        - if columns[:user]
+          %td{nowrap: ''}= document.user&.name
+        
+        - if columns[:dates]
+          %td{nowrap: "width='50%'"}
+            = timestamp_tag document.updated_at, prefix: "Updated", time_zone: time_zone unless same_time?(document.updated_at, document.created_at)
+            = timestamp_tag document.lms_published_at, prefix: "Published", time_zone: time_zone if document.lms_published_at.is_a?(Time)
+            = timestamp_tag document.created_at, prefix: "Created", time_zone: time_zone
+
+        - if columns[:links]
+          %td{nowrap: ''}
+            #document_links
+            .ul.horizontal-list
+              
+              - if links[:view] 
+                %li= link_to "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path], target: :_blank
+                
+              - if links[:edit_info] && (has_role('supervisor') || has_role('designer'))
+                = link_to "Edit Info", edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_edit_info"
+                
+              - if document.organization && document.organization.root_org_setting('enable_anonymous_actions')
+                - if links[:editor]
+                  %li= link_to "Editor", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", org_path: params[:org_path]
+                  
+                - if links[:template]
+                  %li= link_to (titles[:template] || "Template"), "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", org_path: params[:org_path], class: classes[:template]
+              
+              - if document.lms_course_id
+                - if links[:course] 
+                  %li= link_to "Course", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", org_path: params[:org_path]
+                
+                - if links[:published] && lms_authentication_source != "lti" && lms_athenication_sourse.present?
+                  %li
+                    %a{href:"#{lms_authentication_source}/courses/#{document.lms_course_id}/assignments/syllabus"}Published
+
+                - if links[:workflow] && document.user_id && enable_workflows
+                  %li= link_to "Workflow", organization_user_document_workflow_assignments_path(organization_user_id: document.user_id,org_path: params[:org_path],slug: params[:slug],document_id: document.id)
+
+                - if links[:meta] && has_role('designer') && track_meta_info_from_document
+                  %li= link_to "Meta",document_meta_path(document_id: document.id)
+
+        - if columns[:versions]
+          %td.text-right= link_to document.versions.count, admin_document_versions_path(document, org_path: params[:org_path])

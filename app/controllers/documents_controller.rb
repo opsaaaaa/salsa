@@ -106,10 +106,15 @@ class DocumentsController < ApplicationController
     end
   end
 
+  # set the document that belongs to a course
+  def course_set
+
+  end
+
   # select witch document to link a couse to
-  def course_select
+  def course_select page=params[:page], per=2
     user = current_user
-    @documents = Document.where user_id: user.id, organization_id: @organization.self_and_descendants
+    @documents = Document.where(user_id: user.id, organization_id: @organization.self_and_descendants).order(updated_at: :desc, created_at: :desc).page(page).per(per)
     render layout: 'relink', template: '/documents/course_select'
   end
 
@@ -142,7 +147,7 @@ class DocumentsController < ApplicationController
       # @document = nil
       if @document.blank? 
         return find_or_create_document(session, params, @organization, @lms_course) unless token_matches?
-        return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
+        # return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]

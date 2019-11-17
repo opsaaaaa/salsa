@@ -191,6 +191,10 @@ class Document < ApplicationRecord
     end
   end
 
+  def title
+    self.name || 'Unnamed'
+  end
+
   protected
 
   def self.generate_id

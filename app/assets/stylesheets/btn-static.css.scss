@@ -1,0 +1,13 @@
+.btn-static {
+    background-color: rgb(231, 231, 231);
+    border: 1px solid lightgrey;
+    color: gray;
+    cursor: not-allowed !important;
+}
+
+.btn-static:active {
+    -moz-box-shadow:    inset 0 0 0px white;
+    -webkit-box-shadow: inset 0 0 0px white;
+    box-shadow:         inset 0 0 0px white;
+    cursor: not-allowed;
+}
