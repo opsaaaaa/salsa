@@ -2,6 +2,7 @@ class Document < ApplicationRecord
   has_paper_trail
 
   before_validation :normalize_blank_values, :ensure_ids
+  before_save :populate_default_name
   before_create :set_default_period
 
   belongs_to :organization
@@ -192,7 +193,7 @@ class Document < ApplicationRecord
   end
 
   def title
-    self.name || 'Unnamed'
+    populate_default_name
   end
 
   def link_course course_id
@@ -202,6 +203,10 @@ class Document < ApplicationRecord
   end
 
   protected
+
+  def populate_default_name
+    self.name ||= 'Unnamed'
+  end
 
   def self.generate_id
     (0...30).map{ ('a'..'z').to_a[rand(26)] }.join

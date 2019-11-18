@@ -19,7 +19,7 @@ class DocumentsController < ApplicationController
 
   def new
     if can_use_edit_token(params[:lms_course_id])
-      @document = Document.new(name: 'Unnamed')
+      @document = Document.new
 
       # if an lms course ID is specified, capture it with the document
       @document[:lms_course_id] = params[:lms_course_id]
@@ -109,7 +109,7 @@ class DocumentsController < ApplicationController
 
   def course_link
     # populate a documents empty course id
-    @lms_course = get_lms_course @organization.setting('lms_authentication_source')
+    get_lms_course @organization.setting('lms_authentication_source')
     
     @document = Document.find_by edit_id: params[:edit_id], organization_id: @organization.self_and_descendants
     if link_course_to_document @document, params[:lms_course_id]
@@ -160,7 +160,6 @@ class DocumentsController < ApplicationController
         params[:document_token] = session['relink_'+params[:lms_course_id]]
       end
 
-      # @document = nil
       if @document.blank? 
         return find_or_create_document(session, params, @organization, @lms_course) unless token_matches?
         return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]

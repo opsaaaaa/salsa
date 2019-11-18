@@ -126,7 +126,7 @@ class Organization < ApplicationRecord
   def all_periods
     Period.where(organization_id: self.root.self_and_descendants)
   end
-  
+
   private
   
   def use_nil_for_blank_time_zone

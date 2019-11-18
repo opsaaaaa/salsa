@@ -277,8 +277,9 @@ module ApplicationHelper
 
   def org_url_base(org=nil)
     return "" unless org
-    org_base = "//#{org_slug_parts(org)[0]}#{redirect_port}"
-    org_base += "/#{org_slug_parts(org)[1]}" if org.depth > 0
+    slug_parts = org_slug_parts(org)
+    org_base = "//#{slug_parts[0]}#{redirect_port}"
+    org_base += "/#{slug_parts[1]}" if org.depth > 0
     return org_base
   end
 
