@@ -195,6 +195,12 @@ class Document < ApplicationRecord
     self.name || 'Unnamed'
   end
 
+  def link_course course_id
+    document_exists = Document.find_by lms_course_id: course_id, organization_id: self.organization.root.self_and_descendants
+    return nil if document_exists.present? || !self.lms_course_id.nil?
+    self.lms_course_id = course_id
+  end
+
   protected
 
   def self.generate_id

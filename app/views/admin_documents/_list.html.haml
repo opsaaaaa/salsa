@@ -1,5 +1,6 @@
 - titles ||= {}
 - classes ||= {}
+- course_id ||= nil
 - links = Hash[links.collect { |i| [i, true] } ]
 - columns = Hash[columns.collect { |i| [i, true] } ]
 
@@ -53,7 +54,7 @@
         
         - if columns[:lms_course_id] && !lms_authentication_source.nil?
           - if links[:link] && document.lms_course_id.blank?
-            %td= link_to titles[:link] || "Link", "#{org_base}#{lms_course_link_path(lms_course_id:params[:lms_course_id],edit_id:document.edit_id)}", class: classes[:link], 'data-document-id'=>document.id 
+            %td= link_to titles[:link] || "Link", "#{org_base}#{lms_course_link_path(lms_course_id:course_id,edit_id:document.edit_id)}", class: classes[:link], 'data-document-id'=>document.id 
           - else
             %td{nowrap: ''}= document.lms_course_id
       
@@ -81,8 +82,8 @@
                 - if links[:editor]
                   %li= link_to "Editor", "#{org_base}#{document_path(id: document.edit_id, org_path: params[:org_path])}", org_path: params[:org_path]
                   
-                - if links[:template]
-                  %li= link_to (titles[:template] || "Template"), "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path])}", org_path: params[:org_path], class: classes[:template]
+                - if links[:template] && document.template_id
+                  %li= link_to (titles[:template] || "Template"), "#{org_base}#{document_path(id: document.template_id, org_path: params[:org_path], lms_course_id: course_id)}", org_path: params[:org_path], class: classes[:template]
               
               - if document.lms_course_id
                 - if links[:course] 

@@ -1,28 +1,34 @@
 .container.text-left
   %h1 
     Select a SALSA for the 
-    %b=params[:lms_course_id] 
+    %b=@course_id 
     Course
-  %p.text-justify.pull-left 
+  %p.text-justify 
     Create a 
     %b New 
     document for this course, or 
     %b Link
     it to an existing document, or use another document as a 
     %b Template.
+  - if @existing_document.blank?
+    .pull-right
+      %h2=link_to "New Salsa", new_document_path(lms_course_id: @course_id), class: "btn btn-lg btn-success"
 
-  .pull-right
-    %h2=link_to "New Salsa", new_document_path(lms_course_id: params[:lms_course_id]), class: "btn btn-lg btn-success"
+    = paginate @documents
+    - locals = { |
+      links: [:view, :link, :template], |
+      columns: [:org, :links, :name, :dates, :lms_course_id], |
+      classes: {template: "btn btn-primary", link: "btn btn-small btn-info course_select_links"}, |
+      titles: {template: "Use as Template", link: "Link Course", view: "Preview"}, |
+      course_id: @course_id |
+      } |
 
-  = paginate @documents
-  - locals = { |
-    links: [:view, :link, :template], |
-    columns: [:org, :links, :name, :dates, :lms_course_id], |
-    classes: {template: "btn btn-primary", link: "btn btn-small btn-info course_select_links"}, |
-    titles: {template: "Use as Template", link: "Link Course", view: "Preview"} } |
-
-  = render partial: '/admin_documents/list', locals: locals
-  = paginate @documents
+    = render partial: '/admin_documents/list', locals: locals
+    = paginate @documents
+  - else
+    .pull-right
+      - org_base = org_url_base(@existing_document.organization)
+      %h2=link_to "Go to exisitng document", "#{org_base}#{lms_course_document_path(lms_course_id: @course_id)}", class: "btn btn-lg btn-default"
 
 -#   = form_tag "#", method: 'post', id: "lms_course_id_select_form" do
 -#     = hidden_field_tag :lms_course_id, params[:lms_course_id]

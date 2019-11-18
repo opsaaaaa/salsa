@@ -46,6 +46,7 @@ class DocumentsController < ApplicationController
     if document_template != nil
       document = document_template.dup
       document.reset_ids
+      link_course_to_document document, params[:lms_course_id]
       document.save!
       redirect_to edit_document_path(:id => document.edit_id, :org_path => params[:org_path], :batch_token => params[:batch_token])
       return
@@ -110,25 +111,23 @@ class DocumentsController < ApplicationController
     # populate a documents empty course id
     @lms_course = get_lms_course @organization.setting('lms_authentication_source')
     
-    @document = Document.find_by lms_course_id: params[:lms_course_id], organization_id: @organization.root.self_and_descendants 
-    if @document.present?
-      flash[:error] = "A document with the #{params[:lms_course_id]} course id already exists"
-      redirect_to lms_course_document_path org_path: org_slug_parts(@document.organization)[1], lms_course_id: params[:lms_course_id]
-    else
-      @document = Document.find_by edit_id: params[:edit_id], organization_id: @organization.self_and_descendants
-      @document.lms_course_id ||= params[:lms_course_id]
+    @document = Document.find_by edit_id: params[:edit_id], organization_id: @organization.self_and_descendants
+    if link_course_to_document @document, params[:lms_course_id]
       if @document.save!
         flash[:notice] = "Successfully linked the #{params[:lms_course_id]} course id to this document"
         return redirect_to lms_course_document_path org_path: params[:org_path], lms_course_id: @document.lms_course_id
       else
         flash[:error] = "Failed to link #{params[:lms_course_id]}"
-        return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id] 
       end
     end
+    redirect_to lms_course_select_path lms_course_id: params[:lms_course_id] 
   end
 
-  def course_select page=params[:page], per=25
-    # select witch document to link a couse to
+  def course_select page=params[:page], per=15
+    # select which document to link a couse to
+    @course_id = params[:lms_course_id]
+    @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
+    flash[:error] = "A document with the #{@course_id} course id already exists" if @existing_document.present?
     user = current_user
     @documents = Document.where(user_id: user.id, organization_id: @organization.self_and_descendants)
       .order(updated_at: :desc, created_at: :desc).page(page).per(per)
@@ -289,6 +288,15 @@ class DocumentsController < ApplicationController
 
   protected
   
+  def link_course_to_document document, course_id
+    # populate a documents empty course id
+    if course_id && !document.link_course( course_id)
+      flash[:error] = "A document with the #{course_id} course id already exists"
+      return false
+    end
+    return true
+  end
+
   def token_matches?
     return params[:document_token].blank? || @document&.view_id == params[:document_token]
   end
