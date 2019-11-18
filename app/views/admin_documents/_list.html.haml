@@ -40,8 +40,8 @@
           %td= check_box_tag "document_ids[]", document.id, false, { id: "document_#{document.id}", 'aria-labeldedby': "document_#{document.id}_name" }
         
         - if columns[:name]
-          %td{scope:"row", nowrap: "width='50%'"}
-            - if has_role('supervisor') || has_role('designer')
+          %th{scope:"row", nowrap: "width='50%'"}
+            - if has_role('supervisor') || has_role('designer') 
               = link_to document.title, edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_name"
             - else
               = document.title

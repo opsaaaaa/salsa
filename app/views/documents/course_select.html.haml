@@ -29,8 +29,3 @@
     .pull-right
       - org_base = org_url_base(@existing_document.organization)
       %h2=link_to "Go to exisitng document", "#{org_base}#{lms_course_document_path(lms_course_id: @course_id)}", class: "btn btn-lg btn-default"
-
--#   = form_tag "#", method: 'post', id: "lms_course_id_select_form" do
--#     = hidden_field_tag :lms_course_id, params[:lms_course_id]
-
--# = javascript_include_tag "course_select"

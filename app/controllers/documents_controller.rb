@@ -348,7 +348,7 @@ class DocumentsController < ApplicationController
 
   def find_or_create_document session, params, organization, lms_course
     @document = Document.find_by view_id: params[:document_token]
-    # @document = nil
+    
     existing_doc = Document.find_by(organization: organization, lms_course_id: lms_course["id"])
       # we need to setup the course and associate it with canvas
     if params[:document_token] && params[:canvas] && @document
