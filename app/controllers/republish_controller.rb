@@ -61,12 +61,9 @@ class RepublishController < ApplicationController
     else
       documents = Document.where("documents.organization_id IS NULL #{operation} AND documents.updated_at != documents.created_at")
     end
-    @republish_urls = []
 
     org_base = org_url_base(@organization)
-    documents.each do |document|
-      @republish_urls.push("#{org_base}#{edit_document_path(id: document.edit_id)}").inspect
-    end
+    @republish_urls = documents.map {|d| "#{org_base}#{edit_document_path(id: d.edit_id)}"}
 
     @documents = documents.order(updated_at: :desc, created_at: :desc).page(page).per(per)
 
