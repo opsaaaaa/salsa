@@ -32,7 +32,6 @@ RSpec.describe "lti init", type: :request do
         end
 
         it "finds no document" do
-            $stdout.puts request_params.except(:role, :context_label)
             post lti_init_path(org_path: org.full_slug), params: request_params.except(:roles, :context_label)
             expect(response.status).not_to eql 200
         end

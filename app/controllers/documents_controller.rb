@@ -237,7 +237,7 @@ class DocumentsController < ApplicationController
         if document_version && @document.versions.count == document_version.to_i
           @document.payload = request.raw_post
           @document.payload = nil if @document.payload == ''
-          @document.user_id ||= user.id
+          @document.user_id ||= user&.id
 
           if !@organization.root_org_setting("enable_workflows") || !@document.workflow_step_id || !@document.user_id
             @document.save!
@@ -340,7 +340,6 @@ class DocumentsController < ApplicationController
       dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
       h = hash.merge(value: md[:value].to_s)
       h[:lms_course_id] = md['lms_course_id'] if md['lms_course_id']
-      $stdout.puts "meta was #{h}"
       h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
       dm.update h
     end

@@ -56,15 +56,14 @@ function updateLock(expire) {
   if(!expire) {
     expire = false;
   }
-
-  slug = $('.page-header a').html();
-  $.get('/admin/organization/republish/' + slug + '?expire=' + expire);
+  slug = $('#update_lock_url').html();
+  $.get(slug + "?expire=" + expire);
 
 }
 
 
 function republish(token, sources, counter, errors) {
-  updateLock();
+  updateLock(false);
 
   var increment = 100 / sources.length;
   var iframe = document.getElementById('republish_iframe');
@@ -102,11 +101,11 @@ function republish(token, sources, counter, errors) {
       counter++;
       updateProgress(increment, counter, sources);
       if(counter >= sources.length) {
+        updateLock(true);
         if (errors > 0) {
           $('.modal-body').append('<div class="alert alert-danger" role="alert"><strong>Errors!</strong> Please refresh the page to rerun any missing documents. If the problem persists, please contact your admin.</div>');
         } else {
           $('.modal-body').append('<div class="alert alert-success" role="alert"><strong>Success!</strong> Document republishing has successfully completed.</div>');
-          updateLock(true);
         }
         return;
       }

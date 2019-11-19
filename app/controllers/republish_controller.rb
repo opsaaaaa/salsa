@@ -5,6 +5,9 @@ class RepublishController < ApplicationController
     get_documents
     @organizations = Organization.all.order(:lft, :rgt, :name)
 
+    @allow_republish_btn = @organization.root.slug == request.env['SERVER_NAME']
+    @update_lock_url = republish_update_path(slug: @organization.full_slug)
+    
     if !@organization.republish_batch_token
       @organization.republish_batch_token = SecureRandom.urlsafe_base64(16)
     end
@@ -59,10 +62,10 @@ class RepublishController < ApplicationController
       documents = Document.where("documents.organization_id IS NULL #{operation} AND documents.updated_at != documents.created_at")
     end
     @republish_urls = []
-    ids =  documents.pluck(:edit_id)
 
-    ids.each do |id|
-    @republish_urls.push("//#{path}#{redirect_port}/SALSA/" + id + "/edit")
+    org_base = org_url_base(@organization)
+    documents.each do |document|
+      @republish_urls.push("#{org_base}#{edit_document_path(id: document.edit_id)}").inspect
     end
 
     @documents = documents.order(updated_at: :desc, created_at: :desc).page(page).per(per)

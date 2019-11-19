@@ -31,17 +31,7 @@
           </li>
 
           <li id="<%= "document_#{document.id}_wrapper" %>">
-            <% org = @organization if @organization %>
-            <% org = document.organization unless org %>
-
-            <% if org %>
-              <% org_base = "//#{org_slug_parts(org)[0]}#{redirect_port}" %>
-              <% if org.depth > 0 %>
-                <% org_base += "/#{org_slug_parts(org)[1]}"%>
-              <% end %>
-            <% else %>
-              <% org_base = '' %>
-            <% end %>
+            <% org_base = org_url_base(document.organization) %>
 
             <% if document.lms_published_at %>
               <div>
