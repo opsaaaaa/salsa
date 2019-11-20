@@ -246,6 +246,7 @@ class DocumentsController < ApplicationController
         if document_version && @document.versions.count == document_version.to_i
           @document.payload = request.raw_post
           @document.payload = nil if @document.payload == ''
+          @document.user_id ||= user.id
 
           if !@organization.root_org_setting("enable_workflows") || !@document.workflow_step_id || !@document.user_id
             @document.save!

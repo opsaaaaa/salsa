@@ -470,3 +470,6 @@ Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
       .to eq(true)
 end
 
+Then("the document should be associated with my user") do
+  expect(Document.find(@document.id).user_id).to eq(@current_user.id)
+end
