@@ -72,22 +72,4 @@ RSpec.describe "lti init", type: :request do
         it "by user_id"
     end
 
-    
-# Feature: Login or create user for LMS users
-
-# as a user from an lms i want to be automatically logged into salsa
-
-# when my lis_person_sourcedid or my use_id match one users user_assignment.
-# and that user dose not have a global role.
-# and that users user assignment belongs to my organization.
-# then log me in as that user.
-
-# when neither match
-# and my organizations lms_authentication_source is "LTI"
-# then create a new user
-# and add a new staff user assignment to that user with:
-#   set lis_person_sourced as the roles username
-#   set my organizations id as organization_id
-#   set role as staff
-
 end
