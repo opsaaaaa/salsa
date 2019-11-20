@@ -4,15 +4,12 @@
   <% other_orgs = @organizations.where.not(id: params[:id]).order('lft', 'rgt') %>
 
   <%= form_tag('/admin/organizations/documents', :html => { :class => "form-vertical" } ) do |f| %>
-    <div class="row">
-
-    </div>
 
     <div class="row">
 
       <% list_locals = {
         links: [:view, :template, :course, :meta, :published, :editor, :info],
-        columns: [:links, :name, :dates, :lms_course_id, :version] 
+        columns: [:org,:links, :name, :dates, :lms_course_id, :version] 
       } %>
       <%= render partial: '/admin_documents/list', locals: list_locals %>
 

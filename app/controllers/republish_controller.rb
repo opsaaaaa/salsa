@@ -20,31 +20,32 @@ class RepublishController < ApplicationController
   def update_lock
     expire = params[:expire]
     @organization = find_org_by_path params[:slug]
-
+    root_org = @organization.root
     if expire == 'false'
-      @organization.republish_at = DateTime.now
+      root_org.republish_at = DateTime.now
 
-      @organization.save!
+      root_org.save!
     else
       expire_lock
     end
     respond_to do |format|
       msg = { :status => "ok", :message => "Success!" }
       format.html  {
-        render :json => @organization.republish_at
+        render :json => root_org.republish_at
       }
     end
   end
 
   def expire_lock
-    @organization.republish_at = nil
-    @organization.republish_batch_token = nil
-    @organization.save!
+    root_org = @organization.root
+    root_org.republish_at = nil
+    root_org.republish_batch_token = nil
+    root_org.save!
   end
 
   private
 
-  def get_documents path=params[:slug], page=params[:page], per=4, start_date=params[:document][:start_date], end_date=params[:document][:end_date]
+  def get_documents path=params[:slug], page=params[:page], per=25, start_date=params[:document][:start_date], end_date=params[:document][:end_date]
     
     operation = ''
     operation += "AND lms_published_at >= '#{DateTime.parse(start_date).beginning_of_day}' " if start_date && start_date != ''
@@ -57,7 +58,7 @@ class RepublishController < ApplicationController
     if path
       @organization = find_org_by_path path
 
-      documents = Document.where("documents.organization_id=? #{operation} AND documents.updated_at != documents.created_at", @organization[:id])
+      documents = Document.where("documents.organization_id IN (?) #{operation} AND documents.updated_at != documents.created_at", @organization.self_and_descendants.pluck(:id))
     else
       documents = Document.where("documents.organization_id IS NULL #{operation} AND documents.updated_at != documents.created_at")
     end

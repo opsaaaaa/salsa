@@ -76,7 +76,7 @@ class DocumentsController < ApplicationController
   end
 
   def edit
-    if check_lock @organization.slug, params[:batch_token]
+    if check_lock @organization, params[:batch_token]
       if params[:version].to_i > 0
         @document_version = params[:version].to_i
         @document = @document.versions[@document_version].reify
@@ -216,7 +216,7 @@ class DocumentsController < ApplicationController
     lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
     has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
-    if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
+    if (check_lock @organization, params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
       republishing = false;
 
       if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
