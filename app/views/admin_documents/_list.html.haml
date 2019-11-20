@@ -8,8 +8,9 @@
 - enable_workflows = @organization.root_org_setting('enable_workflows') != false
 - track_meta_info_from_document = @organization.root_org_setting('track_meta_info_from_document') != false
 - lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
-- time_zone = @organization.setting("time_zone")
+- @time_zone ||= @organization.setting("time_zone")
 
+= paginate @documents
 %table.table.table-responsive.striped
   %thead
     %tr
@@ -63,9 +64,9 @@
         
         - if columns[:dates]
           %td{nowrap: "width='50%'"}
-            = timestamp_tag document.updated_at, prefix: "Updated", time_zone: time_zone unless same_time?(document.updated_at, document.created_at)
-            = timestamp_tag document.lms_published_at, prefix: "Published", time_zone: time_zone if document.lms_published_at.is_a?(Time)
-            = timestamp_tag document.created_at, prefix: "Created", time_zone: time_zone
+            = timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at)
+            = timestamp_tag document.lms_published_at, prefix: "Published", time_zone: @time_zone if document.lms_published_at.is_a?(Time)
+            = timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone
 
         - if columns[:links]
           %td{nowrap: ''}
@@ -75,8 +76,8 @@
               - if links[:view] 
                 %li= link_to titles[:view] || "View", "#{org_base}#{document_path(id: document.view_id, org_path: params[:org_path])}", org_path: params[:org_path], target: :_blank
                 
-              - if links[:edit_info] && (has_role('supervisor') || has_role('designer'))
-                = link_to "Edit Info", edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_edit_info"
+              - if links[:info] && (has_role('supervisor') || has_role('designer'))
+                %li= link_to "Info", edit_admin_document_path(document, org_path: params[:org_path]), id: "document_#{document.id}_edit_info"
                 
               - if document.organization && document.organization.root_org_setting('enable_anonymous_actions')
                 - if links[:editor]
@@ -89,7 +90,7 @@
                 - if links[:course] 
                   %li= link_to "Course", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id, org_path: params[:org_path])}", org_path: params[:org_path]
                 
-                - if links[:published] && lms_authentication_source != "lti" && lms_athenication_sourse.present?
+                - if links[:published] && lms_authentication_source != "lti" && lms_authentication_source.present?
                   %li
                     %a{href:"#{lms_authentication_source}/courses/#{document.lms_course_id}/assignments/syllabus"}Published
 
@@ -99,5 +100,6 @@
                 - if links[:meta] && has_role('designer') && track_meta_info_from_document
                   %li= link_to "Meta",document_meta_path(document_id: document.id)
 
-        - if columns[:versions]
+        - if columns[:version]
           %td.text-right= link_to document.versions.count, admin_document_versions_path(document, org_path: params[:org_path])
+= paginate @documents

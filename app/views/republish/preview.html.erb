@@ -1,30 +1,25 @@
-<div class="pull-right text-right">
-  <%= link_to @organization.documents.where(Document.not_abandoned).count.to_s + ' documents', organization_path(id: @organization[:id], org_path:params[:org_path]) %><br>
-  <%= link_to @organization.documents.where(Document.abandoned).count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path:params[:org_path]) %>
-</div>
+
+<%= render :partial => "organizations/breadcrumbs", locals: {organization: @organization} %>
 
 <h1 class="page-header">
-  <% @organization.ancestors.each do |org| %>
-    <small>
-      <%= org[:name] %> &raquo;<br>
-    </small>
-  <% end %>
-
-  <%= link_to  @organization[:name], organization_path(slug: full_org_path( @organization), org_path:params[:org_path]) %>
+  Republish Documents
 </h1>
-
+  
 <div id="organizationControl row">
   <div class="pull-right">
     <!-- Trigger the modal with a button -->
-    <button id="republish_trigger" type="button" class="btn btn-success " data-toggle="modal" data-target="#republish">Republish All</button>
-
+    <% if @allow_republish_btn %>
+      <button id="republish_trigger" type="button" class="btn btn-success" data-toggle="modal" data-target="#republish">Republish All</button>
+    <% else %>
+      <button type="button" class="btn btn-danger disabled">Republish All</button>
+    <% end %>
   </div>
-
 </div>
 
 
 <div class="row">
   <span class="hidden invisible" id="republish_ids"><%= @republish_urls %></span>
+  <span class="hidden invisible" id="update_lock_url"><%= @update_lock_url %></span>
 
 <%= render 'preview' %>
 

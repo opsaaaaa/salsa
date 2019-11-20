@@ -1,42 +1,38 @@
 require 'net/http'
 class RepublishController < ApplicationController
   before_action :require_organization_admin_permissions
+  before_action :get_organization
+  before_action :get_org_time_zone, olny: [:preview]
+  before_action -> {@root_org = @organization.root}
   def preview
     get_documents
     @organizations = Organization.all.order(:lft, :rgt, :name)
 
-    if !@organization.republish_batch_token
-      @organization.republish_batch_token = SecureRandom.urlsafe_base64(16)
+    @allow_republish_btn = @organization.root.slug == request.env['SERVER_NAME'] && check_lock(@organization)
+    @update_lock_url = republish_update_path(slug: @organization.full_slug)
+    
+    unless @root_org.republish_batch_token
+      @root_org.republish_batch_token = SecureRandom.urlsafe_base64(16)
+      @root_org.save!
     end
-    @organization.save!
-    get_org_time_zone
-
     render :layout => 'admin', :template => '/republish/preview'
   end
 
   def update_lock
     expire = params[:expire]
-    @organization = find_org_by_path params[:slug]
-
     if expire == 'false'
-      @organization.republish_at = DateTime.now
+      @root_org.republish_at = DateTime.now
 
-      @organization.save!
+      @root_org.save!
     else
-      expire_lock
+      @root_org.expire_lock
     end
     respond_to do |format|
       msg = { :status => "ok", :message => "Success!" }
       format.html  {
-        render :json => @organization.republish_at
+        render :json => @root_org.republish_at
       }
     end
-  end
-
-  def expire_lock
-    @organization.republish_at = nil
-    @organization.republish_batch_token = nil
-    @organization.save!
   end
 
   private
@@ -51,19 +47,10 @@ class RepublishController < ApplicationController
       operation += "AND lms_published_at <= '#{DateTime.now.end_of_day}'"
     end
 
-    if path
-      @organization = find_org_by_path path
+    documents = Document.where("documents.organization_id IN (?) #{operation} AND documents.updated_at != documents.created_at", @organization.self_and_descendants.pluck(:id))
 
-      documents = Document.where("documents.organization_id=? #{operation} AND documents.updated_at != documents.created_at", @organization[:id])
-    else
-      documents = Document.where("documents.organization_id IS NULL #{operation} AND documents.updated_at != documents.created_at")
-    end
-    @republish_urls = []
-    ids =  documents.pluck(:edit_id)
-
-    ids.each do |id|
-    @republish_urls.push("//#{path}#{redirect_port}/SALSA/" + id + "/edit")
-    end
+    org_base = org_url_base(@organization)
+    @republish_urls = documents.map {|d| "#{org_base}#{edit_document_path(id: d.edit_id)}"}
 
     @documents = documents.order(updated_at: :desc, created_at: :desc).page(page).per(per)
 

@@ -14,7 +14,6 @@
     .pull-right
       %h2=link_to "New Salsa", new_document_path(lms_course_id: @course_id), class: "btn btn-lg btn-success"
 
-    = paginate @documents
     - locals = { |
       links: [:view, :link, :template], |
       columns: [:org, :links, :name, :dates, :lms_course_id], |
@@ -24,7 +23,6 @@
       } |
 
     = render partial: '/admin_documents/list', locals: locals
-    = paginate @documents
   - else
     .pull-right
       - org_base = org_url_base(@existing_document.organization)

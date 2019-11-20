@@ -81,8 +81,8 @@ Rails.application.routes.draw do
             put    'organizations/*slug', controller: 'organizations', action: 'update', constraints: { slug: /.*/ }
             delete 'organizations/*slug', controller: 'organizations', action: 'delete', constraints: { slug: /.*/ }
 
-            get 'organization/preview/:slug', to: 'republish#preview', as: 'republish_preview', constraints: { slug: /.*/ }
-            get 'organization/republish/:slug', to: 'republish#update_lock', as: 'republish_update', constraints: { slug: /.*/ }
+            get 'organization/preview/*slug', to: 'republish#preview', as: 'republish_preview', constraints: { slug: /.+/ }
+            get 'organization/republish/*slug', to: 'republish#update_lock', as: 'republish_update', constraints: { slug: /.+/ }
 
             scope '/organization/*slug', constraints: { slug: /.+/ } do
                 resources :users, as: 'organization_users', controller: 'organization_users' do

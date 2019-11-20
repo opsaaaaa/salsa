@@ -1,16 +1,27 @@
 //= require jquery
 //= require jquery_ujs
 //= require bootstrap
+//= require document_meta
 //= require organization
 
 var batch_token = "";
-
-
 
 $(function(){
   if($(".active-org").length) {
     $('.nav-sidebar').scrollTop($(".active-org").offset().top-254)
   }
+
+  $("button#manual_expire_lock").on("click",function(){
+    updateLock(true);
+    setTimeout(function () {
+      location.reload();
+    }, 500);
+  });
+
+  $('#republish').on("hidden.bs.modal", function(){
+    cancel("true");
+    updateLock(true);
+  });
 
   $('#org_filter :input').on('keyup change', function(){
     var target = $(this).closest('#org_filter').next('ul');
@@ -56,15 +67,15 @@ function updateLock(expire) {
   if(!expire) {
     expire = false;
   }
-
-  slug = $('.page-header a').html();
-  $.get('/admin/organization/republish/' + slug + '?expire=' + expire);
+  slug = $('#update_lock_url').html();
+  $.get(slug + "?expire=" + expire);
 
 }
 
 
 function republish(token, sources, counter, errors) {
-  updateLock();
+  cancel("false");
+  updateLock(false);
 
   var increment = 100 / sources.length;
   var iframe = document.getElementById('republish_iframe');
@@ -84,11 +95,13 @@ function republish(token, sources, counter, errors) {
         xhr.abort();
         return false;
       }
-
+      
       settings.data = jquery('#page-data').html();
 
       var document_version = jquery('[data-document-version]').attr('data-document-version');
       settings.url = settings.url + '&document_version=' + document_version + "&batch_token=" + token;
+
+      run_document_meta_in_iframe(settings)
 
       // should be save to LMS...
       $('#tb_send_canvas:visible').trigger('click');
@@ -101,12 +114,12 @@ function republish(token, sources, counter, errors) {
 
       counter++;
       updateProgress(increment, counter, sources);
-      if(counter >= sources.length) {
+      if(counter >= sources.length || cancel()) {
+        updateLock(true);
         if (errors > 0) {
           $('.modal-body').append('<div class="alert alert-danger" role="alert"><strong>Errors!</strong> Please refresh the page to rerun any missing documents. If the problem persists, please contact your admin.</div>');
         } else {
           $('.modal-body').append('<div class="alert alert-success" role="alert"><strong>Success!</strong> Document republishing has successfully completed.</div>');
-          updateLock(true);
         }
         return;
       }
@@ -117,6 +130,14 @@ function republish(token, sources, counter, errors) {
 
   }
   iframe.src = sources[counter];
+}
+
+function cancel(bool_string) {
+  if (bool_string) {
+    $("button#close_republish").attr("data-cancel", bool_string);
+    return bool_string == "true"
+  }
+  return $("button#close_republish").attr("data-cancel") == "true";
 }
 
 function updateProgress(increment, counter, sources) {

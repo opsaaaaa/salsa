@@ -76,7 +76,7 @@ class DocumentsController < ApplicationController
   end
 
   def edit
-    if check_lock @organization.slug, params[:batch_token]
+    if check_lock @organization, params[:batch_token]
       if params[:version].to_i > 0
         @document_version = params[:version].to_i
         @document = @document.versions[@document_version].reify
@@ -216,7 +216,7 @@ class DocumentsController < ApplicationController
     lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
     has_canvas_publish = lms_authentication_source.include?('instructure.com') if lms_authentication_source
 
-    if (check_lock @organization[:slug], params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
+    if (check_lock @organization, params[:batch_token]) && can_use_edit_token(@document.lms_course_id)
       republishing = false;
 
       if meta_data_from_doc && @organization.root_org_setting("lms_authentication_id") && @organization.root_org_setting("track_meta_info_from_document")
@@ -237,7 +237,7 @@ class DocumentsController < ApplicationController
         if document_version && @document.versions.count == document_version.to_i
           @document.payload = request.raw_post
           @document.payload = nil if @document.payload == ''
-          @document.user_id ||= user.id
+          @document.user_id ||= user&.id
 
           if !@organization.root_org_setting("enable_workflows") || !@document.workflow_step_id || !@document.user_id
             @document.save!
@@ -340,7 +340,6 @@ class DocumentsController < ApplicationController
       dm = DocumentMeta.find_or_initialize_by(key: k, document_id: @document.id)
       h = hash.merge(value: md[:value].to_s)
       h[:lms_course_id] = md['lms_course_id'] if md['lms_course_id']
-      $stdout.puts "meta was #{h}"
       h[:lms_course_id] = md[:lms_course_id] if md[:lms_course_id].present?
       dm.update h
     end
