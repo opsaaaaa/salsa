@@ -1,5 +1,4 @@
 <% if @documents.length > 0 %>
-  <%= paginate @documents %>
   <span class="badge"><%= @documents.total_count %> documents</span>
 
   <% other_orgs = @organizations.where.not(id: params[:id]).order('lft', 'rgt') %>
@@ -11,63 +10,11 @@
 
     <div class="row">
 
-      <ul class="nav" id="salsaDocuments">
-        <% @documents.each do |document| %>
-          <li class="nav-header form-group">
-            <div class='pull-right text-right'>
-                
-              <%= timestamp_tag document.lms_published_at, prefix: "Published", time_zone: @time_zone if document.lms_published_at.is_a?(Time) %>
-
-              <div class="info pull-right">
-                Version: <%= document.versions.count %>
-              </div>
-            </div>
-
-            <label for="<%= "document_#{document.id}" %>"><%= document.name %></label>
-
-            <%= timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone %>
-            
-            <%= timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at)%>
-          </li>
-
-          <li id="<%= "document_#{document.id}_wrapper" %>">
-            <% org_base = org_url_base(document.organization) %>
-
-            <% if document.lms_published_at %>
-              <div>
-                Published to:
-
-                <% if document.lms_course_id %>
-                  <% if document.organization && document.organization.setting('lms_authentication_source') %>
-                    <a href="<%= document.organization.setting('lms_authentication_source') + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>">
-                      <%= document.organization.setting('lms_authentication_source') + '/courses/' + document.lms_course_id + '/assignments/syllabus' %>
-                    </a>
-                  <% end %>
-
-                  <div>
-                    Course Edit Link: <%= link_to "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id)}", "#{org_base}#{lms_course_document_path(lms_course_id: document.lms_course_id)}", target: "_blank" %>
-                  </div>
-                <% end %>
-              </div>
-            <% elsif document.lms_course_id %>
-              <div>
-                LMS Course ID: <%= document.lms_course_id %>
-                <div class="badge alert-warning">
-                  manually set, unpublished
-                </div>
-              </div>
-            <% end %>
-
-
-          	<div>
-              View: <%= link_to "#{org_base}#{document_path(id: document.view_id)}", "#{org_base}#{document_path(id: document.view_id)}", target: "_blank" %>
-              <br>
-              Edit: <%= link_to "#{org_base}#{document_path(id: document.edit_id)}/edit", "#{org_base}#{document_path(id: document.edit_id)}", target: "_blank", class: "republish" %>
-
-          	</div>
-          </li>
-        <% end %>
-      </ul>
+      <% list_locals = {
+        links: [:view, :template, :course, :meta, :published, :editor, :info],
+        columns: [:links, :name, :dates, :lms_course_id, :version] 
+      } %>
+      <%= render partial: '/admin_documents/list', locals: list_locals %>
 
     </div><!-- .row -->
   <% end %><!-- form -->
@@ -103,7 +50,6 @@
 
     </div>
   </div>
-  <%= paginate @documents %>
 <% else %>
   <p>
     No documents found

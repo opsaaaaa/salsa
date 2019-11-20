@@ -44,7 +44,7 @@ class RepublishController < ApplicationController
 
   private
 
-  def get_documents path=params[:slug], page=params[:page], per=25, start_date=params[:document][:start_date], end_date=params[:document][:end_date]
+  def get_documents path=params[:slug], page=params[:page], per=4, start_date=params[:document][:start_date], end_date=params[:document][:end_date]
     
     operation = ''
     operation += "AND lms_published_at >= '#{DateTime.parse(start_date).beginning_of_day}' " if start_date && start_date != ''
