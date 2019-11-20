@@ -3,6 +3,7 @@ class RepublishController < ApplicationController
   before_action :require_organization_admin_permissions
   before_action :get_organization
   before_action :get_org_time_zone, olny: [:preview]
+  before_action -> {@root_org = @organization.root}
   def preview
     get_documents
     @organizations = Organization.all.order(:lft, :rgt, :name)
@@ -10,38 +11,28 @@ class RepublishController < ApplicationController
     @allow_republish_btn = @organization.root.slug == request.env['SERVER_NAME'] && check_lock(@organization)
     @update_lock_url = republish_update_path(slug: @organization.full_slug)
     
-    if !@organization.republish_batch_token
-      @organization.republish_batch_token = SecureRandom.urlsafe_base64(16)
+    unless @root_org.republish_batch_token
+      @root_org.republish_batch_token = SecureRandom.urlsafe_base64(16)
+      @root_org.save!
     end
-    @organization.save!
-
     render :layout => 'admin', :template => '/republish/preview'
   end
 
   def update_lock
     expire = params[:expire]
-    @organization = find_org_by_path params[:slug]
-    root_org = @organization.root
     if expire == 'false'
-      root_org.republish_at = DateTime.now
+      @root_org.republish_at = DateTime.now
 
-      root_org.save!
+      @root_org.save!
     else
-      expire_lock
+      @root_org.expire_lock
     end
     respond_to do |format|
       msg = { :status => "ok", :message => "Success!" }
       format.html  {
-        render :json => root_org.republish_at
+        render :json => @root_org.republish_at
       }
     end
-  end
-
-  def expire_lock
-    root_org = @organization.root
-    root_org.republish_at = nil
-    root_org.republish_batch_token = nil
-    root_org.save!
   end
 
   private

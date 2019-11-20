@@ -308,10 +308,7 @@ module ApplicationHelper
     organization = org.root
     if(organization.republish_at)
       if ((DateTime.now - organization.republish_at.to_datetime)*24).to_i > 4
-        organization.republish_at = nil
-        organization.republish_batch_token = nil
-
-        organization.save!
+        organization.expire_lock
 
         return true
       elsif organization.republish_batch_token != batch_token

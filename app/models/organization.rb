@@ -127,6 +127,12 @@ class Organization < ApplicationRecord
     Period.where(organization_id: self.root.self_and_descendants)
   end
 
+  def expire_lock
+    self.republish_at = nil
+    self.republish_batch_token = nil
+    self.save!
+  end
+
   private
   
   def use_nil_for_blank_time_zone
