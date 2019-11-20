@@ -4,14 +4,14 @@
 <h1 class="page-header">
   Republish Documents
 </h1>
-
+  
 <div id="organizationControl row">
   <div class="pull-right">
     <!-- Trigger the modal with a button -->
     <% if @allow_republish_btn %>
       <button id="republish_trigger" type="button" class="btn btn-success" data-toggle="modal" data-target="#republish">Republish All</button>
     <% else %>
-      <button type="button" class="btn disabled">Republish All</button>
+      <button type="button" class="btn btn-danger disabled">Republish All</button>
     <% end %>
   </div>
 </div>

@@ -304,7 +304,7 @@ module ApplicationHelper
     ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
   end
 
-  def check_lock org, batch_token
+  def check_lock org, batch_token = nil
     organization = org.root
     if(organization.republish_at)
       if ((DateTime.now - organization.republish_at.to_datetime)*24).to_i > 4

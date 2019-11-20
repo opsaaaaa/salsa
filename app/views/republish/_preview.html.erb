@@ -1,20 +1,22 @@
 <% if @documents.length > 0 %>
-  <span class="badge"><%= @documents.total_count %> documents</span>
 
-  <% other_orgs = @organizations.where.not(id: params[:id]).order('lft', 'rgt') %>
+  <span class="badge d-block"><%= @documents.total_count %> documents</span>
+  <%if @organization.root.republish_at%>
+    <button id="manual_expire_lock" class="d-block btn btn-danger btn-xs">
+      <%= timestamp_tag @organization.root.republish_at, prefix: "Republished", time_zone: @time_zone%>
+    </button>
+  <%end%>
 
-  <%= form_tag('/admin/organizations/documents', :html => { :class => "form-vertical" } ) do |f| %>
+  <div class="row">
 
-    <div class="row">
+    <% list_locals = {
+      links: [:view, :template, :course, :meta, :published, :editor, :info],
+      columns: [:org,:links, :name, :dates, :lms_course_id, :version] 
+    } %>
+    <%= render partial: '/admin_documents/list', locals: list_locals %>
 
-      <% list_locals = {
-        links: [:view, :template, :course, :meta, :published, :editor, :info],
-        columns: [:org,:links, :name, :dates, :lms_course_id, :version] 
-      } %>
-      <%= render partial: '/admin_documents/list', locals: list_locals %>
+  </div><!-- .row -->
 
-    </div><!-- .row -->
-  <% end %><!-- form -->
   <!-- Modal -->
   <div id="republish" class="modal fade" role="dialog">
     <div class="modal-dialog">

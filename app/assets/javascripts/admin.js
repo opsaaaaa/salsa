@@ -6,14 +6,19 @@
 
 var batch_token = "";
 
-
-
 $(function(){
   if($(".active-org").length) {
     $('.nav-sidebar').scrollTop($(".active-org").offset().top-254)
   }
 
-  $("button#close_republish").on("click", function(){
+  $("button#manual_expire_lock").on("click",function(){
+    updateLock(true);
+    setTimeout(function () {
+      location.reload();
+    }, 500);
+  });
+
+  $('#republish').on("hidden.bs.modal", function(){
     cancel("true");
     updateLock(true);
   });

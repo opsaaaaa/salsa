@@ -7,7 +7,7 @@ class RepublishController < ApplicationController
     get_documents
     @organizations = Organization.all.order(:lft, :rgt, :name)
 
-    @allow_republish_btn = @organization.root.slug == request.env['SERVER_NAME']
+    @allow_republish_btn = @organization.root.slug == request.env['SERVER_NAME'] && check_lock(@organization)
     @update_lock_url = republish_update_path(slug: @organization.full_slug)
     
     if !@organization.republish_batch_token

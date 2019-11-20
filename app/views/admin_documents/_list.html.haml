@@ -8,7 +8,7 @@
 - enable_workflows = @organization.root_org_setting('enable_workflows') != false
 - track_meta_info_from_document = @organization.root_org_setting('track_meta_info_from_document') != false
 - lms_authentication_source = @organization.root_org_setting('lms_authentication_source')
-- time_zone = @organization.setting("time_zone")
+- @time_zone ||= @organization.setting("time_zone")
 
 = paginate @documents
 %table.table.table-responsive.striped
@@ -64,9 +64,9 @@
         
         - if columns[:dates]
           %td{nowrap: "width='50%'"}
-            = timestamp_tag document.updated_at, prefix: "Updated", time_zone: time_zone unless same_time?(document.updated_at, document.created_at)
-            = timestamp_tag document.lms_published_at, prefix: "Published", time_zone: time_zone if document.lms_published_at.is_a?(Time)
-            = timestamp_tag document.created_at, prefix: "Created", time_zone: time_zone
+            = timestamp_tag document.updated_at, prefix: "Updated", time_zone: @time_zone unless same_time?(document.updated_at, document.created_at)
+            = timestamp_tag document.lms_published_at, prefix: "Published", time_zone: @time_zone if document.lms_published_at.is_a?(Time)
+            = timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone
 
         - if columns[:links]
           %td{nowrap: ''}
