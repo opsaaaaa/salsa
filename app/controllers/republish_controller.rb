@@ -1,6 +1,8 @@
 require 'net/http'
 class RepublishController < ApplicationController
   before_action :require_organization_admin_permissions
+  before_action :get_organization
+  before_action :get_org_time_zone, olny: [:preview]
   def preview
     get_documents
     @organizations = Organization.all.order(:lft, :rgt, :name)
@@ -12,7 +14,6 @@ class RepublishController < ApplicationController
       @organization.republish_batch_token = SecureRandom.urlsafe_base64(16)
     end
     @organization.save!
-    get_org_time_zone
 
     render :layout => 'admin', :template => '/republish/preview'
   end
@@ -55,13 +56,7 @@ class RepublishController < ApplicationController
       operation += "AND lms_published_at <= '#{DateTime.now.end_of_day}'"
     end
 
-    if path
-      @organization = find_org_by_path path
-
-      documents = Document.where("documents.organization_id IN (?) #{operation} AND documents.updated_at != documents.created_at", @organization.self_and_descendants.pluck(:id))
-    else
-      documents = Document.where("documents.organization_id IS NULL #{operation} AND documents.updated_at != documents.created_at")
-    end
+    documents = Document.where("documents.organization_id IN (?) #{operation} AND documents.updated_at != documents.created_at", @organization.self_and_descendants.pluck(:id))
 
     org_base = org_url_base(@organization)
     @republish_urls = documents.map {|d| "#{org_base}#{edit_document_path(id: d.edit_id)}"}

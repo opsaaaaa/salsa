@@ -1,16 +1,8 @@
-<div class="pull-right text-right">
-  <%= link_to @organization.documents.where(Document.not_abandoned).count.to_s + ' documents', organization_path(id: @organization[:id], org_path:params[:org_path]) %><br>
-  <%= link_to @organization.documents.where(Document.abandoned).count.to_s + ' abandoned', organization_path(id: @organization[:id], key: 'abandoned', org_path:params[:org_path]) %>
-</div>
+
+<%= render :partial => "organizations/breadcrumbs", locals: {organization: @organization} %>
 
 <h1 class="page-header">
-  <% @organization.ancestors.each do |org| %>
-    <small>
-      <%= org[:name] %> &raquo;<br>
-    </small>
-  <% end %>
-
-  <%= link_to  @organization[:name], organization_path(slug: full_org_path( @organization), org_path:params[:org_path]) %>
+  Republish Documents
 </h1>
 
 <div id="organizationControl row">
@@ -21,9 +13,7 @@
     <% else %>
       <button type="button" class="btn disabled">Republish All</button>
     <% end %>
-
   </div>
-
 </div>
 
 
