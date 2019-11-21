@@ -44,12 +44,15 @@ namespace :parse do
 end
 
 
-namespace :change do
+namespace :map do
   namespace :users do
     desc "updates the users with data from a csv file"
     task :batch_uid, [:org_slug, :json_path] => [:environment, "parse:csv"] do |task,args|
       
-      change_task_head args do |data, org|
+      map_task_head args do |data, org|
+        users_saved = []
+        assignments_saved = []
+      
         user_data = Hash[ data.map {|d| [d['batch_uid'],{'username'=>d['username'],'eamil'=>d['email']}]} ]
         
         assignments = UserAssignment.where organization_id: org.self_and_descendants, username: user_data.keys
@@ -82,7 +85,7 @@ namespace :change do
     desc "update the documents with data from a csv file"
     task :user_id, [:org_slug, :json_path] => [:environment] do |task,args|
  
-      change_task_head args do |data, org|
+      map_task_head args do |data, org|
         documents_saved = []
         
         course_map = Hash[ data.collect {|d| [d['username'],d['lms_course_id']] } ]
@@ -101,10 +104,8 @@ namespace :change do
     end
   end
 
-  def change_task_head args
+  def map_task_head args
     if args[:json_path] && args[:org_slug]
-      users_saved = []
-      assignments_saved = []
       
       yield get_json_data( args[:json_path]), get_org( args[:org_slug])
 
