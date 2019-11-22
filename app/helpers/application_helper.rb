@@ -240,12 +240,8 @@ module ApplicationHelper
   end
 
   def get_organizations
-    if session[:saml_authenticated_user]
-      user_assignment = UserAssignment.find_by("lower(username) = ?", session[:saml_authenticated_user]["id"].to_s.downcase)
-      user = user_assignment.user if user_assignment
-    elsif session[:authenticated_user]
-      user = User.find session[:authenticated_user]
-    end
+
+    user = current_user
 
     # only show orgs that the logged in user should see
     unless session[:admin_authorized] || user&.user_assignments&.find_by(role: "admin")
