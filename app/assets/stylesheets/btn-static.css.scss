@@ -1,0 +1,9 @@
+.btn-static {
+    background-color: rgb(231, 231, 231);
+    color: gray;
+    cursor: not-allowed !important;
+}
+
+.btn-static:active, .btn-static:hover, .btn-static:visited {
+    color: gray !important;
+}

@@ -238,55 +238,11 @@ function liteOff(x) {
         xhr.abort();
         return false;
       }
-      settings.data = cleanupDocument($('#page-data').html());
 
-      var document_version = $('[data-document-version]').attr(
-        'data-document-version');
-      var queryStringStart = settings.url.search(/\?/) < 0 ? '?' :
-        '&';
-      settings.url = settings.url + queryStringStart +
-        'document_version=' + document_version;
-      settings.url = encodeURI(settings.url);
-      var lms_course_id = null;
-      if ($("body").find('[data-lms-course]').attr("data-lms-course")) {
-        lms_course_id = jQuery.parseJSON($("body").find(
-          '[data-lms-course]').attr("data-lms-course")).id;
-      }
-      var organizationConfig = $("[data-organization-config]").data(
-        "organization-config");
-      if (organizationConfig["track_meta_info_from_document"]) {
-        var meta_data_from_doc = [];
-        $("#page").find('[data-meta]:not(:input)').each(function() {
-          var key = "salsa_" + $(this).attr('data-meta');
-          var value = $(this).text().replace(/\s+/mg, ' ');
-          meta_data_from_doc.push({
-            key: key,
-            value: value,
-            lms_course_id: lms_course_id,
-            root_organization_slug: window.location.hostname
-          });
-        });
-        $("#page").find(':input:not([data-meta])').each(function() {
-          var key = "salsa_" + $(this).attr("id");
-          var value = $(this).val();
-          meta_data_from_doc.push({
-            key: key,
-            value: value,
-            lms_course_id: lms_course_id,
-            root_organization_slug: window.location.hostname
-          });
-        });
-        if (meta_data_from_doc && meta_data_from_doc.length > 0) {
-          $.ajax({
-            url: settings.url,
-            data: {
-              meta_data_from_doc: meta_data_from_doc
-            },
-            dataType: "json",
-            method: "PATCH"
-          });
-        }
-      }
+      settings.data = cleanupDocument($('#page-data').html());
+      
+      run_document_meta(settings, $('html'));
+
       $(".workflow_step").show();
       $(".workflow_step").find(":input").prop('disabled', true);
       notification('Saving...');

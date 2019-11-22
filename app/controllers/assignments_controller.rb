@@ -14,6 +14,8 @@ class AssignmentsController < AdminController
   # GET /assignments.json
   def index
     @assignment = Assignment.new
+    get_org_time_zone
+
   end
 
   # GET /assignments/1
@@ -28,7 +30,7 @@ class AssignmentsController < AdminController
       @documents = [@documents.find(params[:document_id].to_i)]
     end
 
-    @has_assignments = has_role("supervisor") || has_role("auditor") || @direct_assignments.include?('auditor') || @direct_assignments.include?('supervisor')
+    @has_assignments = has_role("supervisor") || has_role("approver") || @direct_assignments.include?('approver') || @direct_assignments.include?('supervisor')
 
     @workflow_steps = {}
     @assignees = {}
@@ -119,6 +121,8 @@ class AssignmentsController < AdminController
 
       @workflow_steps[document.id] = workflow_steps.select { |step| ['supervisor', 'approver'].include?(step.component.role) }
     end
+
+    get_org_time_zone
 
     render 'workflows'
   end

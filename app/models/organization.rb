@@ -10,7 +10,9 @@ class Organization < ApplicationRecord
   has_many :user_assignments
   has_many :users, through: :user_assignments
   has_many :workflow_steps
+  has_many :report_archives
 
+  before_validation :use_nil_for_blank_name_reports_by
   before_validation :use_nil_for_blank_time_zone
 
   SLUG_FORMAT = /(\/?([a-z0-9][a-z0-9.-]+)?[a-z0-9]+)/
@@ -27,6 +29,17 @@ class Organization < ApplicationRecord
     ["default","Program Outcomes"]
   end
   validates :export_type, :inclusion=> { :in => self.export_types }
+  
+  def self.name_reports_by_options
+    {
+      # id: "document.id",
+      # workflow_state: "report_data.workflow_state",
+      name: "document.name",
+      lms_course_id: "document.lms_course_id",
+      sis_course_id: "document_meta.sis_course_id"
+    }
+  end
+  validates :name_reports_by, :inclusion=> { :in => self.name_reports_by_options.values.push(nil) }
 
   def full_slug
     if self.slug.start_with?("/")
@@ -71,6 +84,18 @@ class Organization < ApplicationRecord
 
     org_slug
   end
+  
+  def use_nil_for_blank_name_reports_by
+    self.name_reports_by = nil if name_reports_by.blank?
+  end
+
+  def get_name_reports_by(subs = {})
+    subs = subs.stringify_keys
+    name_by = self.setting("name_reports_by")
+    name_by = Organization.name_reports_by_options.values.first if name_by.blank?
+    subs.each { |k, v| name_by["#{k.to_s}."] &&= "#{v.to_s}." }
+    name_by
+  end
 
   # force null save so setting can cascade up the tree (most settings should probably be this way)
   def lms_authentication_source=(val)
@@ -87,14 +112,7 @@ class Organization < ApplicationRecord
   end
 
   def root_org_setting(setting)
-    if self.slug_was&.start_with?('/')
-      org = self.ancestors.find_by(depth: 0)
-      result = org[setting]
-    else
-      org = self
-      result = org[setting]
-    end
-      result
+    return self.root[setting]
   end
 
   def self.descendants
@@ -103,6 +121,16 @@ class Organization < ApplicationRecord
   
   def can_delete?
     self.descendants.blank?
+  end
+  
+  def all_periods
+    Period.where(organization_id: self.root.self_and_descendants)
+  end
+
+  def expire_lock
+    self.republish_at = nil
+    self.republish_batch_token = nil
+    self.save!
   end
 
   private

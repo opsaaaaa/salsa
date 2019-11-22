@@ -21,27 +21,28 @@
           <% else %>
             <%= link_to "Archive Report #{report.id}", admin_auditor_archive_report_path(report: report.id, org_path: params[:org_path]), class: "btn btn-danger"%>
           <% end %>
-          <% if FileHelper.remote_file_exists(ReportHelper.remote_file_location(@org, report.id))%>
+          <% if FileHelper.remote_file_exists(ReportHelper.remote_file_location(@org, report.id)) || File.exist?(ReportHelper.local_file_location(@org, report.id)) %>
             <%= link_to "Download Report #{report.id}", admin_auditor_download_path(report: report.id, org_path: params[:org_path]), class: "btn btn-success"%>
           <% end %>
         </div>
       </div>
-      <p>
-        Report #<%=report.id%>
-        <%= link_to "Load report", admin_auditor_report_path(report: report.id, org_path: params[:org_path])%>
-      </p>
+      <h4>
+        <%= link_to "Load Report: #{report.title}", admin_auditor_report_path(report: report.id, org_path: params[:org_path])%>
+      </h4>
       <ul>
         <%if report.generating_at%>
         <li>
-          Report queued <%= time_ago_in_words report.generating_at%> ago
+          <%= timestamp_tag report.generating_at, prefix: "Report queued #{time_ago_in_words(report.generating_at)} ago at", time_zone: @time_zone, suffix: ""%>
         </li>
         <%end%>
         <%if report.updated_at != report.created_at%>
-          <li>Last generated  <%=  time_ago_in_words report.updated_at%> ago</li>
-        <%end%>
-        <% if report.report_filters %>
         <li>
-            Filters: <%=report.report_filters['account_filter']%>
+          <%= timestamp_tag report.updated_at, prefix: "Last generated #{time_ago_in_words(report.updated_at)} ago at", time_zone: @time_zone, suffix: ""%>
+        </li>
+        <%end%>
+        <% if report.pretty_filters.present? %>
+        <li>
+            Filters: <%=report.pretty_filters%>
         </li>
         <% end %>
       </ul>

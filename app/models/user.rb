@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  include Populate
   devise :saml_authenticatable
 
   before_save { self.email = email.downcase }
@@ -86,4 +87,46 @@ class User < ApplicationRecord
       self.save
     end
   end
+  
+  def self.get_lti_user(&block)
+    assignment = UserAssignment.find_by_lti_info do
+      yield
+    end
+    return nil unless assignment.present?
+    return nil if assignment.user.has_global_role?
+    assignment.user
+  end
+
+  def self.lazy_params(params = {})
+    {
+      archived: false,
+      name: "New User",
+      password: "#{rand(36**40).to_s(36)}"
+    }.merge(params)
+  end
+
+  def add_role(params)
+    return nil if params[:organization_id].blank? || self.user_assignments.find_by(params).present? 
+    UserAssignment.create UserAssignment.lazy_params({user_id: self.id}.merge(params))
+  end
+
+  def self.import_or_create_by get_params, set_params = nil
+    get_params = {user: get_params, user_assignment: {}} if get_params[:user].blank? && get_params[:user_assignment].blank?
+    set_params ||= get_params
+    set_params[:user] ||= {}
+    set_params[:user_assignment] ||= {}
+    ua = nil
+    if get_params[:user_assignment][:username].present?
+      ua = UserAssignment.find_by("lower(username) = ? ", get_params[:user_assignment][:username].to_s.downcase)
+      set_params[:user] = {email: "#{get_params[:user_assignment][:username]}@example.com"}.merge(set_params[:user])
+    end
+    user = User.find_by get_params[:user] if get_params[:user].present?
+    user = ua.user if ua
+    user = User.new() if user.blank?
+    user.archived = false
+    user.populate lazy_params(set_params[:user])
+    user.add_role set_params[:user_assignment] unless user.has_global_role?
+    user
+  end
+
 end

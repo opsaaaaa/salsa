@@ -11,10 +11,10 @@ class OrganizationsController < AdminController
   ]
   before_action :get_organizations
   before_action :get_organization, except: [:orphaned_documents, :new, :create, :start_workflow_form]
+  before_action :get_org_time_zone, except: [:orphaned_documents, :new, :create, :start_workflow_form]
   before_action :get_documents, only: [:orphaned_documents, :show, :index]
   
   layout 'admin'
-
   def index
     @roots = @organizations.roots
     get_documents
@@ -133,7 +133,7 @@ class OrganizationsController < AdminController
     end
     organization = find_org_by_path(params[:slug])
     if start_workflow_params[:start_for_sub_organizations]
-      organizations = organization.descendants + [organization]
+      organizations = organization.self_and_descendants
     else
       organizations = [organization]
     end
@@ -159,10 +159,6 @@ class OrganizationsController < AdminController
   
   def get_export_types
     @export_types = Organization.export_types
-  end
-
-  def get_organization path=params[:slug]
-    @organization = find_org_by_path path
   end
 
   def get_documents path=params[:slug], page=params[:page], per=25, key=params[:key]
@@ -216,8 +212,41 @@ class OrganizationsController < AdminController
     end
 
     if has_role 'organization_admin'
-      org_params.permit(:name, :export_type, :slug, :period_meta_key, :enable_workflows, :inherit_workflows_from_parents, :parent_id, :lms_authentication_source, :lms_authentication_id, :lms_authentication_key, :lms_info_slug, :lms_account_id, :home_page_redirect, :skip_lms_publish, :enable_shibboleth, :idp_sso_target_url, :idp_slo_target_url, :idp_entity_id, :idp_cert, :idp_cert_fingerprint, :idp_cert_fingerprint_algorithm, :authn_context, :enable_anonymous_actions, :track_meta_info_from_document, :disable_document_view,
-      :force_https, :time_zone, :enable_workflow_report, :default_account_filter, default_account_filter: [:account_filter])
+      org_params.permit(
+        :name, 
+        :export_type, 
+        :slug, 
+        :period_meta_key, 
+        :enable_workflows, 
+        :inherit_workflows_from_parents, 
+        :parent_id, 
+        :lms_authentication_source, 
+        :lms_authentication_id, 
+        :lms_authentication_key, 
+        :lms_info_slug, 
+        :lms_account_id, 
+        :home_page_redirect, 
+        :skip_lms_publish, 
+        :enable_shibboleth,
+        :idp_sso_target_url,
+        :idp_slo_target_url,
+        :idp_entity_id, 
+        :idp_cert, 
+        :idp_cert_fingerprint, 
+        :idp_cert_fingerprint_algorithm, 
+        :authn_context, 
+        :enable_anonymous_actions, 
+        :track_meta_info_from_document, 
+        :disable_document_view,
+        :force_https, 
+        :enable_workflow_report, 
+        :time_zone, 
+        :reports_use_document_meta, 
+        :document_search_includes_sub_organizations,
+        :name_reports_by, 
+        :default_account_filter, 
+        default_account_filter: [:account_filter]
+      )
     end
   end
 end

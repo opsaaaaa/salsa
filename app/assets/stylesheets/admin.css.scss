@@ -1,6 +1,7 @@
 @import "bootstrap-sprockets";
 @import "bootstrap";
 @import "./pagination";
+@import "btn-static";
 
 body { padding-top: 50px; }
 
@@ -50,17 +51,6 @@ a.sr-only.btn.btn-info.skip-content{
   text-align: right;
 }
 
-#salsaDocuments {
-  time { display: block; }
-
-  li.nav-header {
-    margin-top: 1em;
-    padding-top: 1em;
-    border-top: solid 1px #ddd;
-  }
-
-  a { display: inline; }
-}
 
 .depth-1 {
   padding-left: 15px;

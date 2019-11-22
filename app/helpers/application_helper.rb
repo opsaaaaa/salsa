@@ -75,13 +75,13 @@ module ApplicationHelper
     result = false
     check_for_admin_password
 
-    if has_role('supervisor') || has_role('auditor')
+    if has_role('supervisor') || has_role('approver')
       result = true
     else
       # supervisor and auditor roles can be assigned to users (don't go through orgs)
       direct_assignments = current_user&.assignments
       direct_assignments&.each do |direct_assignment|
-        if ['supervisor', 'auditor'].include?(direct_assignment[:role])
+        if ['supervisor', 'approver'].include?(direct_assignment[:role])
           result = true
         end
       end
@@ -240,12 +240,8 @@ module ApplicationHelper
   end
 
   def get_organizations
-    if session[:saml_authenticated_user]
-      user_assignment = UserAssignment.find_by("lower(username) = ?", session[:saml_authenticated_user]["id"].to_s.downcase)
-      user = user_assignment.user if user_assignment
-    elsif session[:authenticated_user]
-      user = User.find session[:authenticated_user]
-    end
+
+    user = current_user
 
     # only show orgs that the logged in user should see
     unless session[:admin_authorized] || user&.user_assignments&.find_by(role: "admin")
@@ -275,6 +271,14 @@ module ApplicationHelper
     org.full_org_path
   end
 
+  def org_url_base(org=nil)
+    return "" unless org
+    slug_parts = org_slug_parts(org)
+    org_base = "//#{slug_parts[0]}#{redirect_port}"
+    org_base += "/#{slug_parts[1]}" if org.depth > 0
+    return org_base
+  end
+
   def org_slug_parts org
     org_slug = full_org_path(org)
 
@@ -296,14 +300,11 @@ module ApplicationHelper
     ':' + request.env['SERVER_PORT'] unless ['80', '443'].include?(request.env['SERVER_PORT'])
   end
 
-  def check_lock path, batch_token
-    organization = Organization.find_by slug:path
+  def check_lock org, batch_token = nil
+    organization = org.root
     if(organization.republish_at)
       if ((DateTime.now - organization.republish_at.to_datetime)*24).to_i > 4
-        organization.republish_at = nil
-        organization.republish_batch_token = nil
-
-        organization.save!
+        organization.expire_lock
 
         return true
       elsif organization.republish_batch_token != batch_token
@@ -334,33 +335,6 @@ module ApplicationHelper
     ReportHelper.get_document_meta org_slug, nil, params
   end
 
-  def get_country_time_zones(country = 'US')
-    ActiveSupport::TimeZone.country_zones(country)
-    # ActiveSupport::TimeZone.us_zones
-  end
-
-  def formatted_date (time, org_id = nil)
-    unless org_id
-      org = find_org_by_path params[:slug] 
-    else
-      org = Organization.find(org_id)
-    end
-    zone = org.setting("time_zone")
-    zone = Time.zone.name if zone === nil
-    return time.in_time_zone(zone).strftime("%m/%d/%Y")
-  end
-
-  def send_email config
-    email_override = APP_CONFIG['email_override']
-
-    if email_override
-      to = email_override
-      subject = "#{config[:to]} - #{config[:subject]}"
-    end
-
-    mail(to: config[:to], subject: config[:subject])
-  end
-
   def get_document id=nil
     id = params[:id] unless id
     @document = Document.find(id)
@@ -382,5 +356,18 @@ module ApplicationHelper
       @periods = Period.where(organization_id: organization_ids).order('name')
     end
   end
+
+  def get_organization path=params[:slug]
+    @organization = find_org_by_path path
+  end
+    
+  def get_org_time_zone(org = nil)
+    org = @organization if @organization.present? && org.blank?
+    org = @org if @organization.present? && org.blank?
+    # org = get_org if org.blank?
+    @time_zone = ActiveSupport::TimeZone[org.root_org_setting('time_zone').to_s]
+    # @time_zone = TimeZone.new @organization.root_org_setting('time_zone')
+  end
+
 end
 

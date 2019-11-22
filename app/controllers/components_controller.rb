@@ -157,10 +157,6 @@ class ComponentsController < ApplicationController
     end
   end
 
-  def get_organization
-    @organization = find_org_by_path(params[:slug])
-  end
-
   def get_organization_levels
      @orgs = @organization.parents.push(@organization) + @organization.descendants
      organization_levels = @orgs.map { |h| h.slice(:slug, :level).values }

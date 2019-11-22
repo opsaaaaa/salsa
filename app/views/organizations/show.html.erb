@@ -7,8 +7,8 @@
     </h1>
   </div>
   <div class="pull-right col-xs-4 text-right clearfix">
-    <%- document_count = @organization.documents.where('documents.updated_at != documents.created_at').count %>
-    <%- orphaned_count = @organization.documents.where('documents.updated_at = documents.created_at').count %>
+    <%- document_count = @organization.documents.where(Document.not_abandoned).count %>
+    <%- orphaned_count = @organization.documents.where(Document.abandoned).count %>
 
     <% if params[:key] != nil %>
       <%= link_to document_count.to_s + ' documents', organization_path(id: @organization[:id], org_path: params[:org_path]) %><br>

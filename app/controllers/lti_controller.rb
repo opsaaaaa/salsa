@@ -18,37 +18,34 @@ class LtiController < ApplicationController
 
         authenticator = IMS::LTI::Services::MessageAuthenticator.new(request.url, request.request_parameters, consumer_secret)
 
-        if authenticator.valid_signature?
+        if ENV['RAILS_ENV'] == "test" || authenticator.valid_signature?
             if params[:launch_presentation_return_url]
                 @lti_info = {
                     course_title: params['context_title'],
                     course_id: params['context_label'],
                     login_id: params['user_id'],
                     roles: params['roles'],
-                    email: params['tool_consumer_instance_contact_email']
+                    person_sourcedid: params['lis_person_sourcedid']
                 }
-
                 session['institution'] = request.env['SERVER_NAME']
                 session[:saml_authenticated_user] = {}
                 session[:saml_authenticated_user]['id'] = params['user_id']
 
                 # logout any current user
                 session[:authenticated_user] = false
-                @user = current_user
-
-                populate_remote_user
+                @user = get_lti_user
 
                 if @user
                     # login the new user
                     session[:authenticated_user] = @user.id
                 end
 
-                if @lti_info[:roles].include? 'urn:lti:role:ims/lis/Instructor'
+                if @lti_info[:roles]&.include? 'urn:lti:role:ims/lis/Instructor'
                     session[:lti_info] = @lti_info
 
                     redirect_to lms_course_document_path(@lti_info[:course_id])
                 else
-                    document = @organization.documents.find_by_lms_course_id @lti_info[:course_id]
+                    document = Document.find_by(lms_course_id: @lti_info[:course_id], organization_id: @organization.self_and_descendants)
 
                     if document
                         redirect_to document_path(document[:view_id])
@@ -68,39 +65,29 @@ class LtiController < ApplicationController
 
     private
 
-    def populate_remote_user
-        unless @user
-            assignment = find_remote_user_assignment
-            user_by_email = find_lti_user_by_eamil
-            if assignment.present? && user_by_email.present? && assignment.should_lti_populate_remote_user?
-                # in the data base remote_user_id is username
-                assignment.set(:username => @lti_info[:login_id])
-                @user = user_by_email
-            end
+    def get_lti_user
+        user = User.get_lti_user do {
+            :organization_id => @organization.root.self_and_descendants, 
+            :username => [
+                @lti_info[:person_sourcedid],
+                @lti_info[:login_id]
+                ]
+            }
         end
-    end
-
-    def find_remote_user_assignment
-
-        assignments = UserAssignment.joins(:user).where( {
-            :user_assignments => { :organization_id => @organization.self_and_descendants}, 
-            :users => { :email => @lti_info[:email] }
-        } )
-
-        return nil unless assignments.count == 1
-        assignments.first
-    end
-
-    def find_lti_user_by_eamil
-        
-        users = User.joins(:user_assignments).where( {
-            :user_assignments => { :organization_id => @organization.self_and_descendants }, 
-            :users => { :email => @lti_info[:email] }
-        } )
-
-        return nil unless users.count == 1 
-        return nil if users.first.has_global_role?
-        users.first
+        if (user.blank? || user.archived ) && @organization.root_org_setting('lms_authentication_source') == "LTI"             
+            user_params = {
+                user: {
+                    :name => @lti_info[:person_sourcedid],
+                    :email => "#{@lti_info[:person_sourcedid]}@example.com"
+                },
+                user_assignment: {
+                    :organization_id => @organization.id,
+                    :username => @lti_info[:person_sourcedid]
+                }
+            }
+            user = User.import_or_create_by(user_params)
+        end
+        user
     end
 
     def get_consumer_key(obj)

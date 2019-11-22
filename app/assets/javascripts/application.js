@@ -32,6 +32,7 @@
 //= require control_methods
 //= require on_click
 //= require on_change
+//= require document_meta
 //= require script
 //= require canvas
 

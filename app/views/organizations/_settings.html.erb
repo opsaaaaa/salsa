@@ -30,6 +30,13 @@
     </div>
 
     <div class="form-group">
+      <% if has_role 'admin' %>
+        <%= f.label :name_reports_by, class: "control-label" %>
+        <%= f.select :name_reports_by, Organization::name_reports_by_options.values, { include_blank: '-- use parent or default setting --'}, { class: 'form-control' } %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
       <div class="controls">
         <%= f.check_box(:enable_anonymous_actions, class: '', "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true) %>
         <%= f.label :enable_anonymous_actions, "Enable Editing for Unauthorized Users #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
@@ -74,6 +81,20 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <div class="controls">
+        <%= f.check_box :reports_use_document_meta, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true %>
+        <%= f.label :reports_use_document_meta, "Use documents meta for the Reports #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="controls">
+        <%= f.check_box :document_search_includes_sub_organizations, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true %>
+        <%= f.label :document_search_includes_sub_organizations, "Include Sub-Organizations in Document Searches #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
+      </div>
+    </div>
+    
     <div class="form-group">
       <div class="controls">
         <%= f.check_box :track_meta_info_from_document, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true%>

@@ -1,0 +1,56 @@
+<%= javascript_include_tag "dashboard" %>
+
+<script>
+  
+function customCharts() {
+  if ( chart_data && typeof chart_data.list !== 'undefined'){
+    $('#customChart').highcharts({
+      chart: {type: 'bar'},
+      title: {
+        text: " Test Title "
+      },
+      subtitle: {
+        text: ' Test subtitle'
+      },
+      xAxis: {
+        categories: [null],
+        title: {text: null }
+      },
+      yAxis: {
+        min: 0,
+        title: {text: null}
+      },
+      tooltip: {valueSuffix: ' Documents'},
+      plotOptions: {
+      },
+      legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'top',
+        x: -40,
+        y: 100,
+        floating: true,
+        borderWidth: 1,
+        backgroundColor: '#FFFFFF',
+        shadow: true
+      },
+      credits: {
+        enabled: false
+      },
+      series: [{
+        name: 'with course id',
+        data: [chart_data['list'].course_id.filter(notNull).length]
+        }
+      ]
+    });
+  }
+}
+
+function notNull(val) {
+    return val !== null;
+}
+$(function () {
+  customCharts()
+  console.log(chart_data['list'].course_id.filter(notNull).length)
+})
+</script>

@@ -2,6 +2,7 @@ class Document < ApplicationRecord
   has_paper_trail
 
   before_validation :normalize_blank_values, :ensure_ids
+  before_save :populate_default_name
   before_create :set_default_period
 
   belongs_to :organization
@@ -9,7 +10,16 @@ class Document < ApplicationRecord
   belongs_to :period, optional: true
   belongs_to :workflow_step, optional: true
   belongs_to :user, optional: true
+  has_many :document_meta
   
+  def self.abandoned()
+    return 'documents.updated_at = documents.created_at'
+  end
+
+  def self.not_abandoned()
+    return 'documents.updated_at != documents.created_at'
+  end
+
   def meta
     DocumentMeta.where("document_id = ? OR (document_id IS NULL AND lms_course_id = ? AND root_organization_id = ?)", self.id, self.lms_course_id, self.organization.root.id)
   end
@@ -182,7 +192,21 @@ class Document < ApplicationRecord
     end
   end
 
+  def title
+    populate_default_name
+  end
+
+  def link_course course_id
+    document_exists = Document.find_by lms_course_id: course_id, organization_id: self.organization.root.self_and_descendants
+    return nil if document_exists.present? || !self.lms_course_id.nil?
+    self.lms_course_id = course_id
+  end
+
   protected
+
+  def populate_default_name
+    self.name ||= 'Unnamed'
+  end
 
   def self.generate_id
     (0...30).map{ ('a'..'z').to_a[rand(26)] }.join
