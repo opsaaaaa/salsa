@@ -74,7 +74,7 @@ class LtiController < ApplicationController
                 ]
             }
         end
-        if user.blank? && @organization.root_org_setting('lms_authentication_source') == "LTI"            
+        if (user.blank? || user.archived ) && @organization.root_org_setting('lms_authentication_source') == "LTI"             
             user_params = {
                 user: {
                     :name => @lti_info[:person_sourcedid],
