@@ -146,7 +146,8 @@ class DocumentsController < ApplicationController
       end
     end
     
-    get_lms_course @organization.setting('lms_authentication_source')
+    lms_authentication_source = @organization.setting('lms_authentication_source')
+    get_lms_course lms_authentication_source
 
     if @lms_course
       # see if there is a organization matched for course

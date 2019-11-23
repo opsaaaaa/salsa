@@ -12,7 +12,7 @@
     %b Template.
   - if @existing_document.blank?
     .pull-right
-      %h2=link_to "New Salsa", new_document_path(lms_course_id: @course_id), class: "btn btn-lg btn-success"
+      %h2=link_to "New Salsa", new_document_path(lms_course_id: @course_id, org_path: params[:org_path]), class: "btn btn-lg btn-success"
 
     - locals = { |
       links: [:view, :link, :template], |
