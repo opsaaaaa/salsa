@@ -1,0 +1,14 @@
+
+
+#relink_options
+  .d-inline-flex
+    -if existing_document?
+      - org_path = @existing_document.organization.path
+      - if has_role("organization_admin", @existing_document.organization)
+        =link_to "Relink", lms_course_select_path(lms_course_id: params[:lms_course_id] ,org_path: org_path, relink: true), class: "btn btn-lg btn-link" unless params[:relink]
+        =link_to "Admin", edit_admin_document_path(@existing_document ,org_path: org_path), class: "btn btn-lg btn-link"
+      =link_to "Preview", document_path(id: @existing_document.view_id, org_path: org_path), target: :_blank, class: "btn btn-lg btn-default"
+      =link_to "Go to the exisitng SALSA", lms_course_document_path(lms_course_id: @course_id, org_path: org_path), class: "btn btn-lg btn-primary"
+      =link_to 'Use the SALSA as a template', template_document_path(lms_course_id: @course_id, id: @existing_document.template_id, org_path: params[:org_path], relink: true), {class: 'btn btn-lg btn-primary'}
+
+    =link_to "Create a new SALSA", new_document_path(lms_course_id: @course_id, org_path: params[:org_path], name: @lms_course['name']), class: "btn btn-lg btn-success"

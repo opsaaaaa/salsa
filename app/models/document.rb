@@ -1,4 +1,6 @@
 class Document < ApplicationRecord
+  include RecordComparison
+
   has_paper_trail
 
   before_validation :normalize_blank_values, :ensure_ids
@@ -196,10 +198,26 @@ class Document < ApplicationRecord
     populate_default_name
   end
 
-  def link_course course_id
-    document_exists = Document.find_by lms_course_id: course_id, organization_id: self.organization.root.self_and_descendants
-    return nil if document_exists.present? || !self.lms_course_id.nil?
-    self.lms_course_id = course_id
+  def link_course lms_course_id , relink: false, document: nil
+    document ||= Document.find_by( lms_course_id: lms_course_id, organization_id: self.organization.root.self_and_descendants )
+    if document.blank? || relink
+      document&.lms_course_id = nil
+      document&.save
+      self.lms_course_id = lms_course_id
+      return self.save
+    end
+    #   self.lms_course_id = lms_course_id
+    #   return self.save
+    # end
+    return false
+  end
+
+  def steal_course_from old_course_doc
+    self.steal_record :lms_course_id, old_course_doc
+    # self.lms_course_id = old_course_doc.lms_course_id
+    # old_course_doc.lms_course_id = nil
+    # old_course_doc.save
+    self
   end
 
   protected
