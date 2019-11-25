@@ -1,33 +1,31 @@
-- if !existing_document? || params[:relink]
-  .container.text-left
-    %h1 
-      Select a SALSA for the 
-      %b=@course_id 
-      Course
-    %p.text-justify 
-      ="Create a New document for this course, or Link it to an existing document, or use another document as a Template."
-    .pull-right
-      - relink_locals = {has_existing_document: has_existing_document}
-      =render partial: "relink", locals: relink_locals
-
-    - document_list_locals = { |
-      links: [:view, :link, :template], |
-      columns: [:links, :name, :dates, :lms_course_id], |
-      classes: {template: "btn btn-primary pull-right", link: "btn btn-small btn-info course_select_links"}, |
-      titles: {template: "Use as Template", link: "Link Course", view: "Preview"}, |
-      course_id: @course_id, |
-      relink: params[:relink] |
-      } |
-
-    = render partial: '/admin_documents/list', locals: document_list_locals
-
-- else
-  .container
-    %h1 
-      The 
-      %b=@course_id 
-      Course already exists
+-# if !existing_document? || params[:relink]
+.container.text-left
+  .row
+    - if !existing_document?
+      %h1 
+        Select a SALSA for the 
+        %b=@course_id 
+        Course
+    - else
+      %h1 
+        The 
+        %b=@course_id 
+        Course already exists.
     %p
-      ="Go to the existing SALSA, or use it as a Template for a new document, or Create a SALSA from scratch"
+      ="Go to the existing SALSA, or use it as a Template for a new document, or Create a SALSA from scratch."
+  .row
     - relink_locals = {has_existing_document: has_existing_document}
     =render partial: "relink", locals: relink_locals
+
+  - document_list_locals = { |
+    links: [:view, :link, :template], |
+    columns: [:links, :name, :dates, :lms_course_id], |
+    classes: {template: "btn btn-primary pull-right", link: "btn btn-small btn-info course_select_links"}, |
+    titles: {template: "Use as Template", link: "Link Course", view: "Preview"}, |
+    course_id: @course_id, |
+    relink: params[:relink] |
+    } |
+  - if @documents
+    .text-left.row
+      %h3 My Documents
+      = render partial: '/admin_documents/list', locals: document_list_locals

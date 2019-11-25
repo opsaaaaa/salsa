@@ -12,7 +12,7 @@
 - @time_zone ||= @organization.setting("time_zone")
 
 = paginate @documents
-%table.table.table-responsive.striped
+%table.table.table-responsive
   %thead
     %tr
       - if columns[:move_documents]
@@ -70,7 +70,7 @@
             = timestamp_tag document.created_at, prefix: "Created", time_zone: @time_zone
 
         - if columns[:links]
-          %td{nowrap: ''}
+          %td{scope:"row", nowrap: ''}
             #document_links
             .ul.horizontal-list
               

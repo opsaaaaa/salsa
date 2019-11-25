@@ -115,12 +115,11 @@ class DocumentsController < ApplicationController
     get_lms_course @organization.setting('lms_authentication_source')
     document = @organization.documents.find_by edit_id: params[:id]
     if document.link_course params[:lms_course_id], relink: params[:relink]
-      flash[:notice] = "Successfully linked the #{params[:lms_course_id]} course id to this document"
       redirect_to edit_document_or_lms_course_path(
         condition: !params[:course],
         id: document.edit_id, 
         lms_course_id: params[:lms_course_id]
-      )
+      ), notice: "Successfully linked the #{params[:lms_course_id]} course id to this document"
     else
       flash[:error] = "Failed to link #{params[:lms_course_id]}"
       return redirect_to lms_course_select_path org_path: params[:org_path], lms_course_id: params[:lms_course_id]
@@ -133,11 +132,13 @@ class DocumentsController < ApplicationController
     @course_id = params[:lms_course_id]
     @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
     user = current_user
+    flash[:warning] = "The #{@course_id} course belongs to the '#{@existing_document.organization.name}' organization, not '#{@organization.name}'. By clicking 
+    'create new' or 'use as template' you will steal the course from the existing document." if existing_document? && @organization.id != @existing_document.organization.id
     @documents = Document.where(
       "user_id = :user_id and organization_id = :organization_id and documents.updated_at <> documents.created_at", 
       {user_id: user.id, organization_id: @organization})
       .order(updated_at: :desc, created_at: :desc).page(page).per(per)
-    return render layout: 'relink', template: '/documents/course_select', locals: {
+    return render layout: 'relink', template: '/documents/course_select', notice: "hi", locals: {
       has_existing_document: @existing_document && !@existing_document&.same_record_as?(@document)
     }
   end
@@ -388,7 +389,7 @@ class DocumentsController < ApplicationController
       return redirect_to lms_course_document_path(lms_course_id: params[:lms_course_id], org_path: params[:org_path])
     else
       session.delete('relink_'+params[:lms_course_id]) if session['relink_'+params[:lms_course_id]]
-      return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id], relink: true 
+      return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id], relink: true
     end
   end
 
