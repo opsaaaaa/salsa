@@ -206,20 +206,9 @@ class Document < ApplicationRecord
       self.lms_course_id = lms_course_id
       return self.save
     end
-    #   self.lms_course_id = lms_course_id
-    #   return self.save
-    # end
     return false
   end
-
-  def steal_course_from old_course_doc
-    self.steal_record :lms_course_id, old_course_doc
-    # self.lms_course_id = old_course_doc.lms_course_id
-    # old_course_doc.lms_course_id = nil
-    # old_course_doc.save
-    self
-  end
-
+  
   protected
 
   def populate_default_name
