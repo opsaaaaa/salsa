@@ -3,6 +3,7 @@ class AdminDocumentsController < AdminDocumentsBaseController
   before_action :require_designer_or_supervisor_permissions
   before_action :require_admin_permissions, only: [:index, :destroy]
   before_action :set_paper_trail_whodunnit
+  before_action :get_organization
 
   layout 'admin'
 
