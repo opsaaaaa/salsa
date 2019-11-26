@@ -4,7 +4,7 @@ class DocumentsController < ApplicationController
   include DocumentsHelper
   layout 'view'
 
-  before_action :get_organization, olny: [:course_select, :course_link]
+  before_action :get_organization, only: [:course_select, :course_link]
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
