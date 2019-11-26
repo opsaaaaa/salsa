@@ -94,6 +94,13 @@
         <%= f.label :document_search_includes_sub_organizations, "Include Sub-Organizations in Document Searches #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
       </div>
     </div>
+
+    <div class="form-group">
+      <div class="controls">
+        <%= f.check_box :allow_existing_salsas_for_new_courses, class: '' , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true %>
+        <%= f.label :allow_existing_salsas_for_new_courses, "Allow users to select from their documents for new courses #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label" %>
+      </div>
+    </div>
     
     <div class="form-group">
       <div class="controls">
