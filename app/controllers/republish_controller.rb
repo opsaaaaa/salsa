@@ -2,7 +2,7 @@ require 'net/http'
 class RepublishController < ApplicationController
   before_action :require_organization_admin_permissions
   before_action :get_organization
-  before_action :get_org_time_zone, olny: [:preview]
+  before_action :get_org_time_zone, only: [:preview]
   before_action -> {@root_org = @organization.root}
   def preview
     get_documents

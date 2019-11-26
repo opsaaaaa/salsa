@@ -1,4 +1,6 @@
 class Document < ApplicationRecord
+  include RecordComparison
+
   has_paper_trail
 
   before_validation :normalize_blank_values, :ensure_ids
@@ -196,10 +198,16 @@ class Document < ApplicationRecord
     populate_default_name
   end
 
-  def link_course course_id
-    document_exists = Document.find_by lms_course_id: course_id, organization_id: self.organization.root.self_and_descendants
-    return nil if document_exists.present? || !self.lms_course_id.nil?
-    self.lms_course_id = course_id
+  def link_course lms_course_id:, force: false, token: nil, document: nil
+    document ||= Document.find_by( lms_course_id: lms_course_id, organization_id: self.organization.root.self_and_descendants )
+    force ||= document.separate_record_from?(Document.find_by( view_id: token)) if token && document
+    if document.blank? || force
+      document&.lms_course_id = nil
+      document&.save
+      self.lms_course_id = lms_course_id
+      return self.save
+    end
+    return false
   end
 
   protected

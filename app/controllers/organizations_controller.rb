@@ -243,6 +243,7 @@ class OrganizationsController < AdminController
         :time_zone, 
         :reports_use_document_meta, 
         :document_search_includes_sub_organizations,
+        :allow_existing_salsas_for_new_courses,
         :name_reports_by, 
         :default_account_filter, 
         default_account_filter: [:account_filter]
