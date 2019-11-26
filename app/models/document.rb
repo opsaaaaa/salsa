@@ -200,7 +200,7 @@ class Document < ApplicationRecord
 
   def link_course lms_course_id:, force: false, token: nil, document: nil
     document ||= Document.find_by( lms_course_id: lms_course_id, organization_id: self.organization.root.self_and_descendants )
-    force ||= document.separate_record_from?(Document.find_by( view_id: token)) if token && document
+    force ||= !document.same_record_as?(Document.find_by( view_id: token)) if token && document
     if document.blank? || force
       document&.lms_course_id = nil
       document&.save
