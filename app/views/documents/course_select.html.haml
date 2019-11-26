@@ -8,11 +8,9 @@
           Course
       - else
         %h1 
-          The 
-          %b=@course_id 
-          Course already exists.
-      %p
-        ="Go to the existing SALSA, or use it as a Template for a new document, or Create a SALSA from scratch."
+          This SALSA is already linked to course  
+          %b=@course_id
+          ="."
     .row
       - relink_locals = {has_existing_document: has_existing_document}
       =render partial: "relink", locals: relink_locals

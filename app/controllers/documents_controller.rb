@@ -4,7 +4,7 @@ class DocumentsController < ApplicationController
   include DocumentsHelper
   layout 'view'
 
-  before_action :get_organization, only: [:course_select, :course_link]
+  before_action :get_organization, only: [:course_select, :course_link, :template]
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
@@ -132,19 +132,20 @@ class DocumentsController < ApplicationController
     get_lms_course @organization.setting('lms_authentication_source')
     @course_id = params[:lms_course_id]
     @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
+    
     user = current_user
-    
-    @documents = Document.where(
-      "user_id = :user_id and organization_id = :organization_id and documents.updated_at <> documents.created_at", 
-      {user_id: user.id, organization_id: @organization}).order(updated_at: :desc, created_at: :desc).page(page).per(per)
-    
+    if user
+      @documents = Document.where(
+        "user_id = :user_id and organization_id = :organization_id and documents.updated_at <> documents.created_at", 
+        {user_id: user.id, organization_id: @organization}).order(updated_at: :desc, created_at: :desc).page(page).per(per)
+    end
+
     if !existing_document? && !allow_existing_salsas_for_new_courses && !params[:document_token] && !params[:canvas]
       redirect_to new_document_path(
         lms_course_id: @course_id, 
         org_path: params[:org_path], 
         name: @lms_course['name'], 
         relink: params[:relink])
-
     else
       
       if existing_document?
