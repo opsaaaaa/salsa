@@ -1,30 +1,31 @@
-.container.text-left
-  .row
-    - if !existing_document?
-      %h1 
-        Select a SALSA for the 
-        %b=@course_id 
-        Course
-    - else
-      %h1 
-        The 
-        %b=@course_id 
-        Course already exists.
-    %p
-      ="Go to the existing SALSA, or use it as a Template for a new document, or Create a SALSA from scratch."
-  .row
-    - relink_locals = {has_existing_document: has_existing_document}
-    =render partial: "relink", locals: relink_locals
+-if existing_document_within_organization? || has_role("organization_admin") || params[:document_token]
+  .container.text-left
+    .row
+      - if !existing_document?
+        %h1 
+          Select a SALSA for the 
+          %b=@course_id 
+          Course
+      - else
+        %h1 
+          The 
+          %b=@course_id 
+          Course already exists.
+      %p
+        ="Go to the existing SALSA, or use it as a Template for a new document, or Create a SALSA from scratch."
+    .row
+      - relink_locals = {has_existing_document: has_existing_document}
+      =render partial: "relink", locals: relink_locals
 
-  - document_list_locals = { |
-    links: [:view, :link, :template], |
-    columns: [:links, :name, :dates, :lms_course_id], |
-    classes: {template: "btn btn-primary pull-right", link: "btn btn-small btn-info course_select_links"}, |
-    titles: {template: "Use as Template", link: "Link Course", view: "Preview"}, |
-    course_id: @course_id, |
-    relink: params[:relink] |
-    } |
-  - if @documents && allow_existing_salsas_for_new_courses
-    .text-left.row
-      %h3 My Documents
-      = render partial: '/admin_documents/list', locals: document_list_locals
+    - document_list_locals = { |
+      links: [:view, :link, :template], |
+      columns: [:links, :name, :dates, :lms_course_id], |
+      classes: {template: "btn btn-primary pull-right", link: "btn btn-small btn-info course_select_links"}, |
+      titles: {template: "Use as Template", link: "Link Course", view: "Preview"}, |
+      course_id: @course_id, |
+      relink: params[:relink] |
+      } |
+    - if @documents && allow_existing_salsas_for_new_courses
+      .text-left.row
+        %h3 My Documents
+        = render partial: '/admin_documents/list', locals: document_list_locals

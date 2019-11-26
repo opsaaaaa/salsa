@@ -30,4 +30,9 @@ module DocumentsHelper
     end
   end
 
+  def existing_document_within_organization? org: @organization, doc: @existing_document
+    @is_existing_document_within_organization ||= @organization&.id == doc&.organization&.id
+  end
+
+
 end

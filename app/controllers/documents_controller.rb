@@ -148,7 +148,7 @@ class DocumentsController < ApplicationController
     else
       
       if existing_document?
-        if @organization.id != @existing_document.organization.id
+        if !existing_document_within_organization?
           flash[:error] = "Please contact an organization admin: The #{@course_id} course belongs to the 
           '#{@existing_document.organization.name}' organization, not '#{@organization.name}'."
         elsif !params[:document_token] && !force_course_link?
