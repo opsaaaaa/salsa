@@ -1,4 +1,4 @@
--if existing_document_within_organization? || has_role("organization_admin") || params[:document_token]
+-if !existing_document? || existing_document_within_organization? || has_role("organization_admin") || params[:document_token]
   .container.text-left
     .row
       - if !existing_document?
