@@ -14,4 +14,20 @@ module DocumentsHelper
     @has_existing_document ||= @existing_document && !@existing_document&.same_record_as?(@document)
   end
 
+  def force_course_link?
+    has_role("organization_admin") && params[:relink] == "true"
+  end
+
+  def link_document_course document
+    if params[:lms_course_id] && document
+      if !document.link_course( lms_course_id: params[:lms_course_id], force: force_course_link?, token: params[:document_token])
+        flash[:error] = "Failed to link #{params[:lms_course_id]}"
+        false
+      else
+        flash[:notice] = "Successfully linked the #{params[:lms_course_id]} course id to this document"
+        true
+      end
+    end
+  end
+
 end

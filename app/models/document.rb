@@ -198,9 +198,10 @@ class Document < ApplicationRecord
     populate_default_name
   end
 
-  def link_course lms_course_id , relink: false, document: nil
+  def link_course lms_course_id:, force: false, token: nil, document: nil
     document ||= Document.find_by( lms_course_id: lms_course_id, organization_id: self.organization.root.self_and_descendants )
-    if document.blank? || relink
+    force ||= document.separate_record_from?(Document.find_by( view_id: token)) if token && document
+    if document.blank? || force
       document&.lms_course_id = nil
       document&.save
       self.lms_course_id = lms_course_id
@@ -208,7 +209,7 @@ class Document < ApplicationRecord
     end
     return false
   end
-  
+
   protected
 
   def populate_default_name

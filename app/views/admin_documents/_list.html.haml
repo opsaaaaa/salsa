@@ -56,7 +56,7 @@
         
         - if columns[:lms_course_id] && !lms_authentication_source.nil?
           - if links[:link] && document.lms_course_id.blank?
-            %td= link_to titles[:link] || "Link", link_lms_course_path(lms_course_id:course_id,id:document.edit_id, org_path: org_path, relink: relink ), class: classes[:link], 'data-document-id'=>document.id 
+            %td= link_to titles[:link] || "Link", link_lms_course_path(lms_course_id:course_id,id:document.view_id, org_path: org_path, relink: relink ), class: classes[:link], 'data-document-id'=>document.id 
           - else
             %td{nowrap: ''}= document.lms_course_id
       

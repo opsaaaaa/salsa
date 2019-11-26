@@ -24,7 +24,7 @@
     course_id: @course_id, |
     relink: params[:relink] |
     } |
-  - if @documents
+  - if @documents && allow_existing_salsas_for_new_courses
     .text-left.row
       %h3 My Documents
       = render partial: '/admin_documents/list', locals: document_list_locals
