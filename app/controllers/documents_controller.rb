@@ -22,7 +22,6 @@ class DocumentsController < ApplicationController
     @document = Document.new
     verify_org
 
-    @document.organization_id = @organization.id if @organization.present?
     @document.name = params[:name] if params[:name]
     link_document_course(@document)
     @document.save!
@@ -132,8 +131,10 @@ class DocumentsController < ApplicationController
     get_lms_course @organization.setting('lms_authentication_source')
     @course_id = params[:lms_course_id]
     @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
-    
+
+    @lms_course = nil
     user = current_user
+    @existing_document = nil
     if user
       @documents = Document.where(
         "user_id = :user_id and organization_id = :organization_id and documents.updated_at <> documents.created_at", 
@@ -144,7 +145,7 @@ class DocumentsController < ApplicationController
       redirect_to new_document_path(
         lms_course_id: @course_id, 
         org_path: params[:org_path], 
-        name: @lms_course['name'], 
+        name: get_course_name, 
         relink: params[:relink])
     else
       @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
@@ -181,6 +182,7 @@ class DocumentsController < ApplicationController
     get_lms_course lms_authentication_source
 
     if @lms_course
+      @lms_course['name'] = "jojo"
       # see if there is a organization matched for course
       if @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
         return redirect_to lms_account_course_document_path
@@ -195,7 +197,7 @@ class DocumentsController < ApplicationController
 
       if @document.blank? || !token_matches? 
         session.delete('relink_'+params[:lms_course_id]) if session['relink_'+params[:lms_course_id]]
-        return redirect_to lms_course_select_path(org_path: params[:org_path], lms_course_id: params[:lms_course_id], document_token: params[:document_token])
+        return redirect_to lms_course_select_path(org_path: params[:org_path], lms_course_id: params[:lms_course_id], document_token: params[:document_token], name: @lms_course['name'])
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]
@@ -245,7 +247,6 @@ class DocumentsController < ApplicationController
     verify_org
     document = template.dup
     document.reset_ids
-    document.organization_id = @organization.id if @organization.present?
     link_document_course(document)
     document.save!
     redirect_to edit_document_or_lms_course_path(
