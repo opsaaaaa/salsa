@@ -20,7 +20,6 @@ class DocumentsController < ApplicationController
 
   def new
     @document = Document.new
-    verify_org
 
     @document.organization_id = @organization.id if @organization.present?
     @document.name = params[:name] if params[:name]
@@ -182,9 +181,10 @@ class DocumentsController < ApplicationController
 
     if @lms_course
       # see if there is a organization matched for course
-      document_organization = @organization.self_and_descendants.where lms_account_id: @lms_course['account_id'].to_s
-      @organization = document_organization.first if document_organization.count == 1
-
+      if @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
+        return redirect_to lms_account_course_document_path
+      end
+      
       @document = Document.find_by lms_course_id: params[:lms_course_id], organization: @organization.self_and_descendants
 
       # if no document_token is in the params, but there is a relink value matching the current course, use that, then clear it
@@ -194,8 +194,7 @@ class DocumentsController < ApplicationController
 
       if @document.blank? || !token_matches? 
         session.delete('relink_'+params[:lms_course_id]) if session['relink_'+params[:lms_course_id]]
-        params.permit!
-        return redirect_to lms_course_select_path(params)
+        return redirect_to lms_course_select_path(org_path: params[:org_path], lms_course_id: params[:lms_course_id], document_token: params[:document_token])
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]
