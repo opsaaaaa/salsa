@@ -20,6 +20,7 @@ class DocumentsController < ApplicationController
 
   def new
     @document = Document.new
+    verify_org
 
     @document.organization_id = @organization.id if @organization.present?
     @document.name = params[:name] if params[:name]
