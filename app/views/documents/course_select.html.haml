@@ -8,9 +8,9 @@
           Course
       - else
         %h1 
-          This SALSA is already linked to course  
-          %b=@course_id
-          ="."
+          This SALSA is linked to another canvas course.
+
+
     .row
       - relink_locals = {has_existing_document: has_existing_document}
       =render partial: "relink", locals: relink_locals
