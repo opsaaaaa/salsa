@@ -147,6 +147,7 @@ class DocumentsController < ApplicationController
         name: @lms_course['name'], 
         relink: params[:relink])
     else
+      @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
       
       if existing_document?
         if !existing_document_within_organization?
