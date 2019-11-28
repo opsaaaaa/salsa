@@ -132,9 +132,7 @@ class DocumentsController < ApplicationController
     @course_id = params[:lms_course_id]
     @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
 
-    @lms_course = nil
     user = current_user
-    @existing_document = nil
     if user
       @documents = Document.where(
         "user_id = :user_id and organization_id = :organization_id and documents.updated_at <> documents.created_at", 
@@ -149,7 +147,6 @@ class DocumentsController < ApplicationController
         relink: params[:relink])
     else
       @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
-      
       if existing_document? && has_role("organization_admin")
         if !existing_document_within_organization?
           flash[:error] = "The #{@course_id} course belongs to the 
