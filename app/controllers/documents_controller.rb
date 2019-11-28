@@ -150,12 +150,12 @@ class DocumentsController < ApplicationController
     else
       @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
       
-      if existing_document?
+      if existing_document? && has_role("organization_admin")
         if !existing_document_within_organization?
-          flash[:error] = "Please contact an organization admin: The #{@course_id} course belongs to the 
+          flash[:error] = "The #{@course_id} course belongs to the 
           '#{@existing_document.organization.name}' organization, not '#{@organization.name}'."
         elsif !params[:document_token] && !force_course_link?
-          flash[:error] = "Please contact an organization admin: A document with #{@course_id} already exists."
+          flash[:error] = "A document with #{@course_id} already exists."
         end
       end
       
