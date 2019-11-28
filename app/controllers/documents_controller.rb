@@ -179,7 +179,6 @@ class DocumentsController < ApplicationController
     get_lms_course lms_authentication_source
 
     if @lms_course
-      @lms_course['name'] = "jojo"
       # see if there is a organization matched for course
       if @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
         return redirect_to lms_account_course_document_path
