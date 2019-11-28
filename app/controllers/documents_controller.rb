@@ -20,8 +20,8 @@ class DocumentsController < ApplicationController
 
   def new
     @document = Document.new
+    verify_org
 
-    @document.organization_id = @organization.id if @organization.present?
     @document.name = params[:name] if params[:name]
     link_document_course(@document)
     @document.save!
@@ -131,7 +131,7 @@ class DocumentsController < ApplicationController
     get_lms_course @organization.setting('lms_authentication_source')
     @course_id = params[:lms_course_id]
     @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
-    
+
     user = current_user
     if user
       @documents = Document.where(
@@ -143,18 +143,12 @@ class DocumentsController < ApplicationController
       redirect_to new_document_path(
         lms_course_id: @course_id, 
         org_path: params[:org_path], 
-        name: @lms_course['name'], 
+        name: get_course_name, 
         relink: params[:relink])
     else
       @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
-      
       if existing_document?
-        if !existing_document_within_organization?
-          flash[:error] = "Please contact an organization admin: The #{@course_id} course belongs to the 
-          '#{@existing_document.organization.name}' organization, not '#{@organization.name}'."
-        elsif !params[:document_token] && !force_course_link?
-          flash[:error] = "Please contact an organization admin: A document with #{@course_id} already exists."
-        end
+        flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue."
       end
       
       render layout: 'relink', template: '/documents/course_select', notice: "hi", locals: {
@@ -194,7 +188,7 @@ class DocumentsController < ApplicationController
 
       if @document.blank? || !token_matches? 
         session.delete('relink_'+params[:lms_course_id]) if session['relink_'+params[:lms_course_id]]
-        return redirect_to lms_course_select_path(org_path: params[:org_path], lms_course_id: params[:lms_course_id], document_token: params[:document_token])
+        return redirect_to lms_course_select_path(org_path: params[:org_path], lms_course_id: params[:lms_course_id], document_token: params[:document_token], name: @lms_course['name'])
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]
@@ -244,7 +238,6 @@ class DocumentsController < ApplicationController
     verify_org
     document = template.dup
     document.reset_ids
-    document.organization_id = @organization.id if @organization.present?
     link_document_course(document)
     document.save!
     redirect_to edit_document_or_lms_course_path(

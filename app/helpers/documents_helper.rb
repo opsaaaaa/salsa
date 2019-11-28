@@ -33,17 +33,22 @@ module DocumentsHelper
   def existing_document_within_organization? org: @organization, doc: @existing_document
     @is_existing_document_within_organization ||= @organization&.id == doc&.organization&.id
   end
-  
+
   def lms_account_course_document_path
     org = get_org_by_lms_account_id
     params.permit!
-    lms_course_document_path( {org_path: org.path, lms_course_id: params[:lms_course_id]}.merge(params.except(:lms_course_id,:org_path, :action, :controller)))
+    lms_course_document_path( {org_path: org&.path || params[:org_path], lms_course_id: params[:lms_course_id]}.merge(params.except(:lms_course_id,:org_path, :action, :controller)))
   end
 
   def get_org_by_lms_account_id
     get_organization unless @organization
     get_lms_course( @organization.root_org_setting('lms_authentication_source') ) unless @lms_course
     @organization.root.self_and_descendants.find_by_lms_account_id(@lms_course['account_id'].to_s)
+  end
+
+  def get_course_name
+    return @lms_course['name'] if @lms_courses
+    return params[:name] || params[:lms_course_id] || "Unnamed"
   end
 
 end
