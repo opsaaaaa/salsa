@@ -148,7 +148,7 @@ class DocumentsController < ApplicationController
     else
       @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
       if existing_document?
-        flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue"
+        flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue."
       end
       
       render layout: 'relink', template: '/documents/course_select', notice: "hi", locals: {
