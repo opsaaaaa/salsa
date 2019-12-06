@@ -111,9 +111,12 @@ function liteOff(x) {
 
         if(elementText === '') {
           elementText = '{{'+reference+'}}';
+          if (element.text() == '' || element.text().search(/\{\{[^\}]+\}\}/) > -1) {
+            element.text(elementText);
+          }
+        } else {
+          element.text(elementText);
         }
-
-        element.text(elementText);
 
         if(elementText && elementText.search(/\{\{[^\}]+\}\}/) < 0) {
           element.removeClass('editable').removeAttr('tabindex');
