@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190930174239) do
+ActiveRecord::Schema.define(version: 20191125233656) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -167,6 +167,7 @@ ActiveRecord::Schema.define(version: 20190930174239) do
     t.string "name_reports_by"
     t.string "time_zone"
     t.boolean "document_search_includes_sub_organizations", default: false, null: false
+    t.boolean "allow_existing_salsas_for_new_courses", default: false
     t.index ["depth"], name: "index_organizations_on_depth"
     t.index ["lft"], name: "index_organizations_on_lft"
     t.index ["lms_id"], name: "index_organizations_on_lms_id"

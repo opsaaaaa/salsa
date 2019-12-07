@@ -1,16 +1,17 @@
 require 'net/http'
 
 class DocumentsController < ApplicationController
-
+  include DocumentsHelper
   layout 'view'
 
-  before_action :get_organization, olny: [:course_select] 
+  before_action :get_organization, only: [:course_select, :course_link, :template]
   before_action :redirect_to_sub_org, only:[:index,:new,:show,:edit,:course, :course_list]
   before_action :x_frame_allow_all, only:[:new,:show,:edit,:course]
   before_action :lms_connection_information, :only => [:update, :edit, :course, :course_list]
   before_action :lookup_document, :only => [:edit, :update]
   before_action :init_view_folder, :only => [:new, :edit, :update, :show, :course]
   before_action :set_paper_trail_whodunnit
+  before_action :validate_can_use_course_edit_token, only: [:course_select, :new, :course_link, :template] 
 
   def index
     redirect_to new_document_path(org_path: params[:org_path])
@@ -18,20 +19,20 @@ class DocumentsController < ApplicationController
 
 
   def new
-    if can_use_edit_token(params[:lms_course_id])
-      @document = Document.new
+    @document = Document.new
+    verify_org
 
-      # if an lms course ID is specified, capture it with the document
-      @document[:lms_course_id] = params[:lms_course_id]
-
-      verify_org
-
-      @document.save!
-
-      redirect_to edit_document_path(:id => @document.edit_id, :org_path => params[:org_path], :batch_token => params[:batch_token])
-    else
-      redirect_to root_path(org_path: params[:org_path]), :flash => { :error => "You are not authorized to create a document" }
-    end
+    @document.name = params[:name] if params[:name]
+    link_document_course(@document)
+    @document.save!
+    
+    redirect_to edit_document_or_lms_course_path(
+      condition: params[:lms_course_id] && @document.lms_course_id,
+      lms_course_id: @document.lms_course_id, 
+      id: @document.edit_id,
+      batch_token: params[:batch_token],
+      org_path: params[:org_path]
+    )
   end
 
   def show
@@ -44,11 +45,12 @@ class DocumentsController < ApplicationController
     end
 
     if document_template != nil
-      document = document_template.dup
-      document.reset_ids
-      link_course_to_document document, params[:lms_course_id]
-      document.save!
-      redirect_to edit_document_path(:id => document.edit_id, :org_path => params[:org_path], :batch_token => params[:batch_token])
+      redirect_to template_document_path(
+        relink: true,
+        lms_course_id: params[:lms_course_id],
+        id: document_template.template_id, 
+        org_path: params[:org_path], 
+        batch_token: params[:batch_token])
       return
     end
     raise ActionController::RoutingError.new('Not Found') unless document || @document
@@ -108,30 +110,52 @@ class DocumentsController < ApplicationController
   end
 
   def course_link
-    # populate a documents empty course id
+    # course_link populates a documents empty course id
     get_lms_course @organization.setting('lms_authentication_source')
-    
-    @document = Document.find_by edit_id: params[:edit_id], organization_id: @organization.self_and_descendants
-    if link_course_to_document @document, params[:lms_course_id]
-      if @document.save!
-        flash[:notice] = "Successfully linked the #{params[:lms_course_id]} course id to this document"
-        return redirect_to lms_course_document_path org_path: params[:org_path], lms_course_id: @document.lms_course_id
-      else
-        flash[:error] = "Failed to link #{params[:lms_course_id]}"
-      end
+    document = @organization.documents.find_by view_id: params[:id]
+
+    if link_document_course(document)
+      redirect_to edit_document_or_lms_course_path(
+        condition: !params[:course],
+        id: document.edit_id, 
+        lms_course_id: params[:lms_course_id]
+      )
+    else
+      return redirect_to lms_course_select_path org_path: params[:org_path], lms_course_id: params[:lms_course_id]
     end
-    redirect_to lms_course_select_path lms_course_id: params[:lms_course_id] 
   end
 
   def course_select page=params[:page], per=15
-    # select which document to link a couse to
+    # select_course gives the user a dialog for what to do with a course that has no document yet
+    allow_existing_salsas_for_new_courses = @organization.root_org_setting("allow_existing_salsas_for_new_courses")
+    get_lms_course @organization.setting('lms_authentication_source')
     @course_id = params[:lms_course_id]
     @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
-    flash[:error] = "A document with the #{@course_id} course id already exists" if @existing_document.present?
+
     user = current_user
-    @documents = Document.where(user_id: user.id, organization_id: @organization.self_and_descendants)
-      .order(updated_at: :desc, created_at: :desc).page(page).per(per)
-    render layout: 'relink', template: '/documents/course_select'
+    if user
+      @documents = Document.where(
+        "user_id = :user_id and organization_id = :organization_id and documents.updated_at <> documents.created_at", 
+        {user_id: user.id, organization_id: @organization}).order(updated_at: :desc, created_at: :desc).page(page).per(per)
+    end
+
+    if !existing_document? && !allow_existing_salsas_for_new_courses && !params[:document_token] && !params[:canvas]
+      redirect_to new_document_path(
+        lms_course_id: @course_id, 
+        org_path: params[:org_path], 
+        name: get_course_name, 
+        relink: params[:relink])
+    else
+      @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
+      if existing_document?
+        flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue."
+      end
+      
+      render layout: 'relink', template: '/documents/course_select', notice: "hi", locals: {
+        has_existing_document: @existing_document && !@existing_document&.same_record_as?(@document),
+        allow_existing_salsas_for_new_courses: allow_existing_salsas_for_new_courses}
+
+    end
   end
 
   def course
@@ -146,13 +170,15 @@ class DocumentsController < ApplicationController
       end
     end
     
-    get_lms_course @organization.setting('lms_authentication_source')
+    lms_authentication_source = @organization.setting('lms_authentication_source')
+    get_lms_course lms_authentication_source
 
     if @lms_course
       # see if there is a organization matched for course
-      document_organization = @organization.self_and_descendants.where lms_account_id: @lms_course['account_id'].to_s
-      @organization = document_organization.first if document_organization.count == 1
-
+      if @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
+        return redirect_to lms_account_course_document_path
+      end
+      
       @document = Document.find_by lms_course_id: params[:lms_course_id], organization: @organization.self_and_descendants
 
       # if no document_token is in the params, but there is a relink value matching the current course, use that, then clear it
@@ -160,9 +186,9 @@ class DocumentsController < ApplicationController
         params[:document_token] = session['relink_'+params[:lms_course_id]]
       end
 
-      if @document.blank? 
-        return find_or_create_document(session, params, @organization, @lms_course) unless token_matches?
-        return redirect_to lms_course_select_path lms_course_id: params[:lms_course_id]
+      if @document.blank? || !token_matches? 
+        session.delete('relink_'+params[:lms_course_id]) if session['relink_'+params[:lms_course_id]]
+        return redirect_to lms_course_select_path(org_path: params[:org_path], lms_course_id: params[:lms_course_id], document_token: params[:document_token], name: @lms_course['name'])
       end
 
       @document = @document.versions[params[:version].to_i].reify if params[:version]
@@ -200,6 +226,27 @@ class DocumentsController < ApplicationController
     @lms_courses = @lms_client.get("/api/v1/courses", per_page: 20, page: @page) if @lms_client.token
 
     render :layout => 'organizations', :template => '/documents/from_lms'
+  end
+
+  def template
+    # duplicate the template and save it as a new document.
+    template = Document.find_by template_id: params[:id], organization_id: @organization.root.self_and_descendants
+    unless template
+      return render :file => "public/404.html", :status => :not_found, :layout => false
+    end
+    @document = template
+    verify_org
+    document = template.dup
+    document.reset_ids
+    link_document_course(document)
+    document.save!
+    redirect_to edit_document_or_lms_course_path(
+      condition: params[:lms_course_id] && document.lms_course_id,
+      id: document.edit_id,
+      lms_course_id: document.lms_course_id,
+      org_path: params[:org_path], 
+      batch_token: params[:batch_token]
+    )
   end
 
   def update
@@ -286,16 +333,13 @@ class DocumentsController < ApplicationController
   end
 
   protected
-  
-  def link_course_to_document document, course_id
-    # populate a documents empty course id
-    if course_id && !document.link_course( course_id)
-      flash[:error] = "A document with the #{course_id} course id already exists"
-      return false
-    end
-    return true
-  end
 
+  def validate_can_use_course_edit_token lms_course_id = params[:lms_course_id]
+    unless can_use_edit_token(lms_course_id)
+      return redirect_to root_path(org_path: params[:org_path]), :flash => { :error => "You are not authorized to create a document" }
+    end
+  end
+  
   def token_matches?
     return params[:document_token].blank? || @document&.view_id == params[:document_token]
   end
@@ -303,7 +347,8 @@ class DocumentsController < ApplicationController
   def get_lms_course lms_authentication_source
     if lms_authentication_source == 'LTI'
       if is_lti_authenticated_course?(params[:lms_course_id])
-        @lms_course = session[:lti_info]
+        lti_course_id = session[:lti_info]['course_id']
+        @lms_course = {'name'=>lti_course_id,'id'=>lti_course_id}.merge(session[:lti_info])
       else
         raise ActionController::RoutingError.new('Not Authorized')
       end
@@ -345,47 +390,12 @@ class DocumentsController < ApplicationController
     end
   end
 
-  def find_or_create_document session, params, organization, lms_course
-    @document = Document.find_by view_id: params[:document_token]
-    
-    existing_doc = Document.find_by(organization: organization, lms_course_id: lms_course["id"])
-      # we need to setup the course and associate it with canvas
-    if params[:document_token] && params[:canvas] && @document
-      if existing_doc
-        existing_doc.lms_course_id = nil
-        existing_doc.save!
-      end
-      @document = Document.new(name: lms_course['name'], lms_course_id: params[:lms_course_id], organization: organization, payload: @document[:payload])
-      @document.save!
-
-      return redirect_to lms_course_document_path(lms_course_id: params[:lms_course_id], org_path: params[:org_path])
-    elsif params[:document_token]
-      # show options to user (make child, make new)
-      @template_url = template_url(@document) if @document
-      if existing_doc && existing_doc.id != @document&.id
-        has_existing_document = true
-      else
-        #existing_doc same as current_document
-        has_existing_document = false
-      end
-      #clear the document token out
-      session.delete('relink_'+params[:lms_course_id])
-      return render :layout => 'relink', :template => '/documents/relink', locals: {has_existing_document: has_existing_document, lms_course_id: params[:lms_course_id]}
-    end
-
-    @document = Document.new(name: @lms_course['name'], lms_course_id: params[:lms_course_id], organization: @organization)
-    @document.save!
-
-    session.delete('relink_'+params[:lms_course_id]) if session['relink_'+params[:lms_course_id]]
-    return render :layout => 'edit', :template => '/documents/content'
-  end
-
   def can_use_edit_token(lms_course_id = nil)
     is_authorized = is_saml_authenticated_user? && (has_canvas_access_token? || session.key?('lti_info')) && lms_course_id
 
     user = current_user
     workflow_authorized = @organization.root_org_setting("enable_workflows") && user && @document&.workflow_step_id && @document.assigned_to?(user)
-    
+    # TODO: refactor \/this\/
     if workflow_authorized
       true
     elsif @organization.root_org_setting("enable_anonymous_actions")

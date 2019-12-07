@@ -9,6 +9,7 @@ Rails.application.routes.draw do
             post '/auth/shibboleth', to: 'users/saml_sessions#create'
         end
         resources :documents, path: 'SALSA', constraints: { slug: /.*/ }
+        get 'SALSA/:id/template', to: 'documents#template', as: 'template_document', constraints: { slug: /.*/ }
         get 'documents/:document_id/meta', to: 'admin_documents#meta', as: 'document_meta', constraints: { slug: /.*/ }
         scope 'workflow' do
             get 'documents/assignments', as: 'workflow_document_assignments', to: 'workflow_documents#assignments'
@@ -120,7 +121,7 @@ Rails.application.routes.draw do
         get '/lms/courses', to: 'documents#course_list', as: 'lms_course_list'
         get '/lms/courses/:lms_course_id', to: 'documents#course', as: 'lms_course_document'
         get '/lms/courses/:lms_course_id/select', to: 'documents#course_select', as: 'lms_course_select'
-        get '/lms/courses/:lms_course_id/link/:edit_id', to: 'documents#course_link', as: 'lms_course_link'
+        get '/lms/courses/:lms_course_id/link/:id', to: 'documents#course_link', as: 'link_lms_course'
         get '/lms/courses/:lms_course_id/version/:version', to: 'documents#course', as: 'lms_course_document_history'
 
         post '/lti/init', to: 'lti#init', as: 'lti_init'

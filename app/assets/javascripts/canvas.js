@@ -34,7 +34,7 @@ $(function() {
   }
 
   var syncPublishButton = function(courseData) {
-    if(courseData && courseData.id) {
+    if(courseData && courseData.id && $('#skip-lms').html() != 'true') {
       $('#send_canvas').show().removeClass('hidden').append($('<div/>').data('course', courseData).addClass('details').html('<b><em>' + courseData.name.slice(0, 30) + (courseData.name.length > 30 ? '...' : '') + '</em></b>'));
     } else {
       $('#send_canvas').hide().addClass('hidden').find('.details').remove();

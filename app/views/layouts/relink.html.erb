@@ -21,18 +21,12 @@
     <%= javascript_include_tag "admin" %>
   </head>
   <body>
-    <div class="container-fluid">
+    <div class="container">
       <div class="row">
 
-
-
-
         <div class="col-md-12 text-center">
-          <% if flash[:error] %>
-            <div class="alert alert-danger">
-              <%= flash[:error] %>
-            </div>
-          <% end %>
+
+          <%= salsa_partial "home/layout_error" %>
 
           <%= yield %>
         </div>

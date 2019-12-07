@@ -27,7 +27,7 @@ class AdminController < ApplicationController
       :canvas_accounts,
       :canvas_courses
   ]
-  before_action :get_organization, olny: [:login,:authenticate,:search]
+  before_action :get_organization
 
   force_ssl only:[:canvas_courses, :canvas_accounts,:canvas_courses,:canvas_accounts_sync]
 

@@ -5,7 +5,12 @@
   </div>
 <% end %>
 <% if flash[:notice] %>
-  <div class="alert alert-danger">
+  <div class="alert alert-info">
     <%= flash[:notice] %>
+  </div>
+<% end %>
+<% if flash[:warning] %>
+  <div class="alert alert-warning">
+    <%= flash[:warning] %>
   </div>
 <% end %>
