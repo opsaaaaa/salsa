@@ -294,7 +294,7 @@ module ApplicationHelper
   def find_org_by_path path
     path ||= get_org_path
     path.split(/\b(?=\/)/).inject(nil) do |org, slug|
-      Organization.find_by!(parent_id: org&.id, slug: slug)
+      Organization.find_by!(parent: org, slug: slug)
     end
   end
 
