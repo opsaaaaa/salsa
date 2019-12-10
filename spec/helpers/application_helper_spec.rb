@@ -16,7 +16,7 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect( find_org_by_path("#{root_org.slug}#{sub_org.slug}")).to eq sub_org
     end
 
-    it "fails to get a non-existant sub organization" do
+    it "fails to get a non-existent sub organization" do
       expect { find_org_by_path("#{root_org.slug}/bad_sub_org") }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
