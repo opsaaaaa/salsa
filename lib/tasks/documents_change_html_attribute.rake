@@ -19,7 +19,11 @@ namespace :documents do
     documents = Document.where organization: @org.self_and_descendants, period: period
 
     changed = 0
-    STDOUT.puts "Are you sure you to change #{target} to #{new_tag}, on #{documents.count} documents? (yes/no)"
+    STDOUT.puts [
+      "    Change the #{target} attribute to #{new_tag}.",
+      "    #{documents.count} could be changed. (yes/no)"
+    ]
+
     input = STDIN.gets.strip
     if input.downcase == 'yes'
       puts input
@@ -28,7 +32,7 @@ namespace :documents do
       end
     end
     
-    puts "#{changed}/#{documents.count} documents have been changed"
+    STDOUT.puts "    #{changed}/#{documents.count} documents have been changed"
   end
 
   def get_period slug: nil
