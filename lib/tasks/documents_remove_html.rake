@@ -10,7 +10,7 @@ namespace :documents do
     documents = get_documents args[:org_path], args[:period_slug]
 
     changed = 0
-    respond_to( ["    Remove all elements matching: #{target}","    #{documents.count} documents could be changed. (yes/no)" ] ) do |awnser|
+    respond_to_input( ["    Remove all elements matching: #{target}","    #{documents.count} documents could be changed. (yes/no)" ] ) do |awnser|
       if awnser.downcase == 'yes' || awnser.downcase == 'y'
         changed = change_all( documents ) {|doc| remove_elements document: doc, target: target }  
       end

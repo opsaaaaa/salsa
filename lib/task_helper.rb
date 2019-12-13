@@ -9,7 +9,7 @@ module TaskHelper
     STDOUT.puts say
   end
 
-  def respond_to question, &response
+  def respond_to_input question, &response
     response.call ask question
   end
 
