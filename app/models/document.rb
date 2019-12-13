@@ -210,6 +210,16 @@ class Document < ApplicationRecord
     return false
   end
 
+  def change_html &block
+    page = Nokogiri::HTML(self.payload)
+    old_page = page.to_s    
+
+    block.call page
+
+    self.payload = page.to_s
+    old_page != page.to_s && self.save!
+  end
+
   protected
 
   def populate_default_name
