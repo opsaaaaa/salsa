@@ -1,4 +1,7 @@
 
+require 'task_helper'
+require 'documents_task_helper'
+
 namespace :documents do
   
   # examples:
@@ -8,63 +11,22 @@ namespace :documents do
 
   desc "change an html attribute for all documents in an organizations time period"
   task :change_html_attribute, [:org_path, :period_slug, :target, :new_tag] => :environment do |t, args|
-    org_slug = args[:org_path]
-    period_slug = args[:period_slug]
     new_tag = args[:new_tag]
     target = args[:target]
 
-    @org = Organization.find_by slug: org_slug
+    @org = find_org slug: args[:org_path]
+    period = Period.find_by slug: args[:period_slug], organization: @org.self_and_ancestors
 
-    period = get_period slug: period_slug    
     documents = Document.where organization: @org.self_and_descendants, period: period
 
     changed = 0
-    STDOUT.puts [
-      "    Change the #{target} attribute to #{new_tag}.",
-      "    #{documents.count} could be changed. (yes/no)"
-    ]
-
-    input = STDIN.gets.strip
-    if input.downcase == 'yes'
-      puts input
-      documents.each do |doc|
-        changed += 1 if swap_attr document: doc, target: target, new_tag: new_tag
+    respond_to( ["    Change the #{target} attribute to #{new_tag}.","    #{documents.count} could be changed. (yes/no)" ] ) do |awnser|
+      if awnser.downcase == 'yes' || awnser.downcase == 'y'
+        changed = change_all( documents ) {|doc| swap_attr document: doc, target: target, new_tag: new_tag }  
       end
     end
     
-    STDOUT.puts "    #{changed}/#{documents.count} documents have been changed"
-  end
-
-  def get_period slug: nil
-    if slug.present?
-      return Period.where organization: @org.root.self_and_descendants, slug: slug
-    else
-      return Period.where organization: @org.root.self_and_descendants, is_default: true
-    end
-  end
-
-  def swap_attr document:, target:, new_tag:
-    document.change_html do |page|
-      elements = page.css( target )
-  
-      if elements.present?
-        elements.each do |e|
-          e.remove_attribute( attr_name css: target )
-          e[attr_name css: new_tag] = attr_value css: new_tag
-        end
-      end
-    end
-  end
-
-  def attr_name css:
-    css.match( /[\w(_|\-)]+/ ).to_s
-  end
-
-  def attr_value css:
-    css.match( /(?<=('|")).*?(?=('|"))/ ).to_s
+    say "    #{changed}/#{documents.count} documents have been changed"
   end
 
 end
-
-
-
