@@ -1,3 +1,4 @@
+require 'task_helper'
 
 def attr_name css:
   css.match( /[\w(_|\-)]+/ ).to_s
@@ -26,4 +27,11 @@ def swap_attr document:, target:, new_tag:
       end
     end
   end
+end
+
+def get_documents org_path, period_slug
+  org = find_org slug: org_path
+  period = Period.find_by slug: period_slug, organization: org.self_and_ancestors
+
+  Document.where organization: org.self_and_descendants, period: period
 end

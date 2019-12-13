@@ -14,13 +14,10 @@ namespace :documents do
     new_tag = args[:new_tag]
     target = args[:target]
 
-    @org = find_org slug: args[:org_path]
-    period = Period.find_by slug: args[:period_slug], organization: @org.self_and_ancestors
-
-    documents = Document.where organization: @org.self_and_descendants, period: period
+    documents = get_documents args[:org_path], args[:period_slug]
 
     changed = 0
-    respond_to( ["    Change the #{target} attribute to #{new_tag}.","    #{documents.count} could be changed. (yes/no)" ] ) do |awnser|
+    respond_to( ["    Change the #{target} attribute to #{new_tag}.","    #{documents.count} documents could be changed. (yes/no)" ] ) do |awnser|
       if awnser.downcase == 'yes' || awnser.downcase == 'y'
         changed = change_all( documents ) {|doc| swap_attr document: doc, target: target, new_tag: new_tag }  
       end
