@@ -1,8 +1,6 @@
-
-require 'task_helper'
-require 'documents_task_helper'
-
 namespace :documents do
+  require 'documents_task_helper'
+  include DocumentsTaskHelper
   
   # examples:
   # rake "documents:change_html_attribute[org.example.com,2019_sp,[data-default='course_title'],[ data-dynamic='course.course_title']]"

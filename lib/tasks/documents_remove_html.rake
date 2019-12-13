@@ -1,13 +1,7 @@
-
-require 'task_helper'
-require 'documents_task_helper'
-
 namespace :documents do
   
   # examples:
-  # rake "documents:change_html_attribute[org.example.com,2019_sp,[data-default='course_title']]"
-  # rake "documents:change_html_attribute[org.example.com,2019_sp,[data-default='course_id']]"
-  # rake "documents:change_html_attribute[org.example.com,2019_sp,[data-dynamic='course.course_title']]"
+  # rake "documents:remove_html[org.example.com,2019_sp,a#print_link]"
 
   desc "remove html from all documents in an organizations time period"
   task :remove_html, [:org_path, :period_slug, :target] => :environment do |t, args|
