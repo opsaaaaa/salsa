@@ -44,21 +44,16 @@ namespace :documents do
   end
 
   def swap_attr document:, target:, new_tag:
-    page = Nokogiri::HTML(document.payload)
-    
-    elements = page.css( target )
-    old_elements = elements.to_s
-
-    if elements.present?
-      elements.each do |e|
-        e.remove_attribute( attr_name css: target )
-        e[attr_name css: new_tag] = attr_value css: new_tag
+    document.change_html do |page|
+      elements = page.css( target )
+  
+      if elements.present?
+        elements.each do |e|
+          e.remove_attribute( attr_name css: target )
+          e[attr_name css: new_tag] = attr_value css: new_tag
+        end
       end
     end
-
-    document.payload = page.to_s
-
-    old_elements.to_s != elements.to_s && document.save!
   end
 
   def attr_name css:
