@@ -175,7 +175,7 @@ class DocumentsController < ApplicationController
 
     if @lms_course
       # see if there is a organization matched for course
-      if @organization.setting('redirect_to_lms_acount_id_organization') && @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
+      if @organization.setting('redirect_by_lms_acount_id') && @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
         return redirect_to lms_account_course_document_path
       end
       

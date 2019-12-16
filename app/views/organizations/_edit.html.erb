@@ -133,6 +133,14 @@
           </div>
 
           <div class="form-group">
+            <div class="controls">
+              <%= f.check_box :redirect_by_lms_acount_id %>
+              <%= f.label :redirect_by_lms_acount_id, "Skip LMS publish", class: "control-label", "aria-describedby" => "skip-lms-publish-help" %>
+              <div class="help-block" id="skip-lms-publish-help">When enabled, the document:publish event will not try and publish the document to any configured LMS</div>
+            </div>
+          </div>
+
+          <div class="form-group">
             <%= f.label :lms_account_id, "LMS Account ID", class: "control-label", "aria-describedby" => "lms-info-slug-help" %>
             <div class="controls">
               <%= f.text_field :lms_account_id, class: 'form-control' %>
