@@ -1,3 +1,5 @@
+
+<%= salsa_partial("content_header", @organization) %>
 <% if @document.payload %>
   <% if @calendar_only %>
     <% html_doc = Nokogiri::HTML(@document.payload) %>
@@ -13,3 +15,4 @@
 <% else %>
   <%= salsa_partial("salsa", @organization) %>
 <% end %>
+<%= salsa_partial("content_footer", @organization) %>
