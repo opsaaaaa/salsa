@@ -36,6 +36,7 @@ module DocumentsHelper
 
   def lms_account_course_document_path
     org = get_org_by_lms_account_id
+    return nil if org.blank?
     params.permit!
     lms_course_document_path( {org_path: org&.path || params[:org_path], lms_course_id: params[:lms_course_id]}.merge(params.except(:lms_course_id,:org_path, :action, :controller)))
   end

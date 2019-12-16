@@ -175,8 +175,12 @@ class DocumentsController < ApplicationController
 
     if @lms_course
       # see if there is a organization matched for course
-      if @organization.setting('redirect_by_lms_acount_id') && @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
-        return redirect_to lms_account_course_document_path
+      @lms_course['account_id'] = "not cow"
+      if @organization.setting('redirect_by_lms_account_id') && @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
+        lms_account_path = lms_account_course_document_path
+        if !lms_account_path.nil?
+          return redirect_to lms_account_course_document_path
+        end
       end
       
       @document = Document.find_by lms_course_id: params[:lms_course_id], organization: @organization.self_and_descendants
