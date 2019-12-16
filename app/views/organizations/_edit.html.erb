@@ -134,9 +134,9 @@
 
           <div class="form-group">
             <div class="controls">
-              <%= f.check_box :redirect_by_lms_acount_id %>
-              <%= f.label :redirect_by_lms_acount_id, "Skip LMS publish", class: "control-label", "aria-describedby" => "skip-lms-publish-help" %>
-              <div class="help-block" id="skip-lms-publish-help">When enabled, the document:publish event will not try and publish the document to any configured LMS</div>
+              <%= f.check_box :redirect_by_lms_acount_id , "#{"disabled" if @organization&.slug&.start_with?("/")}".to_sym => true%>
+              <%= f.label :redirect_by_lms_acount_id, "Redirect by the LMS Acount ID #{ "(Controlled by root org)" if @organization&.slug&.start_with?("/") }", class: "control-label", "aria-describedby" => "skip-lms-publish-help" %>
+              <div class="help-block" id="skip-lms-publish-help">Try to redirect to a sub-organization using the LMS Account ID</div>
             </div>
           </div>
 
