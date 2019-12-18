@@ -18,4 +18,14 @@ module TaskHelper
     Organization.find_by args
   end
 
+  def yes? str
+    str.downcase == 'yes' || str.downcase == 'y'
+  end
+
+  def respond_to_yes msg, &response
+    respond_to_input( msg ) do |awnser|
+      response.call if yes? awnser
+    end
+  end
+
 end
