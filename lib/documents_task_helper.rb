@@ -65,4 +65,8 @@ module DocumentsTaskHelper
     end
   end
 
+  def msg_documents_changed changed, total
+    say "    #{changed}/#{total} documents have been changed"
+  end
+
 end
