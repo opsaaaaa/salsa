@@ -46,7 +46,7 @@ module DocumentsTaskHelper
     end
   end
 
-  def add_single_element document:, target:, new_html:, as: :child, &condition
+  def add_elements document:, target:, new_html:, as: :child, &condition
     condition ||= Proc.new {|page ,targ, new, atr| (atr['id'].blank? || page.css( "##{atr['id']}").blank?) && targ.count == 1}
     new_elements = Nokogiri::HTML.fragment( new_html )
     new_id = new_elements.css(':root')[0].attribute('id')

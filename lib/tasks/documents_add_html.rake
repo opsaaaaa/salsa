@@ -12,7 +12,7 @@ namespace :documents do
     changed = 0
     respond_to_input( ["    Add html elements matching: #{target}","    #{documents.count} documents could be changed. (yes/no)" ] ) do |awnser|
       if awnser.downcase == 'yes' || awnser.downcase == 'y'
-        changed = change_all( documents ) {|doc| add_single_element document: doc, target: target, new_html: args[:new_html], as: args[:as].to_sym }  
+        changed = change_all( documents ) {|doc| add_elements document: doc, target: target, new_html: args[:new_html], as: args[:as].to_sym }  
       end
     end
     
