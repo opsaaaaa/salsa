@@ -21,20 +21,10 @@ module TaskHelper
   def yes? str
     str.downcase == 'yes' || str.downcase == 'y'
   end
-  
-  def no? str
-    str.downcase == 'no' || str.downcase == 'n'
-  end
 
   def respond_to_yes msg, &response
     respond_to_input( msg ) do |awnser|
       response.call if yes? awnser
-    end
-  end
-  
-  def respond_to_no msg, &response
-    respond_to_input( msg ) do |awnser|
-      response.call if no? awnser
     end
   end
 
