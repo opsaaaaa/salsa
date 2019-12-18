@@ -16,7 +16,6 @@ namespace :documents do
     end
     
     msg_documents_changed changed, documents.count
-    # say "    #{changed}/#{documents.count} documents have been changed"
   end
 
 end
