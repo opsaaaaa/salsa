@@ -1,7 +1,7 @@
 namespace :documents do
   
   # examples:
-  # rake "documents:remove_html[org.example.com,2019_sp,a#print_link]"
+  # rake 'documents:add_html[org.example.com,2019_sp,section#H,<a href target="_blank" id="print_link">print</a>,previous]'
 
   desc "add html to all documents in an organizations time period"
   task :add_html, [:org_path, :period_slug, :target, :new_html, :as] => :environment do |t, args|

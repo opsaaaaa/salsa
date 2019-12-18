@@ -10,13 +10,11 @@ namespace :documents do
     documents = get_documents args[:org_path], args[:period_slug]
 
     changed = 0
-    respond_to_input( ["    Remove all elements matching: #{target}","    #{documents.count} documents could be changed. (yes/no)" ] ) do |awnser|
-      if awnser.downcase == 'yes' || awnser.downcase == 'y'
-        changed = change_all( documents ) {|doc| remove_elements document: doc, target: target }  
-      end
+    respond_to_yes( ["    Remove all elements matching: #{target}","    #{documents.count} documents could be changed. (yes/no)" ] ) do
+      changed = change_all( documents ) {|doc| remove_elements document: doc, target: target }  
     end
     
-    say "    #{changed}/#{documents.count} documents have been changed"
+    msg_documents_changed changed, documents.count
   end
 
 end
