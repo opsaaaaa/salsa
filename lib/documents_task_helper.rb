@@ -46,4 +46,28 @@ module DocumentsTaskHelper
     end
   end
 
+  def add_single_element document:, target:, new_html:, as: :child, &condition
+    condition ||= Proc.new {|page ,targ, new, atr| (atr['id'].blank? || page.css( "##{atr['id']}").blank?) && targ.count == 1}
+    new_elements = Nokogiri::HTML.fragment( new_html )
+    new_id = new_elements.css(':root')[0].attribute('id')
+    document.change_html do |page|
+      # puts new_elements.css(':root')[0].attributes
+      # element = page.css( target )
+      # if (new_id.blank? || page.css( "##{new_id}").blank?) && element.count == 1
+      puts (condition.call page, element, new_elements, new_elements.css(':root')[0].attributes).inspect
+        # puts "woot"
+      #   case as
+      #   when :child
+      #     element[0].add_child(new_elements)
+      #   when :next
+      #     element[0].add_next_sibling(new_elements)
+      #   when :previous
+      #     element[0].add_previous_sibling(new_elements)
+      #   end
+      # else
+      #   puts "anti woot"
+      # end
+    end
+  end
+
 end
