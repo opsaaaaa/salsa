@@ -147,9 +147,9 @@ class DocumentsController < ApplicationController
         relink: params[:relink])
     else
       @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
-      if existing_document?
-        flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue."
-      end
+      # if existing_document?
+      #   flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue."
+      # end
       
       render layout: 'relink', template: '/documents/course_select', notice: "hi", locals: {
         has_existing_document: @existing_document && !@existing_document&.same_record_as?(@document),
@@ -175,8 +175,11 @@ class DocumentsController < ApplicationController
 
     if @lms_course
       # see if there is a organization matched for course
-      if @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
-        return redirect_to lms_account_course_document_path
+      if @organization.root_org_setting('redirect_by_lms_account_id') && @lms_course['account_id'] && @organization.lms_account_id.to_s != @lms_course['account_id'].to_s 
+        org_by_lms_account = get_org_by_lms_account_id
+        if !org_by_lms_account.blank?
+          return redirect_to lms_account_course_document_path org_by_lms_account
+        end
       end
       
       @document = Document.find_by lms_course_id: params[:lms_course_id], organization: @organization.self_and_descendants
