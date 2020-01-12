@@ -1,7 +1,7 @@
 Feature: document_name
 I want my documents to be named automaticly when the name param is passed.
 
-  # ./cucumber.sh features/document_new.feature
+  # ./cucumber.sh features/document_name.feature
 
   Background: 
     Given there is a organization

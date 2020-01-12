@@ -49,7 +49,8 @@ class DocumentsController < ApplicationController
         relink: true,
         lms_course_id: params[:lms_course_id],
         id: document_template.template_id, 
-        org_path: params[:org_path], 
+        org_path: params[:org_path],
+        name: params[:name], 
         batch_token: params[:batch_token])
       return
     end
@@ -241,6 +242,7 @@ class DocumentsController < ApplicationController
     verify_org
     document = template.dup
     document.reset_ids
+    document.name = params[:name] if params[:name]
     link_document_course(document)
     document.save!
     redirect_to edit_document_or_lms_course_path(
