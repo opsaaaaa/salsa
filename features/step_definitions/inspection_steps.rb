@@ -33,3 +33,7 @@ Then(/^the (\w+) (\w+) should be (\w+)$/) do |class_name, record_name, value|
     expect(result).to have_content(value)
   end
 end
+
+Then('a new templated document should exist') do 
+  old_document = @organization.documents.find(@document.id)
+end

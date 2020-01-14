@@ -87,3 +87,7 @@ Given(/^I am on the (\w*document\b) (\w+) page$/) do |document_type, page_path|
     pending
   end
 end
+
+Given('i visit that documents course page with:') do |params|
+  visit lms_course_document_path( Hash[*params.raw.flatten(1)].symbolize_keys )
+end

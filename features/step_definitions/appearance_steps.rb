@@ -26,6 +26,10 @@ Then(/^I should see "(.*?)" in the url$/) do |string|
   expect(page.current_url).to have_content(string)
 end
 
+Then(/^I should not see "(.*?)" in the url$/) do |string|
+  expect(page.current_url).not_to have_content(string)
+end
+
 Then(/^I should be able to see all the (\w+) for the organization$/) do |class_name|
   case class_name
   when /components/
