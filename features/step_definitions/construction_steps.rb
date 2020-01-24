@@ -41,6 +41,14 @@ Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
       .to eq(true)
 end
 
+Given(/^the "(.*?)" belongs to the "(.*?)"$/) do |child_var_name, parent_var_name|
+  parent_record = instance_variable_get("@#{parent_var_name}")
+  child_record = instance_variable_get("@#{child_var_name}")
+  child_record["#{parent_record.class}_id".downcase] = parent_record.id
+  child_record.save!
+  instance_variable_set( "@#{child_var_name}", child_record)
+end
+
 Given(/^there is a (\w+) with a (\w+) of "(.*?)"$/) do |class_name, field_name, field_value|
   instance_variable_set("@#{class_name}", create(class_name, field_name => field_value))
 end
@@ -97,3 +105,9 @@ Given(/^there are (\w+) (\w+)$/) do |amount, class_name|
   instance_variable_set("@#{class_name.pluralize}",record)
 end
 
+Given(/^there is a (\w+) period$/) do |name|
+  period = FactoryBot.create( :period, 
+    organization_id: @organization.id, is_default: (name == 'default')
+  )
+  instance_variable_set("@#{name}_period",period)
+end
