@@ -1,17 +1,11 @@
-Feature: document_name
-I want my documents to be named automaticly when the name param is passed.
+Feature: document template
+I want templated documents to be created correctly.
 
   # ./cucumber.sh features/document_name.feature
 
   Background: 
-    Given there is a organization
+    Given there is a organization with a default period
     And that I am logged in as a admin
-
-  Scenario: create a new document with a name
-    When i visit the document new page with:
-        | name | Crazy New Document Name |
-    Then an "document" should be present with:
-        | name | Crazy New Document Name |
   
   Scenario: template a new document as with a name
     Given the "organization" has a "document"
@@ -20,5 +14,6 @@ I want my documents to be named automaticly when the name param is passed.
     Then an "document" should be present with:
         | name | Crazy Template Document Name |
 
+  Scenario: templates should use the default period.
 
         
