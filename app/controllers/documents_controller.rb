@@ -242,6 +242,8 @@ class DocumentsController < ApplicationController
     verify_org
     document = template.dup
     document.reset_ids
+    period = Period.find_by(is_default: true)
+    document.period = period if period
     document.name = params[:name] if params[:name]
     link_document_course(document)
     document.save!
