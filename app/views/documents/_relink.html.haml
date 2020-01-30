@@ -8,5 +8,5 @@
     - if @existing_document&.lms_course_id == @course_id
       =link_to "Preview", document_path(id: @existing_document.view_id, org_path: org_path), target: :_blank, class: "btn btn-lg btn-default"
       =link_to "Go to the course", lms_course_document_path(lms_course_id: @course_id, org_path: org_path), class: "btn btn-lg btn-primary"
-    =link_to 'Use the SALSA as a template', template_document_path(lms_course_id: @course_id, id: @existing_document.template_id, org_path: params[:org_path], relink: params[:relink], document_token: params[:document_token]), {class: 'btn btn-lg btn-primary'}
+    =link_to 'Use the SALSA as a template', template_document_path(lms_course_id: @course_id, id: @existing_document.template_id, org_path: params[:org_path], relink: params[:relink], document_token: params[:document_token], name: get_course_name), {class: 'btn btn-lg btn-primary'}
   =link_to "Create a new SALSA", new_document_path(lms_course_id: @course_id, org_path: params[:org_path], name: get_course_name, relink: params[:relink], document_token: params[:document_token]), class: "btn btn-lg btn-success"
