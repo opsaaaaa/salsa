@@ -30,5 +30,8 @@ As a designer i want to have a dialog for creating a new salsa
     Then I should see "select" in the url
     When I click on "Use the SALSA as a template"
     Then I should see "the existing document content"
+    And an "document" should be present with:
+      | name | a_new_lms_course_id |
+
 
   Scenario: i break the course select and get a new document instead.
