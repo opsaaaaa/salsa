@@ -12,7 +12,7 @@ As a designer i want to have a dialog for creating a new salsa
     And the "document" has:
       | lms_course_id | an_existing_lms_course_id |
       | view_id | a_matching_token |
-    And i visit that documents course page with:
+    And i visit the course page with:
       | lms_course_id | an_existing_lms_course_id |
       | document_token | a_matching_token |
     Then I should see "My SALSA"
@@ -24,7 +24,7 @@ As a designer i want to have a dialog for creating a new salsa
       | lms_course_id | an_existing_lms_course_id |
       | view_id | a_matching_token |
       | payload | <p>the existing document content</p> |
-    And i visit that documents course page with:
+    And i visit the course page with:
       | lms_course_id | a_new_lms_course_id |
       | document_token | a_matching_token |
     Then I should see "select" in the url
@@ -33,5 +33,23 @@ As a designer i want to have a dialog for creating a new salsa
     And an "document" should be present with:
       | name | a_new_lms_course_id |
 
+  Scenario: template with a token that matches a diffrent document
+    Given the "organization" has a "course_document"
+    Given the "organization" has a "token_document"
+    And the "course_document" has:
+      | lms_course_id | the_lms_course_id |
+      | payload | <p>an empty syllabus</p> |
+    And the "token_document" has:
+      | view_id | the_token |
+      | payload | <p>my imported syllabus content</p> |
+    And i visit the course page with:
+      | lms_course_id | the_lms_course_id |
+      | document_token | the_token |
+    Then I should see "select" in the url
+    When I click on "Use the SALSA as a template"
+    Then I should see "the_lms_course_id" in the url
+    Then an "document" should be present with:
+      | lms_course_id | the_lms_course_id |
+      | payload | <p>my imported syllabus content</p> |
 
   Scenario: i break the course select and get a new document instead.

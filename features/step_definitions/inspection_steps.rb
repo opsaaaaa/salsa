@@ -41,3 +41,7 @@ end
 Then('a new templated document should exist') do 
   old_document = @organization.documents.find(@document.id)
 end
+
+Then('debug') do
+
+end
