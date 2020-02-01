@@ -131,7 +131,8 @@ class DocumentsController < ApplicationController
     allow_existing_salsas_for_new_courses = @organization.root_org_setting("allow_existing_salsas_for_new_courses")
     get_lms_course @organization.setting('lms_authentication_source')
     @course_id = params[:lms_course_id]
-    @existing_document = Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
+    @existing_document = Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
+    @existing_document ||= Document.find_by lms_course_id: @course_id, organization_id: @organization.root.self_and_descendants
 
     user = current_user
     if user
@@ -147,7 +148,6 @@ class DocumentsController < ApplicationController
         name: get_course_name, 
         relink: params[:relink])
     else
-      @existing_document ||= Document.find_by view_id: params[:document_token], organization_id: @organization.root.self_and_descendants if params[:document_token]
       # if existing_document?
       #   flash[:error] = "A SALSA linked to course '#{@course_id}' already exists. Please contact your Salsa Administrator to resolve this issue."
       # end

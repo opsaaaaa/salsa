@@ -15,13 +15,10 @@ Given(/^there is a "(.*?)" with:$/) do |class_name, table|
     .create( Hash[ *table.raw.flatten(1) ] ) )
 end
 
-Given(/^the "(.*?)" has:$/) do |class_name, table|
-  record = instance_variable_get("@#{class_name}")
+Given(/^the "(.*?)" has:$/) do |var_name, table|
+  record = instance_variable_get("@#{var_name}")
   update_hash = Hash[ *table.raw.flatten(1) ]
   record.update update_hash
-  expect(class_name.classify.safe_constantize
-    .find_by(update_hash).present?)
-      .to eq(true)
 end
 
 Given(/^the "(.*?)" has a "(.*?)" with:$/) do |parent_var_name, child_class_name, table|
@@ -36,7 +33,7 @@ Given(/^the "(.*?)" has a "(.*?)"$/) do |parent_var_name, factory_name|
   factory_name = factory_name.to_sym
   parent_record = instance_variable_get("@#{parent_var_name}")
   record = FactoryBot.create(factory_name,"#{parent_record.class}_id".downcase.to_sym=>parent_record.id)
-  instance_variable_set( "@#{record.class.name.downcase}", record)
+  instance_variable_set( "@#{factory_name}", record)
   expect(record.present? && !record.new_record? && record.is_a?(Document))
       .to eq(true)
 end
