@@ -1,8 +1,14 @@
 -if !existing_document? || existing_document_within_organization? || has_role("organization_admin") || params[:document_token]
   .container.text-left
     .row
-      %h1 
-        What should SALSA do with this course?
+      - if !existing_document?
+        %h1 
+          Select a SALSA for the 
+          %b=@course_id 
+          Course
+      - else
+        %h1 
+          This SALSA is linked to another canvas course.
 
 
     .row
