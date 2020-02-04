@@ -168,7 +168,6 @@ class Document < ApplicationRecord
     self.view_id = Document.generate_id
     self.edit_id = Document.generate_id
     self.template_id = Document.generate_id
-    self.name = nil
     self.lms_course_id = nil
   end
 

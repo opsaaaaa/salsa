@@ -1,9 +1,9 @@
 FactoryBot.define do
   #document factory
-  factory :document, aliases: [:course_document, :token_document] do
+  factory :document do
     organization_id {1}
     name {"Document"}
-    lms_course_id {Faker::Number.between(100, 9999).to_s}
+    lms_course_id {"323423432"}
     lms_published_at {DateTime.now}
     created_at {DateTime.now.ago(10)}
     updated_at {DateTime.now}
