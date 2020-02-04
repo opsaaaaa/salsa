@@ -242,7 +242,7 @@ class DocumentsController < ApplicationController
     verify_org
     document = template.dup
     document.reset_ids
-    period = Period.find_by(is_default: true)
+    period = Period.find_by(is_default: true, organization: @organization.self_and_ancestors )
     document.period = period if period
     document.name = params[:name] if params[:name]
     link_document_course(document)
