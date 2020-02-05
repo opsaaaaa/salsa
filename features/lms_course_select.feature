@@ -48,8 +48,7 @@ As a designer i want to have a dialog for creating a new salsa
     Then I should see "select" in the url
     When I click on "Use the SALSA as a template"
     Then I should see "the_lms_course_id" in the url
+    Then I should see "my imported syllabus content"
     Then an "document" should be present with:
       | lms_course_id | the_lms_course_id |
       | payload | <p>my imported syllabus content</p> |
-
-  Scenario: i break the course select and get a new document instead.
