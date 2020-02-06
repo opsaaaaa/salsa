@@ -3,7 +3,7 @@ As a teacher
 I want to be able to create a syllabus
 in order to define what my class will be doing
 
-  # xvfb-run -a bundle exec cucumber features/document.feature RAILS_ENV=test
+  # ./cucumber.sh features/document.feature
 
   Background:
     Given there is a organization
