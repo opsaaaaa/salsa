@@ -15,7 +15,7 @@ module DocumentsHelper
   end
 
   def force_course_link?
-    has_role("organization_admin") && params[:relink] == "true"
+    return true
   end
 
   def link_document_course document
