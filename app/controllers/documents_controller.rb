@@ -325,8 +325,6 @@ class DocumentsController < ApplicationController
        msg = { :status => "error", :message => "Documents for this organization are currently being republished. Please copy your changes and try again later.", :version => @document.versions.count }
      elsif @organization.root_org_setting("track_meta_info_from_document") == false && meta_data_from_doc != nil
         msg = { :status => "error", :message => "Tried to save document meta when document meta not enabled for this organization", :version => @document.versions.count }
-     elsif !(@organization.root_org_setting("enable_workflows") && user && @document.workflow_step_id && assigned_to_user)&& @document.user_id
-        msg = { :status => "error", :message => "You are not authorized to edit this document", :version => @document.versions.count }
      elsif !saved && !meta_data_from_doc_saved
         msg = { :status => "error", :message => "This is not a current version of this document! Please copy your changes and refresh the page to get the current version.", :version => @document.versions.count }
       else
