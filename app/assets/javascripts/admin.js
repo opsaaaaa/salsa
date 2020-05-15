@@ -128,20 +128,18 @@ function republish(token, sources, counter, errors) {
       republish(token, sources, counter, errors);
     });
 
-    if (tb_send_canvas) {
-      tb_send_canvas.on('ajax:beforeSend', function(event, xhr, settings) {
-        settings.data = jquery('#page-data').html();
+    tb_send_canvas.on('ajax:beforeSend', function(event, xhr, settings) {
+      settings.data = jquery('#page-data').html();
 
-        settings.url = settings.url + "&batch_token=" + token;
-      });
+      settings.url = settings.url + "&batch_token=" + token;
+    });
 
-      tb_send_canvas.on('ajax:success', function(event,data) {
-        if(data.status != 'ok') {
-          errors++;
-        }
-      });
+    tb_send_canvas.on('ajax:success', function(event,data) {
+      if(data.status != 'ok') {
+        errors++;
+      }
+    });
     }
-
 
     a.trigger('click.rails');
 
