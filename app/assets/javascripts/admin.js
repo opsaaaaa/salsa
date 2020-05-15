@@ -105,7 +105,7 @@ function republish(token, sources, counter, errors) {
       run_document_meta_in_iframe(settings)
 
       // should be save to LMS...
-      $('#tb_send_canvas:visible').trigger('click');
+      // if($('#tb_send_canvas:visible')).trigger('click');
     });
 
     a.on('ajax:success', function(event,data) {
@@ -127,19 +127,6 @@ function republish(token, sources, counter, errors) {
 
       republish(token, sources, counter, errors);
     });
-
-    tb_send_canvas.on('ajax:beforeSend', function(event, xhr, settings) {
-      settings.data = jquery('#page-data').html();
-
-      settings.url = settings.url + "&batch_token=" + token;
-    });
-
-    tb_send_canvas.on('ajax:success', function(event,data) {
-      if(data.status != 'ok') {
-        errors++;
-      }
-    });
-    }
 
     a.trigger('click.rails');
 
